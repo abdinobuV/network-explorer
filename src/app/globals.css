@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+:root {
+  --navy-950: #060f24;
+  --navy-900: #081226;
+  --navy-800: #0c1d3a;
+  --card: #13294b;
+  --card-2: #16294d;
+  --cyan: #00c2e0;
+  --cyan-light: #22d3ee;
+  --neon: #00e676;
+  --danger: #ff2d55;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--navy-900);
+  color: #e2e8f0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background-image: radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.12) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+.card {
+  background: linear-gradient(180deg, #14294d 0%, #101f3d 100%);
+  border: 1px solid rgba(0, 194, 224, 0.18);
+  border-radius: 1rem;
+}
+
+.btn-neon {
+  background: var(--neon);
+  color: #06121f;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.btn-neon:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.btn-neon:disabled {
+  opacity: 0.5;
+  transform: none;
+}
+
+.btn-cyan {
+  background: var(--cyan);
+  color: #06121f;
+  font-weight: 700;
+  border-radius: 0.75rem;
+}
+.btn-cyan:hover {
+  filter: brightness(1.1);
+}
+
+.btn-ghost {
+  border: 1px solid rgba(0, 194, 224, 0.6);
+  color: var(--cyan-light);
+  border-radius: 0.75rem;
+  font-weight: 600;
+}
+.btn-ghost:hover {
+  background: rgba(0, 194, 224, 0.12);
+}
+
+.input {
+  width: 100%;
+  background: #0a1428;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  color: #e2e8f0;
+  outline: none;
+}
+.input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0, 194, 224, 0.2);
+}
+
+.chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cyan-light);
+  background: rgba(0, 194, 224, 0.12);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.packet-flow {
+  stroke-dasharray: 6 6;
+  animation: dash-flow 0.8s linear infinite;
+}
+
+@keyframes ping-dot {
+  0% {
+    offset-distance: 0%;
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
