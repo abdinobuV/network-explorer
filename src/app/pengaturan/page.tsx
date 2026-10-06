@@ -8,9 +8,9 @@ import { signOutFirebase } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
 export default function Pengaturan() {
-  const { user, update, logout } = useAuth();
+  const { user, fuser, update, logout } = useAuth();
   const r = useRouter();
-  const [name, setName] = useState(user?.name ?? "Siswa Navigator");
+  const [name, setName] = useState(fuser?.displayName ?? user?.name ?? "Siswa Navigator");
   const [kelas, setKelas] = useState(user?.kelas ?? "XI");
   const [tips, setTips] = useState(true);
   const [sound, setSound] = useState(false);
@@ -42,7 +42,7 @@ export default function Pengaturan() {
                 <div><label className="text-sm font-bold">Kelas</label>
                   <select className="input mt-1" value={kelas} onChange={(e) => setKelas(e.target.value)}><option>X</option><option>XI</option><option>XII</option></select></div>
               </div>
-              <div className="mt-3 rounded-lg bg-black/30 p-3 text-sm text-slate-400">✉ Email akun: {user?.email ?? "navigator@example.com"} <span className="float-right text-xs">Data contoh</span></div>
+              <div className="mt-3 rounded-lg bg-black/30 p-3 text-sm text-slate-400">✉ Email akun: {fuser?.email ?? user?.email ?? "navigator@example.com"} <span className="float-right text-xs">{fuser ? "Akun Google tersinkron ☁" : "Data contoh"}</span></div>
               <div className="mt-3 flex justify-end gap-3">
                 <button onClick={() => { setName(user?.name ?? ""); setKelas(user?.kelas ?? "XI"); }} className="btn-ghost px-5 py-2 text-sm">Batal</button>
                 <button onClick={() => { update({ name, kelas }); setSaved("Perubahan disimpan."); setTimeout(() => setSaved(""), 2500); }} className="btn-cyan px-5 py-2 text-sm">Simpan Perubahan</button>
@@ -51,7 +51,7 @@ export default function Pengaturan() {
             </div>
             <div className="card flex items-center justify-between p-6">
               <div><h3 className="font-extrabold">🔒 Kata sandi</h3><p className="text-sm text-slate-400">Jaga akunmu dengan kata sandi yang unik.</p></div>
-              <Link href="/auth/reset" className="btn-ghost px-5 py-2 text-sm">Ubah Kata Sandi</Link>
+              <Link href="/auth/lupa" className="btn-ghost px-5 py-2 text-sm">Ubah Kata Sandi</Link>
             </div>
             <div className="card p-6">
               <h3 className="font-extrabold">Preferensi Belajar</h3>

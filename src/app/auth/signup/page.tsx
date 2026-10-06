@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import { TopoMini } from "@/components/topo";
 import { useAuth } from "@/lib/store";
+import { isFirebaseConfigured, signUpWithEmail } from "@/lib/firebase";
 
 export default function SignupPage() {
   const { signup, user, ready } = useAuth();
@@ -33,9 +34,15 @@ export default function SignupPage() {
           <p className="text-sm text-slate-400">Buat akun siswa untuk menyimpan perjalanan belajarmu.</p>
           <form
             className="mt-5 space-y-4"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               if (!agree) return setErr("Centang persetujuan Ketentuan & Privasi dulu.");
+              if (isFirebaseConfigured) {
+                const m = await signUpWithEmail(f.name, f.email, f.pass);
+                if (m) setErr(m);
+                else r.push("/misi");
+                return;
+              }
               const m = signup({ name: f.name, email: f.email, kelas: f.kelas, pass: f.pass });
               if (m) setErr(m);
               else r.push("/misi");

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { isFirebaseConfigured, signInWithGoogle } from "@/lib/firebase";
+import { isFirebaseConfigured, signInWithEmail, signInWithGoogle } from "@/lib/firebase";
 import { Navbar, Footer } from "@/components/chrome";
 import { TopoMini } from "@/components/topo";
 import { useAuth } from "@/lib/store";
@@ -38,14 +38,20 @@ export function LoginForm() {
   useEffect(() => {
     if (ready && (user || fuser)) r.replace("/misi");
   }, [ready, user, fuser, r]);
-  const [email, setEmail] = useState("navigator@example.com");
-  const [pass, setPass] = useState("password123");
+  const [email, setEmail] = useState(isFirebaseConfigured ? "" : "navigator@example.com");
+  const [pass, setPass] = useState(isFirebaseConfigured ? "" : "password123");
   const [show, setShow] = useState(false);
   const [err, setErr] = useState("");
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
+        if (isFirebaseConfigured) {
+          const m = await signInWithEmail(email, pass);
+          if (m) setErr(m);
+          else r.push("/misi");
+          return;
+        }
         const m = login(email, pass);
         if (m) setErr(m);
         else r.push("/misi");

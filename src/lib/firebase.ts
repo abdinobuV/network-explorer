@@ -1,9 +1,13 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import {
+  createUserWithEmailAndPassword,
   getAuth,
   GoogleAuthProvider,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
   onAuthStateChanged,
   type Auth,
   type User as FUser,
@@ -69,6 +73,58 @@ export async function signOutFirebase() {
   try {
     if (auth) await signOut(auth);
   } catch {}
+}
+
+function fbErr(e: unknown): string {
+  const code = (e as { code?: string })?.code;
+  if (code === "auth/email-already-in-use") return "Email sudah terdaftar. Silakan masuk.";
+  if (code === "auth/weak-password") return "Kata sandi terlalu lemah (minimal 6 karakter).";
+  if (code === "auth/invalid-credential" || code === "auth/user-not-found" || code === "auth/wrong-password")
+    return "Email atau kata sandi salah.";
+  if (code === "auth/invalid-email") return "Format email tidak valid.";
+  if (code === "auth/too-many-requests") return "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.";
+  if (code === "auth/operation-not-allowed")
+    return "Login email belum diaktifkan. Nyalakan di Firebase Console → Authentication → Sign-in method → Email/Password.";
+  if (code === "auth/network-request-failed") return "Jaringan bermasalah. Periksa koneksi internetmu.";
+  return "Terjadi kesalahan. Coba lagi.";
+}
+
+export async function signUpWithEmail(name: string, email: string, pass: string): Promise<string | null> {
+  if (!auth) return "Firebase belum dikonfigurasi. Isi .env.local dulu.";
+  try {
+    const c = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+    if (name.trim()) {
+      try {
+        await updateProfile(c.user, { displayName: name.trim() });
+      } catch {}
+    }
+    return null;
+  } catch (e) {
+    return fbErr(e);
+  }
+}
+
+export async function signInWithEmail(email: string, pass: string): Promise<string | null> {
+  if (!auth) return "Firebase belum dikonfigurasi. Isi .env.local dulu.";
+  try {
+    await signInWithEmailAndPassword(auth, email.trim(), pass);
+    return null;
+  } catch (e) {
+    return fbErr(e);
+  }
+}
+
+// Mengirim email reset ASLI via Firebase (tautan di email ditangani halaman resmi Firebase).
+export async function sendResetEmail(email: string): Promise<string | null> {
+  if (!auth) return "Firebase belum dikonfigurasi. Isi .env.local dulu.";
+  try {
+    await sendPasswordResetEmail(auth, email.trim());
+    return null;
+  } catch (e) {
+    const code = (e as { code?: string })?.code;
+    if (code === "auth/user-not-found") return "Email tidak terdaftar. Periksa ejaan atau daftar dulu.";
+    return fbErr(e);
+  }
 }
 
 // ---- sinkron progres / nilai ke Firestore ----

@@ -5,9 +5,11 @@ import RequireAuth from "@/components/require-auth";
 import { useAuth, useProg } from "@/lib/store";
 
 export default function Profil() {
-  const { user } = useAuth();
+  const { user, fuser } = useAuth();
   const { xp } = useProg();
-  const name = user?.name ?? "Siswa Navigator";
+  const name = fuser?.displayName ?? user?.name ?? "Siswa Navigator";
+  const email = fuser?.email ?? user?.email ?? "navigator@example.com";
+  const kelas = user?.kelas ?? "XI";
   return (
     <RequireAuth>
     <div>
@@ -19,10 +21,10 @@ export default function Profil() {
         <div className="card mt-5 flex flex-col gap-4 border-[#00c2e0] p-6 md:flex-row md:items-center">
           <span className="grid h-20 w-20 place-items-center rounded-full border-2 border-[#00c2e0] bg-gradient-to-br from-fuchsia-500 to-cyan-500 text-4xl">🧑‍🚀</span>
           <div className="flex-1">
-            <span className="chip">SISWA • KELAS {user?.kelas ?? "XI"}</span>
+            <span className="chip">SISWA • KELAS {kelas}</span>
             <div className="mt-1 text-3xl font-extrabold">{name}</div>
             <div className="text-sm text-slate-400">Penjelajah jaringan yang belajar satu koneksi demi satu koneksi.</div>
-            <div className="text-xs text-slate-500">{user?.email ?? "navigator@example.com"}</div>
+            <div className="text-xs text-slate-500">{email}{fuser ? " • ☁ tersinkron" : ""}</div>
           </div>
           <div className="text-right"><div className="text-2xl font-black">Level 4</div><div className="font-bold text-[#00e676]">XP: {xp.toLocaleString("id-ID")}</div></div>
           <Link href="/pengaturan" className="btn-ghost px-5 py-2 text-sm">Edit Profil</Link>
@@ -47,7 +49,7 @@ export default function Profil() {
           <div className="card p-5">
             <div className="text-[#22d3ee]">👤</div>
             <h3 className="mt-1 font-extrabold">Ruang belajarmu</h3>
-            <p className="mt-1 text-sm text-slate-400">Kelas {user?.kelas ?? "XI"} • Informatika</p>
+            <p className="mt-1 text-sm text-slate-400">Kelas {kelas} • Informatika</p>
             <p className="mt-2 text-sm text-slate-400">Ubah identitas dan preferensi belajarmu melalui Pengaturan Akun.</p>
             <Link href="/pengaturan" className="mt-2 inline-block text-sm font-bold text-[#22d3ee]">Buka Pengaturan Akun →</Link>
           </div>
