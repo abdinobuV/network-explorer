@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
 import { useAuth } from "@/lib/store";
+import { signOutFirebase } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
 export default function Pengaturan() {
@@ -65,7 +66,7 @@ export default function Pengaturan() {
             </div>
             <div className="flex items-center justify-between rounded-2xl border border-white/10 p-5">
               <div><b className="text-sm">Selesai belajar untuk sekarang?</b><p className="text-xs text-slate-400">Keluar jika menggunakan komputer bersama. Progres tetap tersimpan.</p></div>
-              <button onClick={() => { logout(); r.push("/auth/login"); }} className="btn-ghost px-5 py-2 text-sm">Keluar</button>
+              <button onClick={async () => { await signOutFirebase(); logout(); r.push("/auth/login"); }} className="btn-ghost px-5 py-2 text-sm">Keluar</button>
             </div>
           </div>
         </div>

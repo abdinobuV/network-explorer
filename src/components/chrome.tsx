@@ -16,8 +16,10 @@ export function Logo() {
 
 export function Navbar({ pub = false }: { pub?: boolean }) {
   const path = usePathname();
-  const { user } = useAuth();
-  const { xp } = useProg();
+  const { user, fuser } = useAuth();
+  const displayName = fuser?.displayName ?? user?.name ?? "Siswa Navigator";
+  const avatar = fuser?.photoURL ?? null;
+  const { xp, cloudOn, syncing } = useProg();
   const level = 4 + Math.floor(Math.max(0, xp - 2450) / 1000);
   if (pub) {
     return (
@@ -63,10 +65,15 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
         </nav>
         <div className="flex items-center gap-2 text-right">
           <div className="leading-tight">
-            <div className="max-w-[110px] truncate text-sm font-bold sm:max-w-none">{user?.name ?? "Siswa Navigator"}</div>
-            <div className="text-xs text-[#00e676]">XP: {xp.toLocaleString("id-ID")} / Level {level}</div>
+            <div className="max-w-[110px] truncate text-sm font-bold sm:max-w-none">{displayName}</div>
+            <div className="text-xs text-[#00e676]">
+              XP: {xp.toLocaleString("id-ID")} / Level {level}
+              {cloudOn && <span className="ml-1 text-[#22d3ee]">{syncing ? "☁ …" : "☁ ✓"}</span>}
+            </div>
           </div>
-          <Link href="/profil" className="grid h-9 w-9 place-items-center rounded-full border border-[#00c2e0] bg-gradient-to-br from-fuchsia-500 to-cyan-500 text-sm">🧑‍🚀</Link>
+          <Link href="/profil" className="grid h-9 w-9 place-items-center overflow-hidden rounded-full border border-[#00c2e0] bg-gradient-to-br from-fuchsia-500 to-cyan-500 text-sm">
+            {avatar ? <img src={avatar} alt="foto profil" className="h-full w-full object-cover" /> : "🧑‍🚀"}
+          </Link>
         </div>
       </div>
       <div className="border-t border-white/5">
@@ -92,7 +99,11 @@ export function Footer({ help = false }: { help?: boolean }) {
         {help ? (
           <Link href="/glosarium" className="text-[#22d3ee]">Butuh bantuan? Buka Glosarium &amp; Bantuan</Link>
         ) : (
-          <span className="text-[#22d3ee]">Bantuan • Privasi • Ketentuan</span>
+          <span className="flex gap-2 text-[#22d3ee]">
+            <Link href="/glosarium" className="hover:underline">Bantuan</Link> •
+            <Link href="/privasi" className="hover:underline">Privasi</Link> •
+            <Link href="/ketentuan" className="hover:underline">Ketentuan</Link>
+          </span>
         )}
       </div>
     </footer>

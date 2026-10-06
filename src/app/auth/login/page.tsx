@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { isFirebaseConfigured, signInWithGoogle } from "@/lib/firebase";
 import { Navbar, Footer } from "@/components/chrome";
 import { TopoMini } from "@/components/topo";
 import { useAuth } from "@/lib/store";
@@ -32,11 +33,11 @@ function AuthShell({ title, sub, children, side = "Setiap koneksi punya cerita. 
 }
 
 export function LoginForm() {
-  const { login, user, ready } = useAuth();
+  const { login, user, fuser, ready } = useAuth();
   const r = useRouter();
   useEffect(() => {
-    if (ready && user) r.replace("/misi");
-  }, [ready, user, r]);
+    if (ready && (user || fuser)) r.replace("/misi");
+  }, [ready, user, fuser, r]);
   const [email, setEmail] = useState("navigator@example.com");
   const [pass, setPass] = useState("password123");
   const [show, setShow] = useState(false);
@@ -66,6 +67,26 @@ export function LoginForm() {
       <div className="text-right text-sm"><Link href="/auth/lupa" className="text-[#22d3ee]">Lupa kata sandi?</Link></div>
       {err && <p className="rounded-lg bg-red-500/10 p-3 text-sm text-red-300">{err}</p>}
       <button className="btn-cyan w-full py-3">Masuk →</button>
+      <div className="flex items-center gap-3 text-xs text-slate-500">
+        <span className="h-px flex-1 bg-white/10" /> atau <span className="h-px flex-1 bg-white/10" />
+      </div>
+      <button
+        type="button"
+        onClick={async () => {
+          const m = await signInWithGoogle();
+          if (m) setErr(m);
+          else r.push("/misi");
+        }}
+        className="flex w-full items-center justify-center gap-2 rounded-[0.75rem] border border-white/20 bg-white py-3 text-sm font-bold text-slate-800 hover:bg-slate-100"
+      >
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-white font-black text-[#4285F4] ring-1 ring-slate-300">G</span>
+        Masuk dengan Google
+      </button>
+      {!isFirebaseConfigured && (
+        <p className="rounded-lg bg-[#ffb020]/10 p-3 text-center text-xs text-[#ffb020]">
+          Login Google aktif setelah Firebase dikonfigurasi. Sementara itu pakai akun demo di atas.
+        </p>
+      )}
       <p className="text-center text-sm text-slate-400">Belum punya akun? <Link href="/auth/signup" className="text-[#22d3ee] font-semibold">Daftar sekarang</Link></p>
       <p className="text-center text-xs text-slate-500">🛡 Jangan bagikan kata sandimu kepada siapa pun.</p>
     </form>
