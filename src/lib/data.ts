@@ -10,7 +10,17 @@ export interface TopoInfo {
   kelebihan: string[];
   kekurangan: string[];
   cek: { q: string; a: string };
+  video: { id: string; start: number; title: string; channel: string; watchUrl: string };
 }
+
+// Satu video untuk ketiga materi (WhiteboardDoodles, Bahasa Inggris —
+// aktifkan subtitle Indonesia via tombol CC), mulai otomatis di chapter tiap topologi.
+const VIDEO_BASE = {
+  id: "fS9vZewbCs4",
+  title: "Network Topologies Explained: Bus, Star, Ring & More",
+  channel: "WhiteboardDoodles (YouTube)",
+  watchUrl: "https://www.youtube.com/watch?v=fS9vZewbCs4",
+};
 
 export const TOPOLOGI: Record<TopoKey, TopoInfo> = {
   bus: {
@@ -30,6 +40,7 @@ export const TOPOLOGI: Record<TopoKey, TopoInfo> = {
       q: "Jika kabel utama (backbone) putus di tengah, apa dampaknya pada jaringan?",
       a: "Segmen terbelah — PC di sisi berbeda tidak bisa saling berkomunikasi karena tidak ada jalur alternatif. Itulah kelemahan single point of failure pada Bus.",
     },
+    video: { ...VIDEO_BASE, start: 88 },
   },
   ring: {
     key: "ring",
@@ -48,6 +59,7 @@ export const TOPOLOGI: Record<TopoKey, TopoInfo> = {
       q: "Mengapa topologi Ring jarang mengalami tabrakan data dibanding topologi Bus?",
       a: "Karena pengiriman diatur bergiliran (token / urutan ring). Hanya satu pengirim dalam satu waktu, tidak seperti Bus yang medianya diperebutkan bersama.",
     },
+    video: { ...VIDEO_BASE, start: 276 },
   },
   star: {
     key: "star",
@@ -66,6 +78,7 @@ export const TOPOLOGI: Record<TopoKey, TopoInfo> = {
       q: "Jika kabel PC-03 putus, PC mana saja yang masih bisa saling berkomunikasi?",
       a: "Semua PC lain (PC-01, 02, 04, 05) tetap bisa berkomunikasi via Switch. Hanya PC-03 yang terisolasi — keunggulan isolasi gangguan pada Star.",
     },
+    video: { ...VIDEO_BASE, start: 176 },
   },
 };
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
 import { TopoDiagram } from "@/components/topo";
+import VideoBlock from "@/components/video-block";
 import { TOPOLOGI, type TopoKey } from "@/lib/data";
 import { useProg } from "@/lib/store";
 
@@ -36,13 +37,7 @@ export default function Materi() {
                 </div>
               )}
               {tab === "video" && (
-                <div className="card grid h-64 place-items-center p-6 text-center text-sm text-slate-300">
-                  <div>
-                    <div className="text-4xl">▶️</div>
-                    <b>Video Singkat (placeholder)</b>
-                    <p className="text-xs text-slate-500">Ganti dengan embed video tim sebelum pengumpulan.</p>
-                  </div>
-                </div>
+                <VideoBlock topo={t.key} />
               )}
             </div>
             <div className="mt-3 flex gap-2 text-sm">
@@ -89,7 +84,7 @@ export default function Materi() {
       </main>
       <div className="border-t border-white/10 bg-[#0c1d3a]">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
-          <span>Sumber aset: ilustrasi dibuat tim pengembang • Narasi dan video: diisi tim sebelum pengumpulan</span>
+          <span>Sumber aset: ilustrasi dibuat tim pengembang • Video: WhiteboardDoodles (YouTube) • Narasi audio: diisi tim sebelum pengumpulan</span>
           <div className="flex gap-3">
             <Link href="/misi" className="btn-ghost px-5 py-2 text-sm">← Kembali ke Menu</Link>
             <Link href={`/praktik/${t.key}`} onClick={() => markDone(`materi-${t.key}`, 50)} className="btn-neon px-5 py-2 text-sm">
