@@ -99,6 +99,25 @@ Mode demo cocok untuk presentasi di kelas tanpa koneksi.
 
 ## Deploy
 
+Panduan lengkap ada di **[`docs/PANDUAN-DEPLOY.md`](docs/PANDUAN-DEPLOY.md)**.
+
+Ringkasnya:
+
+1. **Firebase Console** — nyalakan Email/Password & Google, tambahkan domain Vercel ke
+   *Authorized domains*, arahkan *Action URL for password reset* ke
+   `https://<domain>/auth/reset-kata-sandi`.
+2. **Deploy aturan Firestore** (wajib, kalau tidak seluruh tulis ditolak):
+
+   ```bash
+   npm install -g firebase-tools
+   firebase login
+   npm run deploy:rules
+   ```
+
+3. **Vercel** — *Import Project* dari GitHub repo ini, isi keenam
+   `NEXT_PUBLIC_FIREBASE_*` di Environment Variables, lalu **Deploy**.
+4. Kembalikan domain Vercel ke *Authorized domains* di Firebase.
+
 ### Vercel (disarankan)
 
 1. Push repo ke GitHub, lalu **Import Project** di Vercel.

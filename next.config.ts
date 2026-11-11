@@ -20,7 +20,7 @@ const csp = [
   "img-src 'self' data: blob: https://lh3.googleusercontent.com https://www.youtube.com https://i.ytimg.com",
   "font-src 'self' data:",
   `connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com${isDev ? " ws: http:" : ""}`,
-  "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://*.firebaseapp.com",
+  "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://*.firebaseapp.com https://accounts.google.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
   "object-src 'none'",
