@@ -16,6 +16,7 @@
     "icons": "node scripts/make-icons.mjs",
     "deploy:check": "node scripts/deploy-check.mjs",
     "deploy:env": "node scripts/vercel-env.mjs",
+    "cek:produksi": "node scripts/cek-produksi.mjs",
     "deploy:rules": "npx firebase-tools deploy --only firestore:rules",
     "deploy": "node scripts/deploy.mjs",
     "deploy:preview": "node scripts/deploy.mjs --preview",

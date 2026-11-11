@@ -83,13 +83,22 @@ function hasCommand(cmd) {
 if (hasCommand("vercel")) ok.push("vercel CLI tersedia");
 else problems.push("vercel CLI belum ada — jalankan: npm install -D vercel");
 
-const vercelAuth =
+/* Vercel CLI 65 menyimpan kredensial di <APPDATA>\com.vercel.cli\Data\auth.json
+   (versi lama memakai com.vercel.cli\auth.json). Cek keduanya. */
+const vercelAuthPaths =
   process.platform === "win32"
-    ? `${process.env.APPDATA}\\com.vercel.cli\\auth.json`
-    : `${process.env.HOME}/.local/share/com.vercel.cli/auth.json`;
+    ? [
+        `${process.env.APPDATA}\\com.vercel.cli\\Data\\auth.json`,
+        `${process.env.APPDATA}\\com.vercel.cli\\auth.json`,
+      ]
+    : [
+        `${process.env.HOME}/.local/share/com.vercel.cli/auth.json`,
+        `${process.env.HOME}/.local/share/com.vercel.cli/Data/auth.json`,
+      ];
+
 if (process.env.VERCEL_TOKEN) {
   ok.push("VERCEL_TOKEN diset — deploy Vercel berjalan non-interaktif");
-} else if (existsSync(vercelAuth)) {
+} else if (vercelAuthPaths.some((p) => existsSync(p))) {
   ok.push("sesi Vercel tersimpan (login sudah pernah dilakukan)");
 } else {
   problems.push(
@@ -97,13 +106,17 @@ if (process.env.VERCEL_TOKEN) {
   );
 }
 
-const firebaseAuth =
+const firebaseAuthPaths =
   process.platform === "win32"
-    ? `${process.env.APPDATA}\\firebase\\login.json`
-    : `${process.env.HOME}/.config/configstore/firebase-tools.json`;
+    [
+      `${process.env.APPDATA}\\firebase\\login.json`,
+      `${process.env.APPDATA}\\configstore\\firebase-tools.json`,
+    ]
+    : [`${process.env.HOME}/.config/configstore/firebase-tools.json`];
+
 if (process.env.FIREBASE_TOKEN) {
   ok.push("FIREBASE_TOKEN diset — deploy rules berjalan non-interaktif");
-} else if (existsSync(firebaseAuth)) {
+} else if (firebaseAuthPaths.some((p) => existsSync(p))) {
   ok.push("sesi Firebase CLI tersimpan");
 } else {
   problems.push(

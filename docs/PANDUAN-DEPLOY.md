@@ -31,7 +31,11 @@ localhost                             # untuk pengembangan lokal
 Tanpa ini, **login Google akan gagal** dengan pesan
 `auth/unauthorized-domain`.
 
-### A3. Arahkan reset kata sandi ke aplikasi
+> **Status saat ini (sudah diverifikasi):** `network-explorer-xi.vercel.app` **sudah terdaftar**
+> di proyek `misi-topologi`, jadi login email/password maupun Google langsung bisa dipakai.
+> Cek daftar ini hanya bila kamu mengganti domain.
+
+### A3. (Opsional) Arahkan reset kata sandi ke aplikasi
 **Firebase Console → Authentication → Settings → Action URL for password reset**
 
 Isi dengan:
@@ -40,10 +44,13 @@ Isi dengan:
 https://network-explorer-xi.vercel.app/auth/reset-kata-sandi
 ```
 
-Lalu pilih **Continue**. Dengan ini halaman reset milik aplikasi yang dipakai,
-bukan halaman bawaan Firebase. (Kalau dibiarkan kosong, tautan email tetap
-mengarah ke halaman Firebase — aplikasinya masih berfungsi, hanya bukan
-halaman yang kita buat.)
+Lalu pilih **Continue**.
+
+> **Status saat ini:** action URL masih memakai halaman bawaan Firebase
+> (`https://misi-topologi.firebaseapp.com/__/auth/action`). **Alur reset tetap berfungsi
+> normal** — hanya halamannya bukan desain aplikasi kita. Setelan ini tidak bisa diubah
+> lewat API, jadi harus lewat dashboard. Aplikasi kita sudah punya halaman
+> `/auth/reset-kata-sandi` yang siap dipakai bila ingin dialihkan.
 
 ### A4. Deploy aturan Firestore
 Aturan keamanan **wajib** di-deploy, kalau tidak seluruh tulis dari browser
@@ -169,8 +176,11 @@ npm run deploy:all
 ### Yang perlu dilakukan sekali, apa pun modenya
 
 - Firebase Console → **Authorized domains** → tambahkan domain Vercel (bagian A2).
-- Firebase Console → **Action URL for password reset** → arahkan ke
-  `https://<domain>/auth/reset-kata-sandi` (bagian A3).
+- Buat akun demo di Firebase bila belum ada:
+
+  ```bash
+  node scripts/cek-produksi.mjs --buat-akun-demo
+  ```
 
 Keduanya hanya bisa dilakukan lewat dashboard, tidak ada yang bisa diper automate.
 

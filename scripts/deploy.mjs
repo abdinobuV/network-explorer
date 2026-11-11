@@ -15,11 +15,16 @@ const withRules = process.argv.includes("--rules");
 
 /** Berhenti dengan pesan yang jelas bila belum terautentikasi. */
 function butuhAuth() {
-  const authFile =
+  const authFiles =
     process.platform === "win32"
-      ? `${process.env.APPDATA}\\com.vercel.cli\\auth.json`
-      : `${process.env.HOME}/.local/share/com.vercel.cli/auth.json`;
-  return !process.env.VERCEL_TOKEN && !existsSync(authFile);
+      ? [
+          `${process.env.APPDATA}\\com.vercel.cli\\Data\\auth.json`,
+          `${process.env.APPDATA}\\com.vercel.cli\\auth.json`,
+        ]
+      : [`${process.env.HOME}/.local/share/com.vercel.cli/auth.json`];
+  return (
+    !process.env.VERCEL_TOKEN && !authFiles.some((p) => existsSync(p))
+  );
 }
 
 if (butuhAuth()) {
@@ -34,7 +39,7 @@ if (butuhAuth()) {
 }
 
 function bin(name) {
-  const p = process.platform === "win32" ? "node_modules/.bin" : "node_modules/.bin";
+  const p = "node_modules/.bin";
   return `${p}/${name}${process.platform === "win32" ? ".cmd" : ""}`;
 }
 
@@ -45,20 +50,25 @@ function run(cmd, args, tokenEnv) {
   console.log(`\n> ${cmd} ${finalArgs.join(" ")}\n`);
   execFileSync(cmd, finalArgs, { stdio: "inherit", shell: process.platform === "win32" });
 }
-
 if (withRules) {
   console.log("\n=== 1/2 Men-deploy aturan Firestore ===\n");
-  const fb = existsSync(bin("firebase"))
-    ? bin("firebase")
-    : "npx";
-  const fbArgs = existsSync(bin("firebase"))
-    ? ["deploy", "--only", "firestore:rules", "--project", "misi-topologi"]
-    : ["--yes", "firebase-tools", "deploy", "--only", "firestore:rules", "--project", "misi-topologi"];
-  run(fb, fbArgs, "FIREBASE_TOKEN");
+  run(
+    "npx",
+    [
+      "--yes",
+      "firebase-tools",
+      "deploy",
+      "--only",
+      "firestore:rules",
+      "--project",
+      "misi-topologi",
+    ],
+    "FIREBASE_TOKEN",
+  );
 }
 
 console.log(`\n=== ${withRules ? "2/2" : "1/1"} Deploy ke Vercel ===\n`);
 const vercelArgs = isPreview ? ["--yes"] : ["--prod", "--yes"];
-run(bin("vercel"), vercelArgs, "VERCEL_TOKEN");
+run("npx", ["vercel", ...vercelArgs], "VERCEL_TOKEN");
 
 console.log("\nSelesai. Buka URL yang tertera di atas untuk memeriksa hasilnya.\n");

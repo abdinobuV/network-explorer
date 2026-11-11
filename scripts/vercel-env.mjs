@@ -32,11 +32,10 @@ function readEnvFile() {
   return out;
 }
 
-function vercel(args, input) {
+function vercel(args) {
   return execFileSync("npx", ["vercel", ...args], {
-    input,
     encoding: "utf8",
-    stdio: ["pipe", "pipe", "pipe"],
+    stdio: ["ignore", "pipe", "pipe"],
     shell: process.platform === "win32",
   });
 }
@@ -53,7 +52,7 @@ if (vars.length === 0) {
 
 let existing = "";
 try {
-  existing = vercel(["env", "ls", "production"]);
+  existing = vercel(["env", "ls"]);
 } catch {
   console.error("Gagal membaca daftar environment Vercel. Sudah login & project di-link?");
   process.exit(1);
@@ -71,7 +70,19 @@ for (const [key, value] of vars) {
 
   for (const target of ["production", "preview"]) {
     try {
-      vercel(["env", "add", key, target, "--force"], value);
+      vercel([
+        "env",
+        "add",
+        key,
+        "--environment",
+        target,
+        "--type",
+        "config",
+        "--value",
+        value,
+        "--yes",
+        "--force",
+      ]);
       console.log(`  [+] ${key} ditambahkan ke ${target}`);
     } catch (e) {
       console.error(`  [!] gagal menambah ${key} ke ${target}: ${e.message}`);
