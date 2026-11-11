@@ -14,7 +14,12 @@
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build",
     "qa:screens": "node scripts/qa-screens.mjs",
     "icons": "node scripts/make-icons.mjs",
-    "deploy:rules": "npx firebase-tools deploy --only firestore:rules"
+    "deploy:check": "node scripts/deploy-check.mjs",
+    "deploy:env": "node scripts/vercel-env.mjs",
+    "deploy:rules": "npx firebase-tools deploy --only firestore:rules",
+    "deploy": "node scripts/deploy.mjs",
+    "deploy:preview": "node scripts/deploy.mjs --preview",
+    "deploy:all": "node scripts/deploy.mjs --rules"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -39,6 +44,7 @@
     "jsdom": "^31.0.0",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vercel": "^65.14.0",
     "vitest": "^5.1.0"
   }
 }

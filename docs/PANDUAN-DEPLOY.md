@@ -116,6 +116,66 @@ di atas (satu per baris, format `KEY=value`).
 
 ---
 
+## B'. Deploy otomatis lewat CLI
+
+Semua langkah di atas bisa dijalankan dari terminal tanpa membuka dashboard Vercel.
+Ada dua mode: **login sekali** (paling mudah) dan **token** (tanpa interaksi sama sekali,
+cocok untuk CI).
+
+### Mode 1 — Login sekali (disarankan)
+
+Sekali login, semua perintah berikutnya berjalan otomatis:
+
+```bash
+npx vercel login                            # membuka browser, sekali saja
+npx vercel link --yes --project <nama>      # mengaitkan folder dengan project Vercel
+npx firebase-tools login                    # membuka browser, sekali saja
+
+npm run deploy:env                          # salin 6 variabel dari .env.local ke Vercel
+npm run deploy:all                          # aturan Firestore + deploy produksi
+```
+
+Perintah yang tersedia:
+
+| Perintah | Fungsi |
+|---|---|
+| `npm run deploy:check` | Memeriksa prasyarat, tidak mengubah apa pun |
+| `npm run deploy:env` | Menyalin `NEXT_PUBLIC_FIREBASE_*` dari `.env.local` ke project Vercel |
+| `npm run deploy:rules` | Deploy `firestore.rules` ke Firebase |
+| `npm run deploy` | Deploy ke produksi (Vercel) |
+| `npm run deploy:preview` | Deploy preview (URL sementara) |
+| `npm run deploy:all` | Aturan Firestore + deploy produksi dalam satu perintah |
+
+### Mode 2 — Token (tanpa interaksi, untuk CI)
+
+Buat dua token:
+
+| Token | Cara membuatnya |
+|---|---|
+| `VERCEL_TOKEN` | [vercel.com/account/tokens](https://vercel.com/account/tokens) → **Create Token** |
+| `FIREBASE_TOKEN` | Firebase Console → ⚙ Project Settings → **Service accounts** → **Generate new private key** → ambil nilai `firebase_token` dari JSON-nya |
+
+Lalu set di terminal (PowerShell):
+
+```powershell
+$env:VERCEL_TOKEN   = "<token dari Vercel>"
+$env:FIREBASE_TOKEN = "<token dari Firebase>"
+npm run deploy:all
+```
+
+> **Jangan** menulis token ke dalam file yang ikut di-commit. Kalau memakai GitHub
+> Actions, simpan keduanya di **Settings → Secrets and variables → Actions**.
+
+### Yang perlu dilakukan sekali, apa pun modenya
+
+- Firebase Console → **Authorized domains** → tambahkan domain Vercel (bagian A2).
+- Firebase Console → **Action URL for password reset** → arahkan ke
+  `https://<domain>/auth/reset-kata-sandi` (bagian A3).
+
+Keduanya hanya bisa dilakukan lewat dashboard, tidak ada yang bisa diper automate.
+
+---
+
 ## C. Setelah deploy — checklist verifikasi
 
 Buka `https://network-explorer-xi.vercel.app` dan cek:

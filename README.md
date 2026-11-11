@@ -93,7 +93,11 @@ Mode demo cocok untuk presentasi di kelas tanpa koneksi.
 | `npm test` | Unit test (Vitest) |
 | `npm run test:e2e` | Uji asap end-to-end (Playwright) |
 | `npm run verify` | lint → typecheck → test → build |
+| `npm run deploy:check` | Periksa prasyarat deploy (login, env, project) |
+| `npm run deploy:env` | Salin 6 variabel Firebase dari `.env.local` ke project Vercel |
 | `npm run deploy:rules` | Deploy `firestore.rules` ke Firebase |
+| `npm run deploy` | Deploy ke produksi (Vercel) |
+| `npm run deploy:all` | Aturan Firestore + deploy produksi dalam satu perintah |
 
 ---
 
