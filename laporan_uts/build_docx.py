@@ -291,7 +291,7 @@ numbered(2, "Ciri dan cara kerja topologi Bus.")
 numbered(3, "Ciri dan cara kerja topologi Ring.")
 numbered(4, "Ciri dan cara kerja topologi Star.")
 numbered(5, "Perbandingan Bus, Ring, dan Star.")
-numbered(6, "Praktik menyusun jaringan Star.")
+numbered(6, "Praktik menyusun jaringan Bus, Ring, dan Star pada lembar kerja teknik.")
 numbered(7, "Simulasi pengiriman data dan gangguan jaringan.")
 numbered(8, "Evaluasi pemahaman siswa.")
 para("Pada bagian materi, siswa diberikan contoh laboratorium sekolah agar konsep topologi dapat dipahami melalui keadaan nyata. Selanjutnya, contoh tersebut dihubungkan dengan simulasi pengiriman paket data sehingga siswa dapat memahami bahwa pilihan topologi menentukan jalur data dan dampak gangguan secara visual.")
@@ -322,7 +322,7 @@ make_table(
         ["Pembuka", "Halaman pembuka berisi judul materi dan identitas", "Dibuat halaman pembuka dengan judul Misi Topologi, identitas kelas XI, dan tombol Mulai Misi", "Agar siswa mengetahui materi yang akan dipelajari dan cara memulai pembelajaran."],
         ["Materi topologi", "Materi tiga topologi masih dalam bentuk teks", "Materi dibuat lebih bertahap dan dilengkapi diagram animasi, narasi, dan contoh lab sekolah", "Agar konsep aliran data lebih mudah dipahami melalui tampilan visual."],
         ["Perbandingan", "Belum ada perbandingan antar topologi", "Ditambahkan halaman perbandingan 7 aspek dan studi kasus lab 24 PC", "Agar siswa tidak hanya melihat bentuk topologi tetapi memahami penggunaannya."],
-        ["Praktik", "Hanya ada contoh gambar jaringan", "Menambahkan praktik susun kabel Star dengan drag and drop", "Agar siswa lebih mudah memahami penerapan perangkat sebelum mengerjakan evaluasi."],
+        ["Praktik", "Menambahkan lembar kerja pemasangan kabel untuk Bus, Ring, dan Star dengan drag and drop, masing-masing dengan aturan pemasangan yang berbeda", "Agar siswa memahami perbedaan fungsi tiap perangkat dan luas dan aturan topologi sebelum mengerjakan evaluasi."],
         ["Simulasi", "Belum ada simulasi gangguan", "Ditampilkan simulasi kirim data, putus kabel PC-03, dan penanda kesehatan koneksi", "Agar siswa dapat melihat hubungan antara struktur jaringan dan dampak gangguan."],
         ["Evaluasi", "Evaluasi awal terdiri dari tiga soal", "Evaluasi dikembangkan menjadi 10 soal", "Untuk memenuhi ketentuan UTS yang meminta minimal lima butir assessment."],
         ["Feedback", "Feedback awal hanya benar atau salah", "Feedback tidak hanya menunjukkan benar atau salah, tetapi memberikan penjelasan", "Agar siswa mengetahui alasan jawaban dan dapat memahami kesalahannya."],
@@ -336,24 +336,25 @@ make_table(
 # ================= H =================
 heading_letter("H", "Rancangan Prototype Multimedia")
 para("Prototype dibuat menggunakan website interaktif berbasis Next.js yang diakses lewat peramban dan dipublikasi di Vercel. Website dipilih karena sesuai dengan rancangan awal dan dapat digunakan untuk menggabungkan teks, diagram animasi, simulasi, tombol, navigasi, contoh, evaluasi, dan feedback dalam satu alur.")
-para("Prototype yang telah dibuat terdiri dari halaman pembuka, misi utama, materi Bus Ring Star, praktik menyusun kabel, sandbox simulasi, perbandingan, evaluasi, feedback, hasil, dan progres belajar.")
+para("Prototype yang telah dibuat terdiri dari halaman sampul dan daftar isi, misi utama, tiga bab materi Bus Ring Star, lembar kerja pemasangan kabel, sandbox simulasi, perbandingan, glosarium, panduan belajar, evaluasi beserta feedback, halaman hasil, kartu progres, profil siswa, rapor siap cetak, dan halaman pengaturan akun.")
 para("Prototype dapat diakses pada tautan https://network-explorer-xi.vercel.app/ melalui peramban pada komputer atau ponsel. Untuk membuka halaman misi, materi, praktik, dan kuis, gunakan akun demo navigator@example.com dengan kata sandi password123 pada halaman masuk.")
 para("Materi pada prototype menggunakan minimal tiga jenis media, yaitu teks penjelasan, diagram animasi SVG, dan simulasi interaktif, sehingga memenuhi ketentuan minimal dua jenis media.")
+para("Secara visual prototype disusun menyerupai buku teknis: latar kertas hangat, penomoran bab dan gambar, serta garis tipis menggantikan garis dekoratif, sehingga terpisah dari tampilan dasbor bergaya neon yang lazim muncul pada hasil desain otomatis.")
 sub_number(1, "Struktur Halaman Prototype")
 make_table(
     ["Bagian", "Isi", "Interaksi Pengguna"],
     [
-        ["Pembuka", "Judul, materi, dan tombol Mulai Misi", "Menekan tombol Mulai Misi"],
-        ["Misi Utama", "Pilihan Level 1 Bus, Level 2 Ring, Level 3 Star", "Memilih level dan membuka materi"],
-        ["Materi Bus", "Pengertian, cara kerja, kelebihan, dan kekurangan Bus", "Mengikuti langkah materi"],
-        ["Materi Ring", "Pengertian, cara kerja, kelebihan, dan kekurangan Ring", "Mengikuti langkah materi"],
-        ["Materi Star", "Pengertian, cara kerja, kelebihan, dan kekurangan Star", "Memilih diagram dan cek pemahaman"],
-        ["Praktik", "Menyusun PC, switch, dan kabel dengan drag and drop", "Menyambung kabel ke slot"],
-        ["Sandbox", "Simulasi kirim data dan putus kabel PC-03", "Menekan kirim data dan mengamati log"],
+        ["Sampul dan Daftar Isi", "Judul buku, ringkasan isi, dan tombol mulai belajar", "Membuka daftar isi atau mendaftar"],
+        ["Misi Utama", "Peta misi berupa tabel: bab, aturan pemasangan, dan status kemajuan", "Memilih bab dan membuka materi"],
+        ["Materi Bus", "Bab dengan cara kerja, kelebihan, kekurangan, cek pemahaman, dan narasi", "Membaca bab dan membuka lembar praktik"],
+        ["Materi Ring", "Bab dengan cara kerja, kelebihan, kekurangan, cek pemahaman, dan narasi", "Membaca bab dan membuka lembar praktik"],
+        ["Materi Star", "Bab dengan cara kerja, kelebihan, kekurangan, cek pemahaman, dan narasi", "Membaca bab dan membuka lembar praktik"],
+        ["Lembar Praktik", "Kanvas gambar teknik, palet kabel, catatan pemasangan, dan sertifikat", "Menyeret kabel ke perangkat yang benar"],
+        ["Sandbox", "Simulasi kirim data dan pencabutan kabel sesuai topologi", "Menekan kirim data dan mengamati log"],
         ["Perbandingan", "Tabel 7 aspek dan studi kasus lab 24 PC", "Membaca dan membandingkan"],
         ["Evaluasi", "Sepuluh soal pilihan ganda", "Menjawab soal"],
-        ["Feedback", "Penjelasan jawaban benar atau salah", "Melihat penjelasan dan mencoba kembali"],
-        ["Hasil dan Rangkuman", "Skor, XP, lencana, dan rekomendasi", "Mengulang materi atau evaluasi atau selesai"],
+        ["Feedback", "Penjelasan jawaban benar atau salah pada setiap pilihan", "Melihat penjelasan dan mencoba kembali"],
+        ["Hasil dan Rangkuman", "Nilai, XP, lencana, analisis per bab, dan rekomendasi", "Mengulang materi atau evaluasi atau mencetak rapor"],
     ],
     widths=[2.8, 6.5, 6.5],
     header_color=PEACH_LIGHT,
@@ -361,7 +362,7 @@ make_table(
 para("Struktur tersebut dikembangkan dari storyboard awal. Pada prototype, bagian yang sebelumnya masih berupa rancangan layar diwujudkan menjadi halaman website yang memiliki tombol dan navigasi.")
 sub_number(2, "Alur Navigasi")
 para("Alur utama prototype adalah:")
-para("Pembuka → Misi Utama → Materi Bus → Materi Ring → Materi Star → Praktik → Sandbox → Evaluasi → Feedback → Hasil.", align="left")
+para("Sampul → Misi Utama → Materi Bus → Materi Ring → Materi Star → Lembar Praktik → Sandbox → Evaluasi → Feedback → Hasil → Rapor.", align="left")
 para("Pada bagian evaluasi, pengguna dapat memilih jawaban. Jika jawaban benar, pengguna mendapatkan penjelasan dan dapat melanjutkan. Jika jawaban salah, pengguna diarahkan ke feedback yang menjelaskan jawaban yang dipilih, jawaban yang benar, serta alasan jawaban tersebut.")
 para("Pada halaman hasil, siswa dapat melihat hasil evaluasi dan memilih untuk mengulang materi atau menyelesaikan pembelajaran.")
 
@@ -369,33 +370,34 @@ para("Pada halaman hasil, siswa dapat melihat hasil evaluasi dan memilih untuk m
 heading_letter("I", "Tampilan Prototype")
 para("Prototype multimedia pembelajaran interaktif dibuat menggunakan website dengan tampilan yang sederhana dan mudah digunakan oleh siswa kelas XI. Setiap halaman dilengkapi dengan navigasi dan interaksi sesuai dengan alur pembelajaran.")
 para("Tampilan prototype terdiri dari:")
-numbered(1, "Tampilan Halaman Pembuka")
-add_image("01-pembuka.png", "Gambar 1. Halaman pembuka Network Explorer: Misi Topologi.")
+numbered(1, "Tampilan Halaman Sampul")
+add_image("01-pembuka.png", "Gambar 1. Halaman sampul Network Explorer: Buku Praktis Topologi Jaringan.")
 numbered(2, "Tampilan Misi Utama")
-add_image("03-misi.png", "Gambar 2. Halaman misi utama berisi pilihan Level 1 Bus, Level 2 Ring, dan Level 3 Star.")
+add_image("03-misi.png", "Gambar 2. Halaman peta misi berisi tabel bab, aturan pemasangan, dan status kemajuan.")
 numbered(3, "Tampilan Materi Star")
-add_image("04-materi-star.png", "Gambar 3. Halaman materi Star dengan diagram animasi dan cek pemahaman.")
-numbered(4, "Tampilan Praktik Menyusun Kabel")
-add_image("05-praktik-star.png", "Gambar 4. Halaman praktik menyusun kabel Star dengan drag and drop.")
+add_image("04-materi-star.png", "Gambar 3. Halaman bab Materi Star dengan diagram teknik dan cek pemahaman.")
+numbered(4, "Tampilan Lembar Praktik Menyusun Kabel")
+add_image("05-praktik-star.png", "Gambar 4. Lembar kerja pemasangan kabel Star dengan drag and drop, palet kabel, dan catatan pemasangan.")
 numbered(5, "Tampilan Sandbox Simulasi")
-add_image("06-sandbox.png", "Gambar 5. Halaman sandbox untuk uji kirim data dan simulasi kabel putus.")
+add_image("06-sandbox.png", "Gambar 5. Halaman sandbox untuk uji kirim data dan pencabutan kabel.")
 numbered(6, "Tampilan Kuis dan Hasil")
 add_image("07-kuis.png", "Gambar 6. Halaman kuis akhir dengan navigasi nomor soal dan progres pengerjaan.")
-add_image("09-hasil.png", "Gambar 7. Halaman hasil berisi skor, XP, lencana, dan pembahasan soal.")
+add_image("09-hasil.png", "Gambar 7. Halaman hasil berisi nilai, XP, lencana, analisis per bab, dan pembahasan soal.")
 
 # ================= J =================
 heading_letter("J", "Aktivitas Interaktif")
 para("Aktivitas interaktif dibuat agar siswa tidak hanya membaca materi, tetapi juga melakukan tindakan selama pembelajaran.")
 para("Beberapa bentuk interaksi dalam prototype yaitu:")
-numbered(1, "Menekan tombol Mulai Misi untuk memulai pembelajaran.")
-numbered(2, "Memilih level Bus, Ring, atau Star pada halaman misi.")
+numbered(1, "Menekan tombol mulai belajar untuk memulai pembelajaran.")
+numbered(2, "Memilih bab Bus, Ring, atau Star pada halaman peta misi.")
 numbered(3, "Menggunakan tombol navigasi untuk berpindah bagian.")
-numbered(4, "Melihat diagram animasi aliran data tiap topologi.")
-numbered(5, "Menyusun PC, switch, dan kabel dengan drag and drop.")
-numbered(6, "Menekan tombol kirim data dan memutus kabel pada sandbox.")
-numbered(7, "Menjawab sepuluh soal evaluasi.")
-numbered(8, "Melihat feedback dari jawaban.")
-numbered(9, "Melihat hasil, XP, dan rangkuman serta mengulang materi jika diperlukan.")
+numbered(4, "Melihat diagram teknik aliran data tiap topologi beserta animasi paket.")
+numbered(5, "Menyeret kabel dari palet ke perangkat yang benar pada lembar kerja; sambungan yang salah ditolak beserta alasannya.")
+numbered(6, "Mencabut kabel yang sudah terpasang dan memasang kembali bila diperlukan.")
+numbered(7, "Menekan tombol kirim data dan mencabut kabel pada sandbox untuk melihat dampaknya.")
+numbered(8, "Menjawab sepuluh soal evaluasi.")
+numbered(9, "Melihat feedback dari jawaban.")
+numbered(10, "Melihat hasil, XP, lencana, serta mengulang materi atau mencetak rapor bila diperlukan.")
 para("Aktivitas tersebut membuat siswa memiliki peran dalam menggunakan media. Siswa tidak hanya menjadi pembaca materi, tetapi juga harus memilih jawaban dan mengikuti alur pembelajaran.")
 
 # ================= K =================
@@ -437,8 +439,8 @@ sub_number(1, "Segmenting")
 para("Materi dibagi menjadi beberapa bagian, yaitu pengenalan jaringan, materi Bus, materi Ring, materi Star, perbandingan, praktik, simulasi, evaluasi, dan hasil.")
 para("Pembagian tersebut membuat materi tidak diberikan sekaligus dalam satu halaman sehingga siswa dapat mempelajari materi secara bertahap.")
 sub_number(2, "Signaling")
-para("Bagian penting seperti nama topologi, kata kunci, nomor soal, penanda switch pusat, dan bagian feedback diberi penekanan.")
-para("Penerapan ini bertujuan membantu siswa menemukan informasi penting dengan lebih mudah.")
+para("Bagian penting seperti nama topologi, nomor bab, nomor gambar, nomor port, nomor soal, dan status sambungan kabel diberi penekanan melalui perbedaan ukuran, penomoran, dan warna yang tetap.")
+para("Penerapan ini bertujuan membantu siswa menemukan informasi penting dengan lebih mudah, dan menjauhkan tampilan dari pola dasbor gelap yang hanya mengandalkan warna tanpa keterangan tertulis.")
 sub_number(3, "Coherence")
 para("Isi prototype dibuat berfokus pada materi topologi Bus, Ring, dan Star. Informasi yang tidak berhubungan langsung dengan pembelajaran tidak dimasukkan.")
 para("Hal tersebut dilakukan agar siswa dapat lebih fokus terhadap materi yang sedang dipelajari.")

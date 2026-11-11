@@ -1,37 +1,75 @@
+"""Ambil tangkapan layar aplikasi Network Explorer untuk laporan UTS.
+
+Jalankan aplikasi lebih dulu (mode demo), misalnya:
+
+    npm run dev -- --port 3212
+
+lalu:
+
+    python laporan_uts/shot.py
+
+Environment:
+    SHOT_BASE_URL  alamat dasar aplikasi (bawaan http://localhost:3212)
+"""
+
+import json
+import os
+
 from playwright.sync_api import sync_playwright
-import os, json
-out = r"D:\semester 3\TIK DALAM PENDIDIKAN\uts\laporan_uts\gambar"
-os.makedirs(out, exist_ok=True)
-demo_user = {"name": "Siswa Navigator", "email": "navigator@example.com", "kelas": "XI"}
-demo_users = [{**demo_user, "pass": "password123"}]
-with sync_playwright() as p:
-    b = p.chromium.launch(channel="msedge", headless=True)
-    ctx = b.new_context(viewport={"width": 1280, "height": 900})
-    ctx.add_init_script(
-        "localStorage.setItem('misi-users', '%s'); localStorage.setItem('misi-user', '%s');"
-        % (json.dumps(demo_users).replace("'", "\\'"), json.dumps(demo_user).replace("'", "\\'"))
-    )
-    pg = ctx.new_page()
-    jobs = [
-        ("01-pembuka", "https://network-explorer-xi.vercel.app/"),
-        ("02-beranda", "https://network-explorer-xi.vercel.app/beranda"),
-        ("03-misi", "https://network-explorer-xi.vercel.app/misi"),
-        ("04-materi-star", "https://network-explorer-xi.vercel.app/materi/star"),
-        ("05-praktik-star", "https://network-explorer-xi.vercel.app/praktik/star"),
-        ("06-sandbox", "https://network-explorer-xi.vercel.app/sandbox"),
-        ("07-kuis", "https://network-explorer-xi.vercel.app/kuis"),
-        ("08-progres", "https://network-explorer-xi.vercel.app/progres"),
-        ("10-perbandingan", "https://network-explorer-xi.vercel.app/perbandingan"),
-    ]
-    for name, url in jobs:
-        pg.goto(url, wait_until="networkidle", timeout=45000)
-        pg.wait_for_timeout(2500)
-        pg.screenshot(path=os.path.join(out, name + ".png"))
-        print("shot", name, pg.url)
-    # hasil with query
-    pg.goto("https://network-explorer-xi.vercel.app/kuis/hasil?score=8&total=10", wait_until="networkidle", timeout=45000)
-    pg.wait_for_timeout(2500)
-    pg.screenshot(path=os.path.join(out, "09-hasil.png"))
-    print("shot 09-hasil", pg.url)
-    b.close()
-print("done")
+
+BASE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(BASE, "gambar")
+os.makedirs(OUT, exist_ok=True)
+
+URL = os.environ.get("SHOT_BASE_URL", "http://localhost:3212")
+
+# Sesi demo pada format terbaru (src/lib/auth-session.ts).
+SESSION = {
+    "uid": "demo-navigator",
+    "name": "Siswa Navigator",
+    "email": "navigator@example.com",
+    "kelas": "XI",
+    "photoURL": None,
+    "provider": "demo",
+}
+
+JOBS = [
+    ("01-pembuka", "/"),
+    ("02-beranda", "/beranda"),
+    ("03-misi", "/misi"),
+    ("04-materi-star", "/materi/star"),
+    ("05-praktik-star", "/praktik/star"),
+    ("06-sandbox", "/sandbox/star"),
+    ("07-kuis", "/kuis"),
+    ("08-progres", "/progres"),
+    ("09-hasil", "/kuis/hasil?score=8&total=10"),
+    ("10-perbandingan", "/perbandingan"),
+]
+
+
+def jalankan() -> None:
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch(headless=True)
+        except Exception:
+            browser = p.chromium.launch(channel="msedge", headless=True)
+
+        ctx = browser.new_context(viewport={"width": 1440, "height": 960})
+        ctx.add_init_script(
+            "window.localStorage.setItem('misi-session', %s);"
+            % json.dumps(json.dumps(SESSION))
+        )
+        page = ctx.new_page()
+
+        for name, route in JOBS:
+            page.goto(URL + route, wait_until="networkidle", timeout=60000)
+            page.wait_for_timeout(1800)
+            page.screenshot(path=os.path.join(OUT, name + ".png"), full_page=True)
+            print("shot", name, page.url)
+
+        browser.close()
+    print("done ->", OUT)
+
+
+if __name__ == "__main__":
+    jalankan()
