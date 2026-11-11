@@ -1,73 +1,150 @@
 "use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Navbar, Footer } from "@/components/chrome";
-import { TopoMini } from "@/components/topo";
+import { useState, type FormEvent } from "react";
+import AuthShell from "@/components/auth-shell";
+import { IconWarning } from "@/components/icons";
+import { Btn, Callout, Field, Input, Select } from "@/components/ui";
 import { useAuth } from "@/lib/store";
-import { isFirebaseConfigured, signUpWithEmail } from "@/lib/firebase";
+
+const KELAS = ["X", "XI", "XII"];
 
 export default function SignupPage() {
-  const { signup, user, ready } = useAuth();
-  const r = useRouter();
-  useEffect(() => {
-    if (ready && user) r.replace("/misi");
-  }, [ready, user, r]);
-  const [f, setF] = useState({ name: "", email: "", kelas: "XI", pass: "" });
+  const router = useRouter();
+  const { signup } = useAuth();
+  const [form, setForm] = useState({ name: "", email: "", kelas: "XI", pass: "" });
   const [agree, setAgree] = useState(false);
-  const [err, setErr] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  function set<K extends keyof typeof form>(key: K, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    setErr(null);
+
+    if (!agree) {
+      setErr("Centang persetujuan ketentuan terlebih dahulu.");
+      return;
+    }
+
+    setBusy(true);
+    const message = await signup(form.name, form.email, form.pass, form.kelas);
+    setBusy(false);
+    if (message) {
+      setErr(message);
+      return;
+    }
+    router.push("/misi");
+  }
+
   return (
-    <div>
-      <Navbar pub />
-      <main className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-2">
-        <div>
-          <span className="chip">SMA KELAS XI • INFORMATIKA</span>
-          <h1 className="mt-4 text-4xl font-extrabold">Setiap koneksi punya cerita. Jelajahi milikmu.</h1>
-          <p className="mt-3 text-slate-400">Pahami Bus, Ring, dan Star melalui materi visual, praktik, simulasi, dan kuis.</p>
-          <div className="card mt-6 p-5">
-            <div className="rounded-xl bg-[#0a1428] p-4"><TopoMini kind="star" /></div>
-            <p className="mt-2 text-center text-xs text-[#22d3ee]">Amati pola. Coba sendiri. Pahami alasannya.</p>
-          </div>
-        </div>
-        <div className="card p-6 md:p-8">
-          <h2 className="text-2xl font-extrabold">Mulai misi pertamamu.</h2>
-          <p className="text-sm text-slate-400">Buat akun siswa untuk menyimpan perjalanan belajarmu.</p>
-          <form
-            className="mt-5 space-y-4"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!agree) return setErr("Centang persetujuan Ketentuan & Privasi dulu.");
-              if (isFirebaseConfigured) {
-                const m = await signUpWithEmail(f.name, f.email, f.pass);
-                if (m) setErr(m);
-                else r.push("/misi");
-                return;
-              }
-              const m = signup({ name: f.name, email: f.email, kelas: f.kelas, pass: f.pass });
-              if (m) setErr(m);
-              else r.push("/misi");
-            }}
+    <AuthShell
+      chapter="Lembar pendaftaran"
+      title="Daftar akun belajar"
+      lead="Satu akun untuk excused tiga bab materi, lembar praktik, dan kuis akhir."
+      footer={
+        <p className="text-caption text-ink-3">
+          Sudah punya akun?{" "}
+          <Link href="/auth/login" className="text-blueprint hover:underline">
+            Masuk di sini
+          </Link>
+        </p>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        {err && (
+          <Callout tone="error">
+            <span className="flex items-start gap-2">
+              <IconWarning size={15} className="mt-0.5 shrink-0" />
+              <span>{err}</span>
+            </span>
+          </Callout>
+        )}
+
+        <Field label="Nama lengkap" htmlFor="name">
+          <Input
+            id="name"
+            name="name"
+            autoComplete="name"
+            required
+            value={form.name}
+            onChange={(e) => set("name", e.target.value)}
+            placeholder="Nama sesuai absensi"
+          />
+        </Field>
+
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={form.email}
+            onChange={(e) => set("email", e.target.value)}
+            placeholder="nama@sekolah.sch.id"
+          />
+        </Field>
+
+        <Field label="Kelas" htmlFor="kelas">
+          <Select
+            id="kelas"
+            name="kelas"
+            value={form.kelas}
+            onChange={(e) => set("kelas", e.target.value)}
           >
-            <div><label className="text-sm font-bold">Nama siswa</label><input className="input mt-1" placeholder="Nama yang ingin ditampilkan" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
-            <div><label className="text-sm font-bold">Email</label><input className="input mt-1" placeholder="nama@example.com" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
-            <div><label className="text-sm font-bold">Kelas</label>
-              <select className="input mt-1" value={f.kelas} onChange={(e) => setF({ ...f, kelas: e.target.value })}>
-                <option value="XI">Pilih kelas XI</option><option value="X">X</option><option value="XI">XI</option><option value="XII">XII</option>
-              </select>
-            </div>
-            <div><label className="text-sm font-bold">Kata sandi</label><input className="input mt-1" type="password" placeholder="Buat kata sandi" value={f.pass} onChange={(e) => setF({ ...f, pass: e.target.value })} />
-              <p className="mt-1 text-xs text-slate-500">Gunakan minimal 8 karakter dengan huruf besar, huruf kecil, dan angka.</p></div>
-            <label className="flex items-start gap-2 text-xs text-slate-400">
-              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-1" />
-              Saya menyetujui Ketentuan Penggunaan dan telah membaca Kebijakan Privasi.
-            </label>
-            {err && <p className="rounded-lg bg-red-500/10 p-3 text-sm text-red-300">{err}</p>}
-            <button className="btn-cyan w-full py-3">Buat Akun →</button>
-            <p className="text-center text-sm text-slate-400">Sudah punya akun? <Link href="/auth/login" className="font-semibold text-[#22d3ee]">Masuk</Link></p>
-          </form>
+            {KELAS.map((k) => (
+              <option key={k} value={k}>
+                Kelas {k}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field
+          label="Kata sandi"
+          htmlFor="password"
+          hint="Minimal 8 karakter. Jangan pakai nama sekolah atau tanggal lahir."
+        >
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            value={form.pass}
+            onChange={(e) => set("pass", e.target.value)}
+          />
+        </Field>
+
+        <div className="flex items-start gap-2">
+          <input
+            id="setuju"
+            name="setuju"
+            type="checkbox"
+            checked={agree}
+            onChange={(e) => setAgree(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 accent-[#1b4d7a]"
+          />
+          <label htmlFor="setuju" className="text-caption text-ink-2">
+            Saya menyetujui{" "}
+            <Link href="/ketentuan" className="text-blueprint hover:underline">
+              ketentuan penggunaan
+            </Link>{" "}
+            dan penanganan data akun saya.
+          </label>
         </div>
-      </main>
-      <Footer />
-    </div>
+
+        <Btn type="submit" size="lg" className="w-full" disabled={busy}>
+          {busy ? "Mendaftarkan…" : "Daftar dan mulai"}
+        </Btn>
+      </form>
+    </AuthShell>
   );
 }

@@ -1,159 +1,309 @@
 "use client";
+
+import { TOPO_SPECS, linkPath, type TopoNode } from "@/lib/topology-model";
 import type { TopoKey } from "@/lib/data";
 
-// Diagram SVG mini + penuh untuk Bus / Ring / Star, sesuai Figma
-export function TopoMini({ kind }: { kind: TopoKey }) {
-  const stroke = "#00e676";
-  const node = "#22d3ee";
-  if (kind === "bus")
-    return (
-      <svg viewBox="0 0 300 90" className="h-20 w-full">
-        <line x1="20" y1="65" x2="280" y2="65" stroke={stroke} strokeWidth="3" />
-        {[60, 150, 240].map((x) => (
-          <g key={x}>
-            <line x1={x} y1="65" x2={x} y2="30" stroke={stroke} strokeWidth="2" />
-            <rect x={x - 16} y={12} width={32} height={18} rx={4} fill="none" stroke={node} strokeWidth="2" />
-          </g>
-        ))}
-        <line x1="20" y1="57" x2="20" y2="73" stroke="#f59e0b" strokeWidth="6" />
-        <line x1="280" y1="57" x2="280" y2="73" stroke="#f59e0b" strokeWidth="6" />
-      </svg>
-    );
-  if (kind === "ring")
-    return (
-      <svg viewBox="0 0 200 120" className="mx-auto h-24">
-        <circle cx="100" cy="60" r="40" fill="none" stroke={stroke} strokeWidth="3" />
-        {[
-          [100, 14],
-          [144, 60],
-          [100, 106],
-          [56, 60],
-        ].map(([x, y], i) => (
-          <g key={i}>
-            <rect x={x - 12} y={y - 8} width={24} height={16} rx={4} fill="#0a1428" stroke={node} strokeWidth="2" />
-          </g>
-        ))}
-        <circle cx="132" cy="32" r="5" fill={stroke} />
-        <circle cx="140" cy="88" r="5" fill={stroke} />
-        <circle cx="100" cy="106" r="5" fill={stroke} />
-      </svg>
-    );
+/* =============================================================================
+   SKEMA TEKNIK — digambar ulang dalam bahasa gambar teknik (garis tinta),
+   bukan gaya "neon". Semua warna diambil dari token CSS sehingga konsisten
+   dengan halaman.
+   ========================================================================== */
+
+const INK = "var(--color-ink)";
+const GRAPHITE = "var(--color-graphite)";
+const RULE = "var(--color-rule-2)";
+const MUTED = "var(--color-ink-3)";
+const BLUE = "var(--color-blueprint)";
+
+function PcGlyph({ x, y, label }: { x: number; y: number; label: string }) {
   return (
-    <svg viewBox="0 0 300 120" className="h-24 w-full">
-      <rect x="133" y="48" width="34" height="24" rx="6" fill="none" stroke={stroke} strokeWidth="2" />
-      <text x="150" y="63" textAnchor="middle" fontSize="9" fill={stroke}>Switch</text>
-      {[
-        [40, 20],
-        [260, 20],
-        [40, 100],
-        [260, 100],
-      ].map(([x, y], i) => (
-        <g key={i}>
-          <line x1={150} y1={60} x2={x} y2={y} stroke={stroke} strokeWidth="2" />
-          <rect x={x - 14} y={y - 9} width={28} height={18} rx={4} fill="none" stroke={node} strokeWidth="2" />
-        </g>
+    <g>
+      <rect
+        x={x - 30}
+        y={y - 26}
+        width={60}
+        height={34}
+        rx={2}
+        fill="var(--color-paper)"
+        stroke={GRAPHITE}
+        strokeWidth={2}
+      />
+      <path d={`M ${x - 16} ${y + 8} h 32`} stroke={GRAPHITE} strokeWidth={2} />
+      <path d={`M ${x - 16} ${y + 8} v 8 M ${x + 16} ${y + 8} v 8`} stroke={GRAPHITE} strokeWidth={2} />
+      <text
+        x={x}
+        y={y + 44}
+        textAnchor="middle"
+        fontSize={19}
+        fontFamily="var(--font-plex-mono)"
+        fill={INK}
+        stroke="var(--color-paper)"
+        strokeWidth={7}
+        paintOrder="stroke"
+      >
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function HubGlyph({ x, y, label, caption }: { x: number; y: number; label: string; caption?: string }) {
+  return (
+    <g>
+      <rect
+        x={x - 48}
+        y={y - 24}
+        width={96}
+        height={48}
+        rx={2}
+        fill="var(--color-paper)"
+        stroke={INK}
+        strokeWidth={2.5}
+      />
+      {[0, 1, 2, 3].map((i) => (
+        <rect
+          key={i}
+          x={x - 36 + i * 20}
+          y={y - 12}
+          width={12}
+          height={8}
+          rx={1}
+          fill="none"
+          stroke={GRAPHITE}
+          strokeWidth={1.6}
+        />
       ))}
+      <text
+        x={x}
+        y={y + 42}
+        textAnchor="middle"
+        fontSize={19}
+        fontFamily="var(--font-plex-mono)"
+        fill={INK}
+        stroke="var(--color-paper)"
+        strokeWidth={7}
+        paintOrder="stroke"
+      >
+        {label}
+      </text>
+      {caption && (
+        <text
+          x={x}
+          y={y + 60}
+          textAnchor="middle"
+          fontSize={14}
+          fontFamily="var(--font-plex-mono)"
+          fill={MUTED}
+          stroke="var(--color-paper)"
+          strokeWidth={6}
+          paintOrder="stroke"
+        >
+          {caption}
+        </text>
+      )}
+    </g>
+  );
+}
+
+/** Diagram ringkas untuk kartu. */
+export function TopoMini({ kind }: { kind: TopoKey }) {
+  const spec = TOPO_SPECS[kind];
+  const byId = new Map(spec.nodes.map((n) => [n.id, n]));
+
+  return (
+    <svg
+      viewBox={spec.viewBox}
+      className="h-auto w-full"
+      role="img"
+      aria-label={`Diagram ringkas ${spec.title}`}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      {spec.links.map((l) => {
+        const from = byId.get(l.from);
+        const to = byId.get(l.to);
+        if (!from || !to) return null;
+        return (
+          <path
+            key={l.id}
+            d={linkPath(from, to)}
+            fill="none"
+            stroke={RULE}
+            strokeWidth={3}
+            strokeDasharray="10 7"
+          />
+        );
+      })}
+      {spec.nodes.map((n) =>
+        n.kind === "pc" ? (
+          <g key={n.id}>
+            <rect
+              x={n.x - 26}
+              y={n.y - 20}
+              width={52}
+              height={28}
+              rx={2}
+              fill="none"
+              stroke={GRAPHITE}
+              strokeWidth={2}
+            />
+            <text
+              x={n.x}
+              y={n.y + 34}
+              textAnchor="middle"
+              fontSize={17}
+              fontFamily="var(--font-plex-mono)"
+              fill={MUTED}
+            >
+              {n.id}
+            </text>
+          </g>
+        ) : n.kind === "hub" ? (
+          <g key={n.id}>
+            <rect
+              x={n.x - 34}
+              y={n.y - 18}
+              width={68}
+              height={36}
+              rx={2}
+              fill="none"
+              stroke={INK}
+              strokeWidth={2.5}
+            />
+            <text
+              x={n.x}
+              y={n.y + 36}
+              textAnchor="middle"
+              fontSize={15}
+              fontFamily="var(--font-plex-mono)"
+              fill={INK}
+            >
+              SWITCH
+            </text>
+          </g>
+        ) : (
+          <g key={n.id}>
+            <rect x={60} y={n.y - 8} width={880} height={16} rx={2} fill="var(--color-paper-3)" stroke={RULE} strokeWidth={2} />
+          </g>
+        ),
+      )}
     </svg>
   );
 }
 
-export function TopoDiagram({ kind, animate = true }: { kind: TopoKey; animate?: boolean }) {
-  const flow = animate ? "packet-flow" : "";
-  if (kind === "bus")
-    return (
-      <div className="card p-4">
-        <div className="mb-2 text-xs text-slate-400">Diagram Aliran Data • Bus</div>
-        <svg viewBox="0 0 600 220" className="w-full">
-          <line x1="30" y1="130" x2="570" y2="130" stroke="#00c2e0" strokeWidth="5" className={flow} />
-          <text x="300" y="110" textAnchor="middle" fontSize="11" fill="#94a3b8">Backbone (kabel utama)</text>
-          {[110, 250, 390].map((x, i) => (
-            <g key={x}>
-              <line x1={x} y1="130" x2={x} y2={70} stroke="#00c2e0" strokeWidth="3" />
-              <rect x={x - 35} y={38} width={70} height={30} rx={8} fill="#0a1428" stroke="#22d3ee" strokeWidth="2" />
-              <text x={x} y={58} textAnchor="middle" fontSize="12" fill="#e2e8f0">PC-0{i + 1}</text>
-              {i < 2 && <circle cx={x + 70} cy={130} r={6} fill="#00e676" />}
-            </g>
-          ))}
-          {[180, 320].map((x, i) => (
-            <g key={x}>
-              <line x1={x} y1="130" x2={x} y2={175} stroke="#00c2e0" strokeWidth="3" />
-              <rect x={x - 35} y={175} width={70} height={30} rx={8} fill="#0a1428" stroke="#22d3ee" strokeWidth="2" />
-              <text x={x} y={195} textAnchor="middle" fontSize="12" fill="#e2e8f0">PC-0{i + 4}</text>
-            </g>
-          ))}
-          <rect x="22" y="115" width="12" height="30" rx="2" fill="#f59e0b" />
-          <rect x="566" y="115" width="12" height="30" rx="2" fill="#f59e0b" />
-          <text x="28" y="160" fontSize="10" fill="#94a3b8">Terminator</text>
-          <text x="572" y="160" textAnchor="end" fontSize="10" fill="#94a3b8">Terminator</text>
-        </svg>
-        <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#00e676]" /> Paket data
-        </div>
-      </div>
-    );
-  if (kind === "ring")
-    return (
-      <div className="card p-4">
-        <div className="mb-2 text-xs text-slate-400">Diagram Aliran Data • Ring</div>
-        <svg viewBox="0 0 500 260" className="mx-auto w-full max-w-md">
-          <circle cx="250" cy="130" r="85" fill="none" stroke="#00c2e0" strokeWidth="4" className={flow} />
-          <text x="250" y="125" textAnchor="middle" fontSize="12" fill="#94a3b8">Searah</text>
-          <text x="250" y="140" textAnchor="middle" fontSize="12" fill="#94a3b8">jarum jam</text>
-          {[
-            [250, 30, "PC-01"],
-            [348, 110, "PC-02"],
-            [310, 215, "PC-03"],
-            [190, 215, "PC-04"],
-            [152, 110, "PC-05"],
-          ].map(([x, y, l]) => (
-            <g key={l as string}>
-              <rect x={(x as number) - 32} y={(y as number) - 15} width={64} height={30} rx={8} fill="#0a1428" stroke="#22d3ee" strokeWidth="2" />
-              <text x={x as number} y={(y as number) + 5} textAnchor="middle" fontSize="12" fill="#e2e8f0">{l as string}</text>
-            </g>
-          ))}
-          <circle cx="322" cy="62" r="6" fill="#00e676" />
-          <circle cx="345" cy="165" r="6" fill="#00e676" />
-          <circle cx="250" cy="215" r="6" fill="#00e676" />
-        </svg>
-        <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#00e676]" /> Paket data
-        </div>
-      </div>
-    );
+/** Diagram bab lengkap dengan aliran data. */
+export function TopoDiagram({
+  kind,
+  animate = true,
+  brokenId,
+}: {
+  kind: TopoKey;
+  animate?: boolean;
+  /** Node yang dicabut / rusak — ditampilkan dengan garis putus-putus merah. */
+  brokenId?: string | null;
+}) {
+  const spec = TOPO_SPECS[kind];
+  const byId = new Map<string, TopoNode>(spec.nodes.map((n) => [n.id, n]));
+
   return (
-    <div className="card p-4">
-      <div className="mb-2 text-xs text-slate-400">Diagram Aliran Data • Star</div>
-      <svg viewBox="0 0 560 260" className="w-full">
-        <rect x="245" y="105" width="70" height="50" rx="10" fill="#0a1428" stroke="#00e676" strokeWidth="3" />
-        <text x="280" y="133" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#00e676">SWITCH</text>
-        {[
-          [280, 20, "PC-01", "top"],
-          [460, 90, "PC-02", "right"],
-          [400, 220, "PC-03", "bottom"],
-          [160, 220, "PC-04", "bottom"],
-          [100, 90, "PC-05", "left"],
-        ].map(([x, y, l, pos]) => (
-          <g key={l as string}>
-            <line x1={280} y1={130} x2={x as number} y2={y as number} stroke="#00c2e0" strokeWidth="3" className={flow} />
-            <rect
-              x={(x as number) - 32}
-              y={pos === "top" ? (y as number) - 10 : pos === "bottom" ? (y as number) - 20 : (y as number) - 15}
-              width={64}
-              height={30}
-              rx={8}
-              fill="#0a1428"
-              stroke="#22d3ee"
-              strokeWidth="2"
-            />
-            <text x={x as number} y={(y as number) + (pos === "top" ? 11 : pos === "bottom" ? 0 : 5)} textAnchor="middle" fontSize="11" fill="#e2e8f0">{l as string}</text>
+    <svg
+      viewBox={spec.viewBox}
+      className="h-auto w-full"
+      role="img"
+      aria-label={`Diagram aliran data ${spec.title}: ${spec.summary}`}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      {/* Jalur */}
+      {spec.links.map((l) => {
+        const from = byId.get(l.from);
+        const to = byId.get(l.to);
+        if (!from || !to) return null;
+        const broken =
+          brokenId === l.from || brokenId === l.to;
+        return (
+          <path
+            key={l.id}
+            d={linkPath(from, to)}
+            fill="none"
+            stroke={broken ? "var(--color-redpen)" : BLUE}
+            strokeWidth={4}
+            strokeDasharray={broken ? "6 8" : animate ? "14 9" : undefined}
+            className={animate && !broken ? "trace-live" : undefined}
+            opacity={broken ? 0.75 : 1}
+          />
+        );
+      })}
+
+      {/* Paket data berjalan */}
+      {animate &&
+        spec.links.slice(0, 3).map((l, i) => {
+          const from = byId.get(l.from);
+          const to = byId.get(l.to);
+          if (!from || !to) return null;
+          return (
+            <circle key={`pkt-${l.id}`} r={7} fill="var(--color-green)">
+              <animateMotion
+                dur={`${2.2 + i * 0.5}s`}
+                repeatCount="indefinite"
+                path={linkPath(from, to)}
+                begin={`${i * 0.6}s`}
+              />
+            </circle>
+          );
+        })}
+
+      {/* Perangkat */}
+      {spec.nodes.map((n) =>
+        n.kind === "pc" ? (
+          <g key={n.id} opacity={brokenId === n.id ? 0.45 : 1}>
+            <PcGlyph x={n.x} y={n.y} label={n.id} />
+            {brokenId === n.id && (
+              <text
+                x={n.x}
+                y={n.y - 40}
+                textAnchor="middle"
+                fontSize={16}
+                fontFamily="var(--font-plex-mono)"
+                fill="var(--color-redpen)"
+              >
+                KABEL PUTUS
+              </text>
+            )}
           </g>
-        ))}
-        <circle cx="370" cy="110" r="6" fill="#00e676" />
-        <circle cx="220" cy="170" r="6" fill="#00e676" />
-      </svg>
-      <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#00e676]" /> Paket data
-      </div>
-    </div>
+        ) : n.kind === "hub" ? (
+          <HubGlyph key={n.id} x={n.x} y={n.y} label={n.label} caption={n.caption} />
+        ) : (
+          <g key={n.id}>
+            <rect
+              x={60}
+              y={n.y - 9}
+              width={880}
+              height={18}
+              rx={2}
+              fill="var(--color-paper-3)"
+              stroke={RULE}
+              strokeWidth={2}
+            />
+            {[
+              [60, "Terminator"],
+              [940, "Terminator"],
+            ].map(([x, label]) => (
+              <g key={String(label)}>
+                <rect x={Number(x) - 8} y={n.y - 13} width={16} height={26} rx={1} fill="var(--color-amber-2)" stroke="var(--color-amber)" strokeWidth={2} />
+                <text
+                  x={Number(x)}
+                  y={n.y + 34}
+                  textAnchor="middle"
+                  fontSize={15}
+                  fontFamily="var(--font-plex-mono)"
+                  fill={MUTED}
+                >
+                  {label as string}
+                </text>
+              </g>
+            ))}
+          </g>
+        ),
+      )}
+    </svg>
   );
 }

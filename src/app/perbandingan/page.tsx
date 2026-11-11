@@ -1,64 +1,175 @@
-import Link from "next/link";
+"use client";
+
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
+import { Container, Eyebrow, PageHeader, Callout, BtnLink } from "@/components/ui";
 import { TopoMini } from "@/components/topo";
+import { TOPOLOGI } from "@/lib/data";
+import { TOPO_SPECS } from "@/lib/topology-model";
+import { IconArrow } from "@/components/icons";
 
-const ROWS: [string, string, string, string][] = [
-  ["Struktur", "Semua node berbagi satu kabel utama (backbone).", "Node membentuk jalur cincin tertutup.", "Setiap node punya kabel ke perangkat pusat."],
-  ["Aliran data", "Sinyal menyebar di backbone; semua node menerima sinyal.", "Data melewati node berurutan; ring klasik memakai token.", "Switch belajar alamat MAC; unicast yang dikenal diteruskan ke port tujuan."],
-  ["Kabel & perangkat", "Kabel koaksial bersama, konektor, dan terminator di kedua ujung.", "Kabel antar-node dan antarmuka ring; tidak perlu terminator bus.", "Kabel UTP per node dan switch dengan jumlah port yang cukup."],
-  ["Kelebihan", "Hemat kabel untuk jaringan kecil dan sederhana.", "Akses teratur dengan token; tabrakan data dapat dihindari.", "Mudah diperluas; kerusakan kabel satu PC dapat diisolasi."],
-  ["Kekurangan", "Media bersama rentan collision; pelacakan gangguan sulit.", "Penambahan node dan pemulihan gangguan lebih rumit.", "Lebih banyak kabel dan biaya switch; bergantung perangkat pusat."],
-  ["Dampak gangguan", "Backbone putus atau terminator bermasalah dapat melumpuhkan segmen.", "Putus pada ring tunggal bisa menghentikan aliran; ring ganda dapat punya jalur cadangan.", "Kabel satu PC putus: PC itu terisolasi. Switch pusat gagal: semua PC di switch terputus."],
-  ["Konteks penggunaan", "Ethernet koaksial lama; cocok sebagai contoh media bersama.", "Jaringan token ring lama; ring redundan juga dipakai pada jaringan khusus.", "LAN modern: laboratorium, kantor, dan jaringan lokal sekolah."],
+const ASPEK = [
+  {
+    aspek: "Bentuk dasar",
+    bus: "Satu kabel utama (backbone) dengan cabang ke tiap komputer",
+    ring: "Lingkaran tertutup; tiap komputer tersambung ke dua tetangganya",
+    star: "Bintang; semua komputer tersambung ke satu switch pusat",
+  },
+  {
+    aspek: "Jalur data",
+    bus: "Berbagi satu media; setiap komputer memeriksa alamat tujuan",
+    ring: "Satu arah saja, searah jarum jam",
+    star: "Switch meneruskan frame hanya ke port tujuan",
+  },
+  {
+    aspek: "Kabel per komputer",
+    bus: "Tidak selalu satu; memakai cabang dari backbone",
+    ring: "Dua per komputer (ke kedua tetangganya)",
+    star: "Satu per komputer menuju switch",
+  },
+  {
+    aspek: "Kalau satu kabel putus",
+    bus: "Segmen di sisi putusnya kehilangan akses ke seluruh jaringan",
+    ring: "Aliran berhenti total pada ring tunggal",
+    star: "Hanya komputer tersebut yang terisolasi; komputer lain tetap terhubung",
+  },
+  {
+    aspek: "Biaya pemasangan",
+    bus: "Murah; sedikit kabel",
+    ring: "Sedang; banyak kabel",
+    star: "Mahal; satu switch dan satu kabel per komputer",
+  },
+  {
+    aspek: "Kemudahan upgrade",
+    bus: "Sulit; menambah komputer berarti menyentuh backbone",
+    ring: "Sulit; penambahan mengganggu alur ring",
+    star: "Mudah; cukup satu port kosong pada switch",
+  },
+  {
+    aspek: "Ketahanan gangguan",
+    bus: "Rendah — titik pusat pada backbone",
+    ring: "Rendah pada ring tunggal; tinggi bila memakai ring ganda",
+    star: "Tinggi — gangguan terisolasi per komputer",
+  },
 ];
 
-export default function Perbandingan() {
+export default function PerbandinganPage() {
   return (
     <RequireAuth>
-    <div>
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="text-xs font-bold text-[#00c2e0]">REFERENSI • BUS / RING / STAR</div>
-        <h1 className="text-3xl font-extrabold">Pola berbeda, kebutuhan berbeda.</h1>
-        <p className="text-slate-400">Bandingkan cara kerja dan titik lemah setiap topologi sebelum memilih jaringan yang tepat.</p>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {(
-            [
-              ["Bus", "Satu jalur bersama", "bus"],
-              ["Ring", "Jalur melingkar", "ring"],
-              ["Star", "Koneksi ke pusat", "star"],
-            ] as const
-          ).map(([t, s, k]) => (
-            <div key={k} className="card flex items-center gap-4 p-5">
-              <div><div className="text-xl font-extrabold">{t}</div><div className="text-xs text-slate-400">{s}</div></div>
-              <div className="flex-1"><TopoMini kind={k} /></div>
-            </div>
-          ))}
-        </div>
-        <div className="card mt-5 overflow-x-auto p-0">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead><tr className="bg-[#00c2e0]/10 text-left text-[#22d3ee]"><th className="p-3">Aspek</th><th className="p-3">Bus</th><th className="p-3">Ring</th><th className="p-3">Star</th></tr></thead>
-            <tbody>
-              {ROWS.map(([a, b, c, d]) => (
-                <tr key={a} className="border-t border-white/10 align-top text-slate-300">
-                  <td className="p-3 font-bold text-white">{a}</td><td className="p-3">{b}</td><td className="p-3">{c}</td><td className="p-3">{d}</td>
+      <div>
+        <Navbar />
+        <Container width="page" className="py-10">
+          <PageHeader
+            chapter="Tabel referensi"
+            title="Perbandingan tiga topologi"
+            lead="Tujuh aspek yang paling sering dipakai saat memilih topologi jaringan."
+          />
+
+          <div className="mt-6 overflow-x-auto border border-rule">
+            <table className="tech-table min-w-[54rem]">
+              <caption className="sr-only">Perbandingan topologi Bus, Ring, dan Star</caption>
+              <thead>
+                <tr>
+                  <th scope="col" className="w-48">
+                    Aspek
+                  </th>
+                  <th scope="col">Bus</th>
+                  <th scope="col">Ring</th>
+                  <th scope="col">Star</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-3 text-xs text-slate-400">ⓘ Bentuk Star saja tidak menjamin bebas collision. Ethernet dengan switch dan koneksi full-duplex tidak mengalami collision pada link tersebut; Star berbasis hub masih berbagi collision domain.</p>
-        <div className="card mt-4 grid gap-4 border-[#00c2e0]/50 p-6 md:grid-cols-[1fr_1.5fr_auto] md:items-center">
-          <div><span className="chip">CONTOH PEMILIHAN</span><div className="mt-2 text-lg font-extrabold">Laboratorium sekolah: 24 PC</div>
-            <p className="text-xs text-slate-400">Perlu mudah diperluas dan tetap berjalan saat kabel satu PC rusak.</p></div>
-          <div><div className="font-extrabold text-[#00e676]">Pilih Star dengan switch</div>
-            <p className="text-sm text-slate-300">Sediakan port untuk 24 PC serta uplink dan cadangan, kabel UTP per PC, dan daya yang stabil. Switch pusat tetap menjadi titik kegagalan: rencanakan perangkat pengganti.</p></div>
-          <Link href="/misi" className="btn-ghost px-5 py-2 text-sm">Kembali ke Materi</Link>
-        </div>
-      </main>
-      <Footer help />
-    </div>
+              </thead>
+              <tbody>
+                {ASPEK.map((a) => (
+                  <tr key={a.aspek}>
+                    <th
+                      scope="row"
+                      className="border-b border-rule-3 bg-transparent font-medium text-ink"
+                    >
+                      {a.aspek}
+                    </th>
+                    <td>{a.bus}</td>
+                    <td>{a.ring}</td>
+                    <td>{a.star}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-5 grid gap-5 md:grid-cols-3">
+            {(["bus", "ring", "star"] as const).map((key) => (
+              <div key={key} className="border border-rule bg-paper p-4">
+                <div className="drafting-grid border border-rule p-2">
+                  <TopoMini kind={key} />
+                </div>
+                <h2 className="mt-3 font-serif text-title">{TOPOLOGI[key].title}</h2>
+                <p className="mt-1 text-caption text-ink-2">{TOPO_SPECS[key].summary}</p>
+                <BtnLink href={`/praktik/${key}`} tone="ghost" size="sm" className="mt-3">
+                  Coba pasang <IconArrow size={13} />
+                </BtnLink>
+              </div>
+            ))}
+          </div>
+
+          <section className="mt-8 border border-rule bg-paper-2 p-6">
+            <Eyebrow>Studi kasus</Eyebrow>
+            <h2 className="mt-2 font-serif text-head">Laboratorium sekolah dengan 24 komputer</h2>
+            <p className="mt-3 max-w-3xl text-caption leading-relaxed text-ink-2">
+              Sekolah sedang membangun laboratorium komputer dengan 24 PC. Syarat dari sekolah:
+              bila satu komputer atau satu kabel bermasalah, komputer lain di lab tetap dapat
+              saling berkomunikasi; penambahan PC baru harus cepat; dan biaya perangkat pusat
+              sebaiknya tidak membebani anggaran.
+            </p>
+
+            <div className="mt-5 overflow-x-auto border border-rule bg-paper">
+              <table className="tech-table min-w-[40rem]">
+                <thead>
+                  <tr>
+                    <th scope="col">Kandidat</th>
+                    <th scope="col">Penilaian</th>
+                    <th scope="col">Nilai</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="font-medium text-ink">Bus</td>
+                    <td>
+                      Kerusakan satu bagian backbone dapat menjatuhkan separuh lab. Penambahan PC
+                      juga merepotkan.
+                    </td>
+                    <td className="font-mono text-redpen">Tidak</td>
+                  </tr>
+                  <tr>
+                    <td className="font-medium text-ink">Ring</td>
+                    <td>
+                      Satu ruas yang putus menghentikan seluruh aliran data pada lab. Tidak
+                      memenuhi syarat resilience.
+                    </td>
+                    <td className="font-mono text-redpen">Tidak</td>
+                  </tr>
+                  <tr>
+                    <td className="font-medium text-ink">Star</td>
+                    <td>
+                      Satu switch 24 port menutupi seluruh kebutuhan. Kabel PC yang putus hanya
+                      mengisolasi satu PC. Penambahan PC cukup pakai port kosong.
+                    </td>
+                    <td className="font-mono text-green">Disarankan</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-5">
+              <Callout tone="ok" label="Kesimpulan">
+                Topologi <span className="font-medium">Star</span> paling sesuai untuk laboratorium
+                sekolah: gangguan terisolasi, penambahan komputer mudah, dan satu switch 24 port
+                sudah cukup untuk seluruh lab.
+              </Callout>
+            </div>
+          </section>
+        </Container>
+        <Footer help />
+      </div>
     </RequireAuth>
   );
 }

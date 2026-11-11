@@ -1,21 +1,48 @@
 import Link from "next/link";
-import { Navbar, Footer } from "@/components/chrome";
+import { Container, Eyebrow } from "@/components/ui";
+import { IconCheck } from "@/components/icons";
+import { Logo } from "@/components/chrome";
 
 export default function KonfirmasiPage() {
   return (
-    <div>
-      <Navbar pub />
-      <main className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <div className="card p-10">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#00e676]/15 text-3xl">✉️</div>
-          <h1 className="mt-4 text-2xl font-extrabold">Instruksi reset terkirim!</h1>
-          <p className="mt-2 text-sm text-slate-400">Periksa kotak masuk (dan folder spam) emailmu, klik tautan reset di dalamnya untuk membuat kata sandi baru, lalu masuk kembali.</p>
-          <div className="mt-6 flex justify-center gap-3">
-            <Link href="/auth/login" className="btn-cyan px-6 py-2.5 text-sm">Kembali ke Login →</Link>
+    <div className="flex min-h-screen flex-col bg-paper">
+      <Container width="page" className="flex items-center justify-between py-5">
+        <Logo />
+        <Link
+          href="/beranda"
+          className="font-mono text-micro uppercase tracking-[0.14em] text-ink-3 hover:text-ink"
+        >
+          ← Selayang pandang
+        </Link>
+      </Container>
+
+      <Container width="narrow" className="flex flex-1 items-center justify-center py-10">
+        <div className="w-full border border-rule bg-paper p-8 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-green/50 bg-green-2 text-green">
+            <IconCheck size={22} />
+          </span>
+          <Eyebrow className="mt-5 justify-center">Tautan terkirim</Eyebrow>
+          <h1 className="mt-2 font-serif text-head">Periksa kotak masukmu</h1>
+          <p className="mt-3 text-caption text-ink-2">
+            Jika emailmu terdaftar, tautan untuk mengatur kata sandi baru sudah dikirim. Tautan
+            berlaku singkat — bila kedaluwarsa, minta tautan baru.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center rounded-xs border border-ink bg-ink px-4 py-2 font-mono text-caption uppercase tracking-[0.12em] text-paper hover:bg-ink-2"
+            >
+              Ke halaman masuk
+            </Link>
+            <Link
+              href="/auth/lupa"
+              className="inline-flex items-center rounded-xs border border-rule-2 px-4 py-2 font-mono text-caption uppercase tracking-[0.12em] text-ink hover:border-ink hover:bg-paper-2"
+            >
+              Minta tautan lagi
+            </Link>
           </div>
         </div>
-      </main>
-      <Footer />
+      </Container>
     </div>
   );
 }

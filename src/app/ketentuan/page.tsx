@@ -1,46 +1,80 @@
 import Link from "next/link";
-import { Navbar, Footer } from "@/components/chrome";
+import { Container, PageHeader } from "@/components/ui";
+import { Footer, Navbar } from "@/components/chrome";
 
-export default function Ketentuan() {
+const PASAL = [
+  {
+    no: "1",
+    judul: "Tentang aplikasi ini",
+    isi: [
+      "1.1 Network Explorer adalah bahan belajar mandiri mata Informatika kelas XI, topik topologi jaringan.",
+      "1.2 Aplikasi ini adalah prototipe tugas mata pelajaran; tidak提供服务 komersial.",
+    ],
+  },
+  {
+    no: "2",
+    judul: "Ketentuan belajar",
+    isi: [
+      "2.1 Progres, XP, dan lencana disimpan untuk keperluan belajar pribadi.",
+      "2.2 Nilai kuis yang ditampilkan adalah hasil kerja sendiri; aplikasi tidak memengaruhi nilai rapor resmi.",
+      "2.3 Materi video bersumber dari YouTube dan tunduk pada ketentuan YouTube masing-masing.",
+    ],
+  },
+  {
+    no: "3",
+    judul: "Konten dan materi",
+    isi: [
+      "3.1 Seluruh teks, gambar, dan diagram dalam aplikasi dibuat oleh kelompok pengembang.",
+      "3.2 Materi video bersumber dari YouTube dan tunduk pada ketentuan YouTube masing-masing.",
+      "3.3 Seluruh gambar teknik dan soal di dalam aplikasi dibuat oleh kelompok pengembang dan boleh dipakai untuk keperluan belajar pribadi.",
+    ],
+  },
+  {
+    no: "4",
+    judul: "Perubahan ketentuan",
+    isi: [
+      "4.1 Ketentuan dapat diperbarui sewaktu-waktu; tanggal berlaku tercantum di bagian atas halaman ini.",
+      "4.2 Perubahan yang memengaruhi hak pengguna diumumkan pada halaman muka aplikasi.",
+    ],
+  },
+];
+
+export default function KetentuanPage() {
   return (
     <div>
       <Navbar pub />
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <div className="text-xs font-bold text-[#00c2e0]">MISI TOPOLOGI • DOKUMEN</div>
-        <h1 className="mt-1 text-3xl font-extrabold">Ketentuan Penggunaan</h1>
-        <div className="card mt-5 space-y-4 p-6 text-sm text-slate-300">
-          <div>
-            <b className="text-white">1. Tujuan pemakaian</b>
-            <p className="mt-1 text-slate-400">
-              Aplikasi ini dibuat untuk pembelajaran topologi jaringan (Bus, Ring, Star) pada mata pelajaran
-              Informatika SMA Kelas XI. Gunakan sebagaimana mestinya untuk belajar.
-            </p>
-          </div>
-          <div>
-            <b className="text-white">2. Akun</b>
-            <p className="mt-1 text-slate-400">
-              Kamu bertanggung jawab menjaga kerahasiaan kata sandimu. Jangan bagikan kredensial kepada siapa pun.
-              Satu akun untuk satu pengguna.
-            </p>
-          </div>
-          <div>
-            <b className="text-white">3. Konten</b>
-            <p className="mt-1 text-slate-400">
-              Materi, diagram, dan soal disediakan untuk keperluan edukasi. Nilai dan XP di aplikasi adalah bagian
-              dari gamifikasi belajar, bukan nilai rapor resmi.
-            </p>
-          </div>
-          <div>
-            <b className="text-white">4. Perubahan</b>
-            <p className="mt-1 text-slate-400">
-              Ketentuan ini dapat diperbarui mengikuti kebutuhan pembelajaran. Penggunaan berkelanjutan berarti kamu
-              menyetujui versi terbaru.
-            </p>
-          </div>
-          <p className="text-xs text-slate-500">Terakhir diperbarui: Oktober 2026 • Dokumen contoh untuk keperluan UTS.</p>
+      <Container width="narrow" className="py-10">
+        <PageHeader
+          chapter="Dokumen aplikasi"
+          title="Ketentuan penggunaan"
+          lead="Aturan singkat yang berlaku saat memakai Network Explorer."
+          meta="Berlaku sejak 1 November 2026"
+        />
+
+        <div className="mt-8 space-y-6">
+          {PASAL.map((p) => (
+            <section key={p.no}>
+              <h2 className="font-serif text-title">
+                <span className="font-mono text-caption text-ink-3">{p.no}.</span> {p.judul}
+              </h2>
+              <ul className="mt-2 space-y-1.5">
+                {p.isi.map((t) => (
+                  <li key={t} className="text-caption leading-relaxed text-ink-2">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
         </div>
-        <Link href="/beranda" className="mt-4 inline-block text-sm text-[#22d3ee]">← Kembali ke Beranda</Link>
-      </main>
+
+        <Link
+          href="/beranda"
+          className="mt-10 inline-block border-t border-rule pt-5 font-mono text-caption uppercase tracking-[0.12em] text-blueprint hover:underline"
+        >
+          ← Kembali
+        </Link>
+      </Container>
       <Footer />
     </div>
   );

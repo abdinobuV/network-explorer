@@ -1,117 +1,295 @@
 @import "tailwindcss";
 
-:root {
-  --navy-950: #060f24;
-  --navy-900: #081226;
-  --navy-800: #0c1d3a;
-  --card: #13294b;
-  --card-2: #16294d;
-  --cyan: #00c2e0;
-  --cyan-light: #22d3ee;
-  --neon: #00e676;
-  --danger: #ff2d55;
+/* =============================================================================
+   SISTEM DESIGN — "Buku Teknis / Field Manual"
+   -----------------------------------------------------------------------------
+   Prinsip: tinta di atas kertas. Tanpa gradien dekoratif, tanpa glow neon,
+   tanpa glassmorphism. Radius kecil, garis rambut 1px, dan satu skala tipografi.
+   Warna hanya punya arti:
+     blueprint = aktif / tautan / garis data      redpen = kesalahan
+     green     = berhasil / tersambung             amber = peringatan
+   ========================================================================== */
+
+@theme {
+  /* --- Kertas & permukaan --- */
+  --color-paper: #f4f1e8;
+  --color-paper-2: #eae6d9;
+  --color-paper-3: #e0dacb;
+  --color-paper-4: #d5cdba;
+
+  /* --- Tinta --- */
+  --color-ink: #1b1a16;
+  --color-ink-2: #4c4840;
+  --color-ink-3: #7c766a;
+  --color-ink-4: #9a9384;
+
+  /* --- Garis --- */
+  --color-rule: #c8c1af;
+  --color-rule-2: #a79e88;
+  --color-rule-3: #ded7c5;
+
+  /* --- Aksen --- */
+  --color-blueprint: #1b4d7a;
+  --color-blueprint-2: #2e6da4;
+  --color-blueprint-3: #e4ecf3;
+  --color-redpen: #b3352b;
+  --color-redpen-2: #f2e2df;
+  --color-green: #3f7a4e;
+  --color-green-2: #e2ede4;
+  --color-amber: #b5822b;
+  --color-amber-2: #f6ecd9;
+  --color-graphite: #35342f;
+
+  /* --- Font --- */
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
+  --font-serif: var(--font-plex-serif), Georgia, "Times New Roman", serif;
+
+  /* --- Skala tipografi (satu-satunya skala yang dipakai) --- */
+  --text-micro: 0.6875rem; /* 11px */
+  --text-caption: 0.8125rem; /* 13px */
+  --text-body: 0.9375rem; /* 15px */
+  --text-lead: 1.0625rem; /* 17px */
+  --text-title: 1.3125rem; /* 21px */
+  --text-head: 1.6875rem; /* 27px */
+  --text-chapter: 2.25rem; /* 36px */
+  --text-cover: 3rem; /* 48px */
+
+  /* --- Radius (kecil, ala gambar teknik) --- */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
+  /* --- Bayangan (hanya untuk "kertas terangkat", tidak untuk glow) --- */
+  --shadow-paper: 0 1px 2px rgb(27 26 22 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(27 26 22 / 0.07), 0 12px 32px rgb(27 26 22 / 0.1);
 }
 
-html,
+/* =============================================================================
+   DASAR
+   ========================================================================== */
+
+html {
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
 body {
   height: 100%;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-body {
-  background: var(--navy-900);
-  color: #e2e8f0;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background-image: radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.12) 1px, transparent 0);
-  background-size: 28px 28px;
-}
-
-.card {
-  background: linear-gradient(180deg, #14294d 0%, #101f3d 100%);
-  border: 1px solid rgba(0, 194, 224, 0.18);
-  border-radius: 1rem;
-}
-
-.btn-neon {
-  background: var(--neon);
-  color: #06121f;
-  font-weight: 700;
-  border-radius: 0.75rem;
-  transition: transform 0.15s ease, filter 0.15s ease;
-}
-.btn-neon:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-}
-.btn-neon:disabled {
-  opacity: 0.5;
-  transform: none;
-}
-
-.btn-cyan {
-  background: var(--cyan);
-  color: #06121f;
-  font-weight: 700;
-  border-radius: 0.75rem;
-}
-.btn-cyan:hover {
-  filter: brightness(1.1);
-}
-
-.btn-ghost {
-  border: 1px solid rgba(0, 194, 224, 0.6);
-  color: var(--cyan-light);
-  border-radius: 0.75rem;
+/* Judul & heading memakai serif; angka & data memakai mono. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
   font-weight: 600;
-}
-.btn-ghost:hover {
-  background: rgba(0, 194, 224, 0.12);
-}
-
-.input {
-  width: 100%;
-  background: #0a1428;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 0.6rem;
-  padding: 0.75rem 0.9rem;
-  color: #e2e8f0;
-  outline: none;
-}
-.input:focus {
-  border-color: var(--cyan);
-  box-shadow: 0 0 0 3px rgba(0, 194, 224, 0.2);
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  text-wrap: balance;
 }
 
-.chip {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--cyan-light);
-  background: rgba(0, 194, 224, 0.12);
-  border-radius: 999px;
-  padding: 0.25rem 0.7rem;
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  color: var(--color-ink);
 }
 
-@keyframes dash-flow {
+::selection {
+  background: var(--color-blueprint);
+  color: #fff;
+}
+
+/* Fokus keyboard harus selalu terlihat — penting untuk halaman interaktif. */
+:focus-visible {
+  outline: 2px solid var(--color-blueprint);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+
+/* =============================================================================
+   UTILITAS
+   ========================================================================== */
+
+/* Permukaan kertas: hairline, tanpa gradien. */
+.paper {
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-rule);
+}
+
+.paper-2 {
+  background-color: var(--color-paper-2);
+  border: 1px solid var(--color-rule);
+}
+
+.paper-3 {
+  background-color: var(--color-paper-3);
+  border: 1px solid var(--color-rule);
+}
+
+/* Kertas milimeter untuk kanvas gambar teknik. */
+.drafting-grid {
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(to right, rgb(27 26 22 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(27 26 22 / 0.07) 1px, transparent 1px),
+    linear-gradient(to right, rgb(27 26 22 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(27 26 22 / 0.035) 1px, transparent 1px);
+  background-size:
+    64px 64px,
+    64px 64px,
+    16px 16px,
+    16px 16px;
+}
+
+/* Kabel yang sedang disusun: putus-putus tipis. */
+.cable-dashed {
+  stroke-dasharray: 7 5;
+}
+
+.cable-live {
+  stroke-dasharray: 10 6;
+  animation: cable-flow 0.75s linear infinite;
+}
+
+@keyframes cable-flow {
   to {
-    stroke-dashoffset: -24;
+    stroke-dashoffset: -16;
   }
-}
-.packet-flow {
-  stroke-dasharray: 6 6;
-  animation: dash-flow 0.8s linear infinite;
 }
 
-@keyframes ping-dot {
-  0% {
-    offset-distance: 0%;
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    offset-distance: 100%;
-    opacity: 0;
+/* Garis "tinta" pada diagram: putus-putus untuk jalur belum tersambung. */
+.trace-idle {
+  stroke-dasharray: 4 5;
+}
+
+@keyframes trace-flow {
+  to {
+    stroke-dashoffset: -18;
   }
 }
+
+.trace-live {
+  stroke-dasharray: 12 6;
+  animation: trace-flow 0.9s linear infinite;
+}
+
+/* Otak-otak getar saat drop ditolak. */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+.shake {
+  animation: shake 0.34s ease-in-out;
+}
+
+/* Kabel "tidak aktif" — bayangantechnical red-pen. */
+@keyframes pulse-line {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.pulse-line {
+  animation: pulse-line 1.8s ease-in-out infinite;
+}
+
+/* Tabel teknis: garis rambut, zebra sangat halus. */
+.tech-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-caption);
+}
+
+.tech-table th {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-3);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-rule-2);
+  background-color: var(--color-paper-2);
+}
+
+.tech-table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--color-rule-3);
+  color: var(--color-ink-2);
+  vertical-align: top;
+}
+
+.tech-table tbody tr:nth-child(even) {
+  background-color: rgb(234 230 217 / 0.4);
+}
+
+.tech-table tbody tr:hover {
+  background-color: var(--color-blueprint-3);
+}
+
+/* Tabel cetak pada rapor. */
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .paper,
+  .paper-2,
+  .paper-3 {
+    border-color: #999;
+  }
+
+  .print-full {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

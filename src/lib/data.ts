@@ -4,8 +4,12 @@ export interface TopoInfo {
   key: TopoKey;
   level: string;
   title: string;
+  /** Tagline singkat untuk kartu. */
   desc: string;
+  /** Paragraf penjelasan bab. */
   long: string;
+  /** Analogi dunia nyata. */
+  analogi: string;
   cara: string[];
   kelebihan: string[];
   kekurangan: string[];
@@ -27,8 +31,9 @@ export const TOPOLOGI: Record<TopoKey, TopoInfo> = {
     key: "bus",
     level: "Level 1 • Studi Topologi Dasar",
     title: "Topologi Bus",
-    desc: "Semua komputer terhubung ke satu kabel utama (backbone). Data dikirim sepanjang jalur, dan setiap PC memeriksa apakah paket itu untuknya.",
+    desc: "Satu kabel utama, semua komputer berbagi.",
     long: "Semua komputer terhubung ke satu kabel utama (backbone). Data dikirim sepanjang jalur, dan setiap PC memeriksa apakah paket itu untuknya.",
+    analogi: "Satu jalan utama yang dilalui banyak kendaraan: begitu jalan itu terputus, semua kendaraan ikut terputus.",
     cara: [
       "Data dikirim ke backbone dan merambat ke kedua arah.",
       "Tiap PC memeriksa alamat tujuan paket.",
@@ -46,8 +51,9 @@ export const TOPOLOGI: Record<TopoKey, TopoInfo> = {
     key: "ring",
     level: "Level 2 • Studi Topologi Dasar",
     title: "Topologi Ring",
-    desc: "Komputer tersambung membentuk lingkaran tertutup. Data berjalan satu arah dari satu PC ke PC berikutnya hingga sampai di tujuan.",
+    desc: "Lingkaran tertutup, data mengalir satu arah.",
     long: "Komputer tersambung membentuk lingkaran tertutup. Data berjalan satu arah dari satu PC ke PC berikutnya hingga sampai di tujuan.",
+    analogi: "Lingkaran rel kereta api: kereta berjalan searah jarum jam dan seluruh jalur berhenti bila satu ruas rel rusak.",
     cara: [
       "Paket data berjalan searah jarum jam.",
       "Tiap PC meneruskan paket ke tetangga berikutnya.",
@@ -65,8 +71,9 @@ export const TOPOLOGI: Record<TopoKey, TopoInfo> = {
     key: "star",
     level: "Level 3 • Studi Topologi Dasar",
     title: "Topologi Star",
-    desc: "Semua PC terhubung ke satu Switch pusat. Switch meneruskan data langsung ke PC tujuan, sehingga setiap PC punya kabel sendiri.",
+    desc: "Semua komputer tersambung ke satu switch pusat.",
     long: "Semua PC terhubung ke satu Switch pusat. Switch meneruskan data langsung ke PC tujuan, sehingga setiap PC punya kabel sendiri.",
+    analogi: "Kantor pos: semua surat masuk ke satu meja sortir, lalu dichlor ke alamat yang tepat. Satu meja tumbang? Semua surat tertahan.",
     cara: [
       "PC mengirim data ke Switch pusat.",
       "Switch memeriksa tujuan dan meneruskan hanya ke PC itu.",

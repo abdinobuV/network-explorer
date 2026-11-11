@@ -1,60 +1,151 @@
-import Link from "next/link";
+"use client";
+
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
+import { Container, Eyebrow, PageHeader, Callout, BtnLink, Kbd } from "@/components/ui";
+import { IconArrow, IconCheck, IconTarget } from "@/components/icons";
 
-export default function Panduan() {
+const TUJUAN = [
+  "Menjelaskan cara kerja topologi Bus, Ring, dan Star beserta karakteristiknya.",
+  "Membedakan kelebihan dan kekurangan masing-masing topologi.",
+  "Memasang kabel pada lembar kerja sesuai aturan tiap topologi.",
+  "Menganalisis dampak gangguan jaringan terhadap jenis topologi tertentu.",
+];
+
+const LANGKAH = [
+  {
+    no: "1",
+    judul: "Baca babnya",
+    durasi: "± 10 menit",
+    isi: [
+      "Mulai dari Bab 01 (Bus) dan lanjutkan berurutan.",
+      "Pahami bagian Cara Kerja sebelum masuk ke bagian Cek Pemahaman.",
+      "Sebutkan analoginya dengan suara sendiri — lebih mudah diingat.",
+    ],
+  },
+  {
+    no: "2",
+    judul: "Pasang kabelnya",
+    durasi: "± 5 menit",
+    isi: [
+      "Buka Lembar Praktik untuk topologi yang sedang dipelajari.",
+      "Seret kabel dari palet ke perangkat yang benar. Salah sasaran akan ditolak beserta alasannya.",
+      "Kabel yang terpasang bisa dicabut lagi dengan menariknya keluar atau tombol Cabut.",
+    ],
+  },
+  {
+    no: "3",
+    judul: "Uji jaringannya",
+    durasi: "± 5 menit",
+    isi: [
+      "Di Sandbox, kirim data dari satu komputer ke komputer lain.",
+      "Cabut satu kabel, lalu kirim data lagi. Perhatikan apa yang berubah.",
+      "Tulis kesimpulanmu sendiri: mengapa dampaknya berbeda tiap topologi?",
+    ],
+  },
+  {
+    no: "4",
+    judul: "Tunjukkan pemahamanmu",
+    durasi: "± 15 menit",
+    isi: [
+      "Kerjakan Kuis Akhir berisi sepuluh studi kasus.",
+      "Baca pembahasan setiap soal — termasuk soal yang sudah benar.",
+      "Ulangi bab dengan nilai terendah bila skoremu di bawah 80.",
+    ],
+  },
+];
+
+export default function PanduanPage() {
   return (
     <RequireAuth>
-    <div>
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="text-xs font-bold text-[#00c2e0]">PANDUAN • SMA KELAS XI</div>
-        <h1 className="text-3xl font-extrabold">Siap memulai misi jaringan?</h1>
-        <p className="text-slate-400">Ikuti langkah belajar ini untuk memahami bagaimana komputer terhubung dan bertukar data.</p>
-        <div className="mt-5 grid gap-4 md:grid-cols-[1fr_340px]">
-          <div className="card p-6">
-            <h3 className="text-lg font-extrabold">Tujuan pembelajaran</h3>
-            <ul className="mt-2 space-y-2 text-sm">
-              <li>✅ Mengenali struktur dan aliran data pada topologi Bus, Ring, dan Star.</li>
-              <li>✅ Membandingkan kebutuhan perangkat, kelebihan, dan risiko gangguan.</li>
-              <li>✅ Memilih topologi yang sesuai untuk kebutuhan jaringan sekolah.</li>
-            </ul>
+      <div>
+        <Navbar />
+        <Container width="page" className="py-10">
+          <PageHeader
+            chapter="Pendahuluan"
+            title="Panduan belajar"
+            lead="Cara memakai buku ini secara efektif dari awal sampai rapor tercetak."
+          />
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div className="space-y-6">
+              <section className="border border-rule bg-paper p-5">
+                <Eyebrow>Tujuan pembelajaran</Eyebrow>
+                <ul className="mt-3 space-y-2">
+                  {TUJUAN.map((t) => (
+                    <li key={t} className="flex gap-2.5 text-caption text-ink-2">
+                      <IconCheck size={14} className="mt-0.5 shrink-0 text-green" />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="space-y-4">
+                {LANGKAH.map((l) => (
+                  <div key={l.no} className="border border-rule bg-paper">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule bg-paper-2 px-5 py-3">
+                      <div className="flex items-baseline gap-3">
+                        <span className="font-mono text-caption text-blueprint">{l.no}</span>
+                        <h2 className="font-serif text-title">{l.judul}</h2>
+                      </div>
+                      <span className="font-mono text-micro uppercase tracking-[0.1em] text-ink-3">
+                        {l.durasi}
+                      </span>
+                    </div>
+                    <ul className="space-y-2 p-5">
+                      {l.isi.map((t) => (
+                        <li key={t} className="flex gap-2.5 text-caption text-ink-2">
+                          <span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 bg-rule-2" />
+                          {t}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </section>
+
+              <Callout tone="note" label="Catatan untuk guru">
+                Lembar praktik sengaja memakai aturan pemasangan yang berbeda tiap topologi.
+                Jika siswa salah, mintalah mereka menjelaskan mengapa Bus tidak boleh disambung ke
+                komputer lain secara langsung.
+              </Callout>
+            </div>
+
+            <aside className="space-y-5">
+              <div className="border border-rule bg-paper p-5">
+                <Eyebrow>Target belajar</Eyebrow>
+                <p className="mt-2 text-caption text-ink-2">
+                  Selesaikan 10 tahap learn: 3 bab × (materi + praktik + simulasi), ditambah satu
+                  kuis akhir.
+                </p>
+                <div className="mt-4 flex flex-col gap-2">
+                  <BtnLink href="/misi" className="w-full">
+                    <IconTarget size={14} /> Buka peta misi
+                  </BtnLink>
+                  <BtnLink href="/progres" tone="ghost" className="w-full">
+                    <IconArrow size={14} /> Lihat progres
+                  </BtnLink>
+                </div>
+              </div>
+
+              <div className="border border-rule bg-paper p-5">
+                <Eyebrow>Perangkat & aksesibilitas</Eyebrow>
+                <ul className="mt-2 space-y-1.5 text-caption text-ink-2">
+                  <li>Seluruh interaksi dapat dipakai dengan keyboard.</li>
+                  <li>
+                    Tekan <Kbd>Tab</Kbd> untuk berpindah antarelemen, lalu <Kbd>Enter</Kbd> untuk
+                    memilih atau menyambungkan kabel.
+                  </li>
+                  <li>Efek suara dapat dimatikan lewat tombol di navigasi.</li>
+                  <li>Animasi dihentikan otomatis bila sistem diaktifkan pada Reduce Motion.</li>
+                </ul>
+              </div>
+            </aside>
           </div>
-          <div className="card border-[#00c2e0] p-6">
-            <span className="chip">MISI PEMULA</span>
-            <h3 className="mt-2 text-xl font-extrabold">Belajar bertahap, bukan menghafal.</h3>
-            <p className="mt-1 text-sm text-slate-400">Amati pola jaringan, coba sendiri, lalu jelaskan alasanmu. Kesalahan saat latihan adalah bagian dari belajar.</p>
-            <p className="mt-2 text-xs text-[#22d3ee]">Estimasi satu sesi: 50 menit • 3 topologi</p>
-          </div>
-        </div>
-        <h2 className="mt-8 text-lg font-extrabold">Urutan belajarmu</h2>
-        <div className="mt-3 grid gap-4 md:grid-cols-4">
-          {[
-            ["📖 01 →", "Materi", "Kenali struktur Bus, Ring, dan Star melalui diagram dan penjelasan.", "15 menit", "/misi"],
-            ["🔌 02 →", "Praktik", "Susun perangkat dan hubungkan kabel sesuai pola topologi.", "15 menit", "/praktik/star"],
-            ["✈ 03 →", "Simulasi", "Uji pengiriman paket dan amati dampak kabel yang terputus.", "10 menit", "/sandbox"],
-            ["📋 04", "Kuis", "Terapkan pemahamanmu pada soal dan kasus jaringan.", "10 menit", "/kuis"],
-          ].map(([i, t, d, w, h]) => (
-            <Link key={t} href={h} className="card p-5 hover:border-[#00c2e0]">
-              <div className="flex justify-between text-sm text-slate-400"><span>{i}</span></div>
-              <div className="mt-2 font-extrabold">{t}</div>
-              <div className="text-sm text-slate-400">{d}</div>
-              <div className="mt-2 text-xs text-[#22d3ee]">{w}</div>
-            </Link>
-          ))}
-        </div>
-        <div className="mt-5 flex gap-3 text-sm">
-          <span className="text-[#22d3ee]">ⓘ</span>
-          <p><b>Cara menggunakan website</b><br /><span className="text-slate-400">Pilih topologi di Misi Utama. Baca materi sebelum praktik, gunakan Sandbox Jaringan untuk menguji aliran data, lalu cek Progres Belajar. Istilah yang belum dikenal bisa kamu cari di Glosarium & Bantuan.</span></p>
-        </div>
-      </main>
-      <div className="border-t border-white/10 bg-[#0c1d3a]">
-        <div className="mx-auto flex max-w-7xl justify-end gap-3 px-4 py-3">
-          <Link href="/misi" className="btn-ghost px-5 py-2 text-sm">Kembali ke Menu</Link>
-          <Link href="/misi" className="btn-neon px-5 py-2 text-sm">Mulai Belajar →</Link>
-        </div>
+        </Container>
+        <Footer help />
       </div>
-    </div>
     </RequireAuth>
   );
 }

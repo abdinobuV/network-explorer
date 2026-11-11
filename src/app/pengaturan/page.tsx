@@ -1,78 +1,247 @@
 "use client";
+
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
-import { useAuth } from "@/lib/store";
-import { signOutFirebase } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
+import { Container, Eyebrow, PageHeader, Btn, Field, Input, Select, Callout, Toggle } from "@/components/ui";
+import { IconLogout, IconWarning } from "@/components/icons";
+import { useAuth, useProg } from "@/lib/store";
+import {
+  getServerSoundEnabled,
+  isSoundEnabled,
+  setSoundEnabled,
+  subscribeSound,
+} from "@/lib/sound";
+import { getPref, setPref, subscribePrefs } from "@/lib/prefs";
+import { toast } from "@/lib/toast";
 
-export default function Pengaturan() {
-  const { user, fuser, update, logout } = useAuth();
-  const r = useRouter();
-  const [name, setName] = useState(fuser?.displayName ?? user?.name ?? "Siswa Navigator");
+const KELAS = ["X", "XI", "XII"];
+
+export default function PengaturanPage() {
+  const router = useRouter();
+  const { user, update, logout, isDemo } = useAuth();
+  const { reset, syncState, syncError, activity } = useProg();
+
+  const [nama, setNama] = useState(user?.name ?? "");
   const [kelas, setKelas] = useState(user?.kelas ?? "XI");
-  const [tips, setTips] = useState(true);
-  const [sound, setSound] = useState(false);
-  const [saved, setSaved] = useState("");
+  const [pesan, setPesan] = useState<string | null>(null);
+  const [galat, setGalat] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  /* Preferensi dibaca langsung dari penyimpanan — tanpa setState di dalam effect. */
+  const suara = useSyncExternalStore(subscribeSound, isSoundEnabled, getServerSoundEnabled);
+  const jalur = useSyncExternalStore(
+    subscribePrefs,
+    () => getPref("showPaths"),
+    () => false,
+  );
+
+  async function simpan(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setGalat(null);
+    setPesan(null);
+    const err = await update({ name: nama, kelas });
+    setBusy(false);
+    if (err) {
+      setGalat(err);
+      return;
+    }
+    setPesan("Perubahan disimpan.");
+    toast("Perubahan data akun tersimpan.", "ok");
+  }
+
+  async function keluar() {
+    setBusy(true);
+    await logout();
+    router.push("/auth/login");
+  }
+
+  function ubahSuara(v: boolean) {
+    setSoundEnabled(v);
+  }
+
+  function ubahJalur(v: boolean) {
+    setPref("showPaths", v);
+  }
 
   return (
     <RequireAuth>
-    <div>
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="text-xs font-bold text-[#00c2e0]">AKUN SISWA</div>
-        <h1 className="text-3xl font-extrabold">Pengaturan Akun</h1>
-        <p className="text-slate-400">Kelola identitas, keamanan, dan cara kamu belajar.</p>
-        <div className="mt-5 grid gap-5 md:grid-cols-[240px_1fr]">
-          <aside className="space-y-2">
-            <div className="rounded-lg border border-[#00c2e0] bg-[#00c2e0]/10 px-4 py-2.5 text-sm font-bold text-[#22d3ee]">👤 Edit Profil</div>
-            <div className="px-4 py-2.5 text-sm text-slate-400">🔒 Keamanan</div>
-            <div className="px-4 py-2.5 text-sm text-slate-400">🎚 Preferensi Belajar</div>
-            <p className="px-4 pt-4 text-xs text-slate-500">Perubahan profil tidak mengubah XP, level, atau pencapaian belajarmu.</p>
-            <Link href="/profil" className="px-4 text-xs text-[#22d3ee]">← Kembali ke Profil Siswa</Link>
-          </aside>
-          <div className="space-y-4">
-            <div className="card p-6">
-              <div className="flex justify-between"><div><h3 className="font-extrabold">Edit Profil</h3>
-                <p className="text-sm text-slate-400">Gunakan nama yang ingin tampil dalam misi belajarmu.</p></div>
-                <span className="grid h-11 w-11 place-items-center rounded-full border border-[#00c2e0] bg-gradient-to-br from-fuchsia-500 to-cyan-500">🧑‍🚀</span></div>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <div><label className="text-sm font-bold">Nama siswa</label><input className="input mt-1" value={name} onChange={(e) => setName(e.target.value)} /></div>
-                <div><label className="text-sm font-bold">Kelas</label>
-                  <select className="input mt-1" value={kelas} onChange={(e) => setKelas(e.target.value)}><option>X</option><option>XI</option><option>XII</option></select></div>
-              </div>
-              <div className="mt-3 rounded-lg bg-black/30 p-3 text-sm text-slate-400">✉ Email akun: {fuser?.email ?? user?.email ?? "navigator@example.com"} <span className="float-right text-xs">{fuser ? "Akun Google tersinkron ☁" : "Data contoh"}</span></div>
-              <div className="mt-3 flex justify-end gap-3">
-                <button onClick={() => { setName(user?.name ?? ""); setKelas(user?.kelas ?? "XI"); }} className="btn-ghost px-5 py-2 text-sm">Batal</button>
-                <button onClick={() => { update({ name, kelas }); setSaved("Perubahan disimpan."); setTimeout(() => setSaved(""), 2500); }} className="btn-cyan px-5 py-2 text-sm">Simpan Perubahan</button>
-              </div>
-              {saved && <p className="mt-2 text-right text-sm text-[#00e676]">{saved}</p>}
+      <div>
+        <Navbar />
+        <Container width="page" className="py-10">
+          <PageHeader
+            chapter="Lembar pengaturan"
+            title="Pengaturan akun"
+            lead="Ubah data akunmu, atur preferensi belajar, dan kelola progres yang tersimpan."
+          />
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div className="space-y-6">
+              {/* Data akun */}
+              <section className="border border-rule bg-paper">
+                <div className="border-b border-rule bg-paper-2 px-5 py-3">
+                  <Eyebrow>1. Data akun</Eyebrow>
+                </div>
+                <form onSubmit={simpan} className="space-y-4 p-5">
+                  {galat && (
+                    <Callout tone="error">
+                      <span className="flex items-start gap-2">
+                        <IconWarning size={15} className="mt-0.5 shrink-0" />
+                        {galat}
+                      </span>
+                    </Callout>
+                  )}
+                  {pesan && <Callout tone="ok">{pesan}</Callout>}
+
+                  <Field label="Nama tampilan" htmlFor="nama">
+                    <Input
+                      id="nama"
+                      name="nama"
+                      value={nama}
+                      onChange={(e) => setNama(e.target.value)}
+                      autoComplete="name"
+                    />
+                  </Field>
+
+                  <Field label="Kelas" htmlFor="kelas">
+                    <Select
+                      id="kelas"
+                      name="kelas"
+                      value={kelas}
+                      onChange={(e) => setKelas(e.target.value)}
+                    >
+                      {KELAS.map((k) => (
+                        <option key={k} value={k}>
+                          Kelas {k}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+
+                  <Field label="Email" htmlFor="email" hint="Email tidak dapat diubah di sini.">
+                    <Input id="email" name="email" value={user?.email ?? ""} disabled readOnly />
+                  </Field>
+
+                  <div className="flex gap-3">
+                    <Btn type="submit" disabled={busy}>
+                      {busy ? "Menyimpan…" : "Simpan perubahan"}
+                    </Btn>
+                    <Btn
+                      type="button"
+                      tone="quiet"
+                      onClick={() => {
+                        setNama(user?.name ?? "");
+                        setKelas(user?.kelas ?? "XI");
+                        setPesan(null);
+                      }}
+                    >
+                      Batal
+                    </Btn>
+                  </div>
+                </form>
+              </section>
+
+              {/* Preferensi */}
+              <section className="border border-rule bg-paper">
+                <div className="border-b border-rule bg-paper-2 px-5 py-3">
+                  <Eyebrow>2. Preferensi belajar</Eyebrow>
+                </div>
+                <div className="space-y-5 p-5">
+                  <Toggle
+                    id="suara"
+                    label="Efek suara"
+                    description="Bunyi klik dan notifikasi saat memasang kabel. Disintesis di peramban, tanpa berkas audio."
+                    checked={suara}
+                    onChange={ubahSuara}
+                  />
+                  <div className="border-t border-rule-3 pt-5">
+                    <Toggle
+                      id="jalur"
+                      label="Tampilkan jalur pemasangan"
+                      description="Menampilkan garis putus-putus sebagai petunjuk sebelum memasang kabel."
+                      checked={jalur}
+                      onChange={ubahJalur}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Progres */}
+              <section className="border border-rule bg-paper">
+                <div className="border-b border-rule bg-paper-2 px-5 py-3">
+                  <Eyebrow>3. Data progres</Eyebrow>
+                </div>
+                <div className="space-y-4 p-5">
+                  <p className="text-caption text-ink-2">
+                    Saat ini tercatat <span className="font-mono">{activity.length}</span> kegiatan
+                    belajar. {isDemo ? "Mode demo: data hanya ada di peramban ini." : "Data disinkronkan ke cloud."}
+                    {syncState === "error" && (
+                      <span className="mt-1 block text-redpen">
+                        Sinkronisasi bermasalah: {syncError}
+                      </span>
+                    )}
+                  </p>
+                  <Btn
+                    tone="danger"
+                    onClick={() => {
+                      reset();
+                      toast("Seluruh progres belajar telah dihapus.", "default");
+                    }}
+                  >
+                    Hapus seluruh progres
+                  </Btn>
+                </div>
+              </section>
+
+              {/* Keluar */}
+              <section className="border border-rule bg-paper p-5">
+                <Eyebrow>4. Sesi</Eyebrow>
+                <p className="mt-2 text-caption text-ink-2">
+                  Keluar dari akun ini. Progres yang sudah tersimpan tidak akan hilang.
+                </p>
+                <Btn tone="ghost" className="mt-4" onClick={keluar} disabled={busy}>
+                  <IconLogout size={15} /> Keluar dari akun
+                </Btn>
+              </section>
             </div>
-            <div className="card flex items-center justify-between p-6">
-              <div><h3 className="font-extrabold">🔒 Kata sandi</h3><p className="text-sm text-slate-400">Jaga akunmu dengan kata sandi yang unik.</p></div>
-              <Link href="/auth/lupa" className="btn-ghost px-5 py-2 text-sm">Ubah Kata Sandi</Link>
-            </div>
-            <div className="card p-6">
-              <h3 className="font-extrabold">Preferensi Belajar</h3>
-              <div className="mt-3 flex items-center justify-between">
-                <div><b className="text-sm">Petunjuk saat latihan</b><p className="text-xs text-slate-400">Tampilkan bantuan singkat ketika menyusun jaringan.</p></div>
-                <button onClick={() => setTips(!tips)} className={`h-6 w-11 rounded-full p-0.5 ${tips ? "bg-[#00c2e0]" : "bg-white/10"}`}><span className={`block h-5 w-5 rounded-full bg-white transition ${tips ? "ml-auto" : ""}`} /></button>
+
+            <aside className="space-y-5">
+              <div className="border border-rule bg-paper p-5">
+                <Eyebrow>Status sinkronisasi</Eyebrow>
+                <p className="mt-2 font-mono text-caption text-ink">
+                  {isDemo ? "Lokal (peramban)" : syncState}
+                </p>
+                <p className="mt-1 text-caption text-ink-3">
+                  {isDemo
+                    ? "Isi .env.local dan kosongkan NEXT_PUBLIC_DEMO_MODE untuk memakai Firebase."
+                    : "Progres dikirim otomatis beberapa detik setelah perubahan."}
+                </p>
               </div>
-              <div className="mt-3 flex items-center justify-between">
-                <div><b className="text-sm">Suara simulasi</b><p className="text-xs text-slate-400">Putar suara ketika paket data berpindah.</p></div>
-                <button onClick={() => setSound(!sound)} className={`h-6 w-11 rounded-full p-0.5 ${sound ? "bg-[#00c2e0]" : "bg-white/10"}`}><span className={`block h-5 w-5 rounded-full bg-white transition ${sound ? "ml-auto" : ""}`} /></button>
+
+              <div className="border border-rule bg-paper p-5">
+                <Eyebrow>Tautan cepat</Eyebrow>
+                <ul className="mt-2 space-y-1.5 text-caption">
+                  {[
+                    ["Kunci kata sandi", "/auth/lupa"],
+                    ["Peta misi", "/misi"],
+                    ["Rapor belajar", "/cetak"],
+                  ].map(([label, href]) => (
+                    <li key={href}>
+                      <Link href={href} className="text-blueprint hover:underline">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-            <div className="flex items-center justify-between rounded-2xl border border-white/10 p-5">
-              <div><b className="text-sm">Selesai belajar untuk sekarang?</b><p className="text-xs text-slate-400">Keluar jika menggunakan komputer bersama. Progres tetap tersimpan.</p></div>
-              <button onClick={async () => { await signOutFirebase(); logout(); r.push("/auth/login"); }} className="btn-ghost px-5 py-2 text-sm">Keluar</button>
-            </div>
+            </aside>
           </div>
-        </div>
-      </main>
-      <Footer help />
-    </div>
+        </Container>
+        <Footer help />
+      </div>
     </RequireAuth>
   );
 }

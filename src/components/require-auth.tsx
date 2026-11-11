@@ -1,24 +1,27 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/store";
 
-// Guard hybrid: lolos jika login Google (Firebase) ATAU akun demo lokal.
-// Jika tidak ada keduanya setelah loading selesai, redirect ke /auth/login.
+/** Halaman yang butuh sesi. Tanpa sesi → arahkan ke halaman masuk. */
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, fuser, ready } = useAuth();
-  const r = useRouter();
-  const authed = !!user || !!fuser;
+  const { user, ready } = useAuth();
+  const router = useRouter();
+  const authed = !!user;
 
   useEffect(() => {
-    if (ready && !authed) r.replace("/auth/login");
-  }, [ready, authed, r]);
+    if (ready && !authed) router.replace("/auth/login");
+  }, [ready, authed, router]);
 
-  if (!ready) {
-    return <div className="mx-auto max-w-7xl p-10 text-center text-sm text-slate-400">Memuat sesi...</div>;
-  }
-  if (!authed) {
-    return <div className="mx-auto max-w-7xl p-10 text-center text-sm text-slate-400">Mengalihkan ke halaman masuk...</div>;
+  if (!ready || !authed) {
+    return (
+      <div className="grid min-h-[60vh] place-items-center">
+        <p className="font-mono text-caption uppercase tracking-[0.14em] text-ink-3">
+          {ready ? "Mengalihkan ke halaman masuk…" : "Memuat sesi…"}
+        </p>
+      </div>
+    );
   }
   return <>{children}</>;
 }

@@ -1,78 +1,160 @@
 "use client";
-import Link from "next/link";
-import { useState } from "react";
+
+import { useMemo, useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
+import { Container, Eyebrow, PageHeader, Input, Badge } from "@/components/ui";
+import { IconSearch } from "@/components/icons";
 import { GLOSSARY } from "@/lib/data";
 
-const CATS = ["Semua istilah", "Perangkat", "Struktur jaringan", "Komunikasi", "Pengujian"];
+const KATEGORI = ["Semua", ...Array.from(new Set(GLOSSARY.map((g) => g.cat)))];
 
-export default function Glosarium() {
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState(CATS[0]);
-  const list = GLOSSARY.filter(
-    (g) =>
-      (cat === CATS[0] || g.cat === cat) &&
-      (g.term.toLowerCase().includes(q.toLowerCase()) || g.def.toLowerCase().includes(q.toLowerCase()))
-  );
+const FAQ = [
+  {
+    t: "Apa itu topologi jaringan?",
+    j: "Pola hubungan antar node dalam jaringan. Pola ini menentukan jalur data sekaligus besarnya dampak ketika satu bagian jaringan rusak.",
+  },
+  {
+    t: "Mana yang paling tahan gangguan?",
+    j: "Topologi Star, karena setiap komputer punya kabel sendiri ke switch pusat. Satu kabel putus hanya mengisolasi satu komputer.",
+  },
+  {
+    t: "Bisakah saya mengulang kuis?",
+    j: "Bisa. Nilai terbaikmu selalu tersimpan, dan XP hanya bertambah bila nilaimu menjadi rekor baru.",
+  },
+  {
+    t: "Kenapa saya butuh nomor port?",
+    j: "Nomor port menunjukkan slot RJ-45 yang dipakai. Pada switch 24 port, kabel ke port yang salah akan menyebabkan gangguan.",
+  },
+];
+
+export default function GlosariumPage() {
+  const [cari, setCari] = useState("");
+  const [kategori, setKategori] = useState("Semua");
+
+  const hasil = useMemo(() => {
+    const q = cari.trim().toLowerCase();
+    return GLOSSARY.filter((g) => {
+      const cocokKategori = kategori === "Semua" || g.cat === kategori;
+      const cocokTeks =
+        q === "" ||
+        g.term.toLowerCase().includes(q) ||
+        g.def.toLowerCase().includes(q) ||
+        g.ex.toLowerCase().includes(q);
+      return cocokKategori && cocokTeks;
+    });
+  }, [cari, kategori]);
+
+  const huruf = useMemo(() => {
+    const set = new Set(hasil.map((g) => g.term.charAt(0).toUpperCase()));
+    return Array.from(set).sort();
+  }, [hasil]);
+
   return (
     <RequireAuth>
-    <div>
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="text-xs font-bold text-[#00c2e0]">PUSAT BANTUAN BELAJAR</div>
-        <h1 className="text-3xl font-extrabold">Istilah jelas, belajar lebih mudah.</h1>
-        <p className="text-slate-400">Temukan arti istilah jaringan dan jawaban atas pertanyaan yang sering muncul saat menjalankan misi.</p>
-        <div className="card mt-5 flex items-center gap-3 p-4">
-          <span>🔍</span>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari istilah atau pertanyaan, misalnya “switch” atau “ping”" className="w-full bg-transparent outline-none placeholder:text-slate-500" />
-          <span className="hidden text-xs text-slate-400 md:block">Pencarian glosarium</span>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {CATS.map((c) => (
-            <button key={c} onClick={() => setCat(c)} className={cat === c ? "rounded-full bg-[#00c2e0] px-4 py-1.5 text-sm font-bold text-[#06121f]" : "rounded-full border border-white/15 px-4 py-1.5 text-sm text-slate-300"}>
-              {c}
-            </button>
-          ))}
-        </div>
-        <div className="mt-5 grid gap-5 md:grid-cols-[1fr_340px]">
-          <div>
-            <h2 className="font-extrabold">Istilah dasar</h2>
-            <div className="text-right text-xs text-slate-400">{list.length} istilah ditampilkan</div>
-            <div className="card mt-2 divide-y divide-white/10 p-0">
-              {list.map((g) => (
-                <div key={g.term} className="grid gap-2 p-4 md:grid-cols-[160px_1fr]">
-                  <div><div className="font-extrabold text-[#22d3ee]">{g.term}</div><div className="text-xs text-slate-500">{g.cat}</div></div>
-                  <div className="text-sm text-slate-300">{g.def}<div className="mt-1 text-xs text-slate-500">{g.ex}</div></div>
+      <div>
+        <Navbar />
+        <Container width="page" className="py-10">
+          <PageHeader
+            chapter="Indeks"
+            title="Glosarium & bantuan"
+            lead="Istilah kunci yang dipakai dalam bab, lembar praktik, dan kuis — beserta contoh penerapannya."
+          />
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="relative flex-1">
+                  <IconSearch
+                    size={15}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3"
+                  />
+                  <Input
+                    id="cari"
+                    type="search"
+                    value={cari}
+                    onChange={(e) => setCari(e.target.value)}
+                    placeholder="Cari istilah…"
+                    aria-label="Cari istilah dalam glosarium"
+                    className="pl-9"
+                  />
                 </div>
-              ))}
-              {list.length === 0 && <p className="p-6 text-sm text-slate-400">Tidak ada hasil untuk “{q}”. Coba kata kunci lain.</p>}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div className="card p-5">
-              <h3 className="font-extrabold">❓ Pertanyaan umum</h3>
-              <div className="mt-3 space-y-4 text-sm">
-                {[
-                  ["Dari mana saya harus mulai?", "Buka Panduan Belajar, lalu pelajari Bus di Misi Utama. Ikuti urutan Materi → Praktik → Simulasi → Kuis."],
-                  ["Apa perbedaan praktik dan simulasi?", "Praktik melatih penyusunan perangkat dan kabel. Simulasi membantu mengamati pengiriman paket dan gangguan."],
-                  ["Mengapa ping tidak mendapat balasan?", "Periksa sambungan dan perangkat pusat, lalu alamat IP. Balasan juga dapat diblokir firewall; gagal ping bukan selalu kabel putus."],
-                  ["Bisakah saya mengulang materi?", "Ya. Buka kembali topologi di Misi Utama dan gunakan Progres Belajar untuk menentukan tahap yang perlu ditinjau."],
-                ].map(([t, d]) => (
-                  <div key={t} className="border-b border-white/10 pb-3"><b>{t}</b><p className="mt-1 text-slate-400">{d}</p></div>
-                ))}
+                <div className="flex flex-wrap gap-1.5">
+                  {KATEGORI.map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setKategori(k)}
+                      aria-pressed={kategori === k}
+                      className={
+                        kategori === k
+                          ? "rounded-xs border border-ink bg-ink px-2.5 py-1.5 font-mono text-micro uppercase tracking-[0.1em] text-paper"
+                          : "rounded-xs border border-rule-2 px-2.5 py-1.5 font-mono text-micro uppercase tracking-[0.1em] text-ink-3 hover:border-ink hover:text-ink"
+                      }
+                    >
+                      {k}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {huruf.length > 0 && (
+                <p className="mt-4 font-mono text-micro uppercase tracking-[0.14em] text-ink-4">
+                  Indeks: {huruf.join(" · ")}
+                </p>
+              )}
+
+              <div className="mt-3 divide-y divide-rule border border-rule">
+                {hasil.length === 0 ? (
+                  <p className="bg-paper p-5 text-caption text-ink-3">
+                    Tidak ada istilah yang cocok. Coba kata kunci lain.
+                  </p>
+                ) : (
+                  hasil.map((g) => (
+                    <article key={g.term} className="bg-paper p-5">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="font-serif text-title">{g.term}</h2>
+                        <Badge tone="blue">{g.cat}</Badge>
+                      </div>
+                      <p className="mt-2 text-caption leading-relaxed text-ink-2">{g.def}</p>
+                      <p className="mt-2 border-l-2 border-rule-2 pl-3 text-caption italic text-ink-3">
+                        {g.ex}
+                      </p>
+                    </article>
+                  ))
+                )}
               </div>
             </div>
-            <div className="card border-[#00c2e0] p-5">
-              <b>Masih bingung dengan konsepnya?</b>
-              <p className="mt-1 text-sm text-slate-400">Catat istilah atau tahap yang sulit dan diskusikan dengan guru Informatika.</p>
-              <Link href="/panduan" className="btn-ghost mt-3 inline-block px-4 py-2 text-sm">Buka Panduan Belajar →</Link>
-            </div>
+
+            <aside className="space-y-5">
+              <div className="border border-rule bg-paper">
+                <div className="border-b border-rule bg-paper-2 px-4 py-2">
+                  <Eyebrow>Pertanyaan umum</Eyebrow>
+                </div>
+                <div className="divide-y divide-rule-3">
+                  {FAQ.map((f) => (
+                    <details key={f.t} className="bg-paper">
+                      <summary className="cursor-pointer px-4 py-3 text-caption font-medium text-ink">
+                        {f.t}
+                      </summary>
+                      <p className="px-4 pb-3 text-caption text-ink-2">{f.j}</p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border border-rule bg-paper p-5">
+                <Eyebrow>Butuh bantuan lain?</Eyebrow>
+                <p className="mt-2 text-caption text-ink-2">
+                  Baca halaman panduan untuk urutan belajar yang disarankan, atau tanyakan kepada
+                  guru.
+                </p>
+              </div>
+            </aside>
           </div>
-        </div>
-      </main>
-      <Footer help />
-    </div>
+        </Container>
+        <Footer help />
+      </div>
     </RequireAuth>
   );
 }
