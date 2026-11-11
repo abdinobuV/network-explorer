@@ -38,11 +38,6 @@ if (butuhAuth()) {
   process.exit(1);
 }
 
-function bin(name) {
-  const p = "node_modules/.bin";
-  return `${p}/${name}${process.platform === "win32" ? ".cmd" : ""}`;
-}
-
 /** Menjalankan perintah dengan token yang tersedia di environment. */
 function run(cmd, args, tokenEnv) {
   const token = tokenEnv ? process.env[tokenEnv] : null;

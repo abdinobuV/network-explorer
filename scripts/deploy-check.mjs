@@ -106,13 +106,13 @@ if (process.env.VERCEL_TOKEN) {
   );
 }
 
-const firebaseAuthPaths =
-  process.platform === "win32"
-    [
-      `${process.env.APPDATA}\\firebase\\login.json`,
-      `${process.env.APPDATA}\\configstore\\firebase-tools.json`,
-    ]
-    : [`${process.env.HOME}/.config/configstore/firebase-tools.json`];
+const firebaseAuthPaths = [
+  `${process.env.USERPROFILE}\\.config\\configstore\\firebase-tools.json`,
+  `${process.env.HOME}/.config/configstore/firebase-tools.json`,
+  ...(process.platform === "win32"
+    ? [`${process.env.APPDATA}\\firebase\\login.json`]
+    : []),
+];
 
 if (process.env.FIREBASE_TOKEN) {
   ok.push("FIREBASE_TOKEN diset — deploy rules berjalan non-interaktif");
