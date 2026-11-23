@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
-import { Container, Eyebrow, PageHeader, Btn, Field, Input, Select, Callout, Toggle } from "@/components/ui";
+import { Container, PageHeader, Btn, Field, Input, Select, Callout, Toggle } from "@/components/ui";
 import { IconLogout, IconWarning } from "@/components/icons";
 import { useAuth, useProg } from "@/lib/store";
 import {
@@ -30,7 +30,6 @@ export default function PengaturanPage() {
   const [galat, setGalat] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  /* Preferensi dibaca langsung dari penyimpanan — tanpa setState di dalam effect. */
   const suara = useSyncExternalStore(subscribeSound, isSoundEnabled, getServerSoundEnabled);
   const jalur = useSyncExternalStore(
     subscribePrefs,
@@ -59,187 +58,186 @@ export default function PengaturanPage() {
     router.push("/auth/login");
   }
 
-  function ubahSuara(v: boolean) {
-    setSoundEnabled(v);
-  }
-
-  function ubahJalur(v: boolean) {
-    setPref("showPaths", v);
-  }
-
   return (
     <RequireAuth>
-      <div>
+      <div className="bg-canvas">
         <Navbar />
-        <Container width="page" className="py-10">
-          <PageHeader
-            chapter="Lembar pengaturan"
-            title="Pengaturan akun"
-            lead="Ubah data akunmu, atur preferensi belajar, dan kelola progres yang tersimpan."
-          />
+        <main id="konten-utama">
+          <Container width="page" className="py-10">
+            <PageHeader
+              chapter="Preferensi akun"
+              title="Pengaturan akun"
+              lead="Ubah data akunmu, atur preferensi belajar, dan kelola progres yang tersimpan."
+            />
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <div className="space-y-6">
-              {/* Data akun */}
-              <section className="border border-rule bg-paper">
-                <div className="border-b border-rule bg-paper-2 px-5 py-3">
-                  <Eyebrow>1. Data akun</Eyebrow>
-                </div>
-                <form onSubmit={simpan} className="space-y-4 p-5">
-                  {galat && (
-                    <Callout tone="error">
-                      <span className="flex items-start gap-2">
-                        <IconWarning size={15} className="mt-0.5 shrink-0" />
-                        {galat}
-                      </span>
-                    </Callout>
-                  )}
-                  {pesan && <Callout tone="ok">{pesan}</Callout>}
+            <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+              <div className="space-y-6">
+                {/* Data akun */}
+                <section className="overflow-hidden rounded-lg border border-border bg-surface">
+                  <div className="border-b border-border bg-surface-2 px-5 py-3">
+                    <h2 className="font-display text-body font-semibold text-ink">Data akun</h2>
+                  </div>
+                  <form onSubmit={simpan} className="space-y-4 p-5">
+                    {galat && (
+                      <Callout tone="error">
+                        <span className="flex items-start gap-2">
+                          <IconWarning size={15} className="mt-0.5 shrink-0" />
+                          {galat}
+                        </span>
+                      </Callout>
+                    )}
+                    {pesan && <Callout tone="ok">{pesan}</Callout>}
 
-                  <Field label="Nama tampilan" htmlFor="nama">
-                    <Input
-                      id="nama"
-                      name="nama"
-                      value={nama}
-                      onChange={(e) => setNama(e.target.value)}
-                      autoComplete="name"
+                    <Field label="Nama tampilan" htmlFor="nama">
+                      <Input
+                        id="nama"
+                        name="nama"
+                        value={nama}
+                        onChange={(e) => setNama(e.target.value)}
+                        autoComplete="name"
+                      />
+                    </Field>
+
+                    <Field label="Kelas" htmlFor="kelas">
+                      <Select
+                        id="kelas"
+                        name="kelas"
+                        value={kelas}
+                        onChange={(e) => setKelas(e.target.value)}
+                      >
+                        {KELAS.map((k) => (
+                          <option key={k} value={k}>
+                            Kelas {k}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+
+                    <Field label="Email" htmlFor="email" hint="Email tidak dapat diubah di sini.">
+                      <Input id="email" name="email" value={user?.email ?? ""} disabled readOnly />
+                    </Field>
+
+                    <div className="flex gap-3">
+                      <Btn type="submit" disabled={busy}>
+                        {busy ? "Menyimpan…" : "Simpan perubahan"}
+                      </Btn>
+                      <Btn
+                        type="button"
+                        tone="quiet"
+                        onClick={() => {
+                          setNama(user?.name ?? "");
+                          setKelas(user?.kelas ?? "XI");
+                          setPesan(null);
+                        }}
+                      >
+                        Batal
+                      </Btn>
+                    </div>
+                  </form>
+                </section>
+
+                {/* Preferensi */}
+                <section className="overflow-hidden rounded-lg border border-border bg-surface">
+                  <div className="border-b border-border bg-surface-2 px-5 py-3">
+                    <h2 className="font-display text-body font-semibold text-ink">
+                      Preferensi belajar
+                    </h2>
+                  </div>
+                  <div className="space-y-5 p-5">
+                    <Toggle
+                      id="suara"
+                      label="Efek suara"
+                      description="Bunyi klik dan notifikasi saat memasang kabel. Disintesis di peramban tanpa berkas audio."
+                      checked={suara}
+                      onChange={(v) => setSoundEnabled(v)}
                     />
-                  </Field>
+                    <div className="border-t border-border-3 pt-5">
+                      <Toggle
+                        id="jalur"
+                        label="Tampilkan jalur pemasangan"
+                        description="Menampilkan garis putus-putus sebagai petunjuk sebelum memasang kabel."
+                        checked={jalur}
+                        onChange={(v) => setPref("showPaths", v)}
+                      />
+                    </div>
+                  </div>
+                </section>
 
-                  <Field label="Kelas" htmlFor="kelas">
-                    <Select
-                      id="kelas"
-                      name="kelas"
-                      value={kelas}
-                      onChange={(e) => setKelas(e.target.value)}
-                    >
-                      {KELAS.map((k) => (
-                        <option key={k} value={k}>
-                          Kelas {k}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-
-                  <Field label="Email" htmlFor="email" hint="Email tidak dapat diubah di sini.">
-                    <Input id="email" name="email" value={user?.email ?? ""} disabled readOnly />
-                  </Field>
-
-                  <div className="flex gap-3">
-                    <Btn type="submit" disabled={busy}>
-                      {busy ? "Menyimpan…" : "Simpan perubahan"}
-                    </Btn>
+                {/* Progres */}
+                <section className="overflow-hidden rounded-lg border border-border bg-surface">
+                  <div className="border-b border-border bg-surface-2 px-5 py-3">
+                    <h2 className="font-display text-body font-semibold text-ink">Data progres</h2>
+                  </div>
+                  <div className="space-y-4 p-5">
+                    <p className="text-caption text-ink-2">
+                      Saat ini tercatat <span className="font-mono text-ink">{activity.length}</span>{" "}
+                      kegiatan belajar.{" "}
+                      {isDemo
+                        ? "Mode demo: data tersimpan di peramban ini saja."
+                        : "Data disinkronkan otomatis ke cloud."}
+                      {syncState === "error" && (
+                        <span className="mt-1 block text-fault">
+                          Sinkronisasi bermasalah: {syncError}
+                        </span>
+                      )}
+                    </p>
                     <Btn
-                      type="button"
-                      tone="quiet"
+                      tone="danger"
                       onClick={() => {
-                        setNama(user?.name ?? "");
-                        setKelas(user?.kelas ?? "XI");
-                        setPesan(null);
+                        reset();
+                        toast("Seluruh progres belajar telah dihapus.", "default");
                       }}
                     >
-                      Batal
+                      Hapus seluruh progres
                     </Btn>
                   </div>
-                </form>
-              </section>
+                </section>
 
-              {/* Preferensi */}
-              <section className="border border-rule bg-paper">
-                <div className="border-b border-rule bg-paper-2 px-5 py-3">
-                  <Eyebrow>2. Preferensi belajar</Eyebrow>
-                </div>
-                <div className="space-y-5 p-5">
-                  <Toggle
-                    id="suara"
-                    label="Efek suara"
-                    description="Bunyi klik dan notifikasi saat memasang kabel. Disintesis di peramban, tanpa berkas audio."
-                    checked={suara}
-                    onChange={ubahSuara}
-                  />
-                  <div className="border-t border-rule-3 pt-5">
-                    <Toggle
-                      id="jalur"
-                      label="Tampilkan jalur pemasangan"
-                      description="Menampilkan garis putus-putus sebagai petunjuk sebelum memasang kabel."
-                      checked={jalur}
-                      onChange={ubahJalur}
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Progres */}
-              <section className="border border-rule bg-paper">
-                <div className="border-b border-rule bg-paper-2 px-5 py-3">
-                  <Eyebrow>3. Data progres</Eyebrow>
-                </div>
-                <div className="space-y-4 p-5">
-                  <p className="text-caption text-ink-2">
-                    Saat ini tercatat <span className="font-mono">{activity.length}</span> kegiatan
-                    belajar. {isDemo ? "Mode demo: data hanya ada di peramban ini." : "Data disinkronkan ke cloud."}
-                    {syncState === "error" && (
-                      <span className="mt-1 block text-redpen">
-                        Sinkronisasi bermasalah: {syncError}
-                      </span>
-                    )}
+                {/* Keluar */}
+                <section className="rounded-lg border border-border bg-surface p-5">
+                  <h2 className="font-display text-body font-semibold text-ink">Sesi akun</h2>
+                  <p className="mt-1.5 text-caption text-ink-2">
+                    Keluar dari akun ini. Progres yang sudah tersimpan tidak akan hilang.
                   </p>
-                  <Btn
-                    tone="danger"
-                    onClick={() => {
-                      reset();
-                      toast("Seluruh progres belajar telah dihapus.", "default");
-                    }}
-                  >
-                    Hapus seluruh progres
+                  <Btn tone="ghost" className="mt-4" onClick={keluar} disabled={busy}>
+                    <IconLogout size={15} /> Keluar dari akun
                   </Btn>
+                </section>
+              </div>
+
+              <aside className="space-y-5">
+                <div className="rounded-lg border border-border bg-surface p-5">
+                  <p className="text-caption font-semibold text-ink">Status sinkronisasi</p>
+                  <p className="mt-2 font-mono text-caption text-signal-bright">
+                    {isDemo ? "Lokal (peramban)" : syncState}
+                  </p>
+                  <p className="mt-1.5 text-caption text-ink-3">
+                    {isDemo
+                      ? "Isi .env.local dan kosongkan NEXT_PUBLIC_DEMO_MODE untuk memakai Firebase."
+                      : "Progres dikirim otomatis beberapa detik setelah perubahan."}
+                  </p>
                 </div>
-              </section>
 
-              {/* Keluar */}
-              <section className="border border-rule bg-paper p-5">
-                <Eyebrow>4. Sesi</Eyebrow>
-                <p className="mt-2 text-caption text-ink-2">
-                  Keluar dari akun ini. Progres yang sudah tersimpan tidak akan hilang.
-                </p>
-                <Btn tone="ghost" className="mt-4" onClick={keluar} disabled={busy}>
-                  <IconLogout size={15} /> Keluar dari akun
-                </Btn>
-              </section>
+                <div className="rounded-lg border border-border bg-surface p-5">
+                  <p className="text-caption font-semibold text-ink">Tautan cepat</p>
+                  <ul className="mt-2.5 space-y-2 text-caption">
+                    {[
+                      ["Atur ulang kata sandi", "/auth/lupa"],
+                      ["Peta misi", "/misi"],
+                      ["Rapor belajar", "/cetak"],
+                    ].map(([label, href]) => (
+                      <li key={href}>
+                        <Link href={href} className="text-signal-bright hover:underline">
+                          {label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </aside>
             </div>
-
-            <aside className="space-y-5">
-              <div className="border border-rule bg-paper p-5">
-                <Eyebrow>Status sinkronisasi</Eyebrow>
-                <p className="mt-2 font-mono text-caption text-ink">
-                  {isDemo ? "Lokal (peramban)" : syncState}
-                </p>
-                <p className="mt-1 text-caption text-ink-3">
-                  {isDemo
-                    ? "Isi .env.local dan kosongkan NEXT_PUBLIC_DEMO_MODE untuk memakai Firebase."
-                    : "Progres dikirim otomatis beberapa detik setelah perubahan."}
-                </p>
-              </div>
-
-              <div className="border border-rule bg-paper p-5">
-                <Eyebrow>Tautan cepat</Eyebrow>
-                <ul className="mt-2 space-y-1.5 text-caption">
-                  {[
-                    ["Kunci kata sandi", "/auth/lupa"],
-                    ["Peta misi", "/misi"],
-                    ["Rapor belajar", "/cetak"],
-                  ].map(([label, href]) => (
-                    <li key={href}>
-                      <Link href={href} className="text-blueprint hover:underline">
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </aside>
-          </div>
-        </Container>
+          </Container>
+        </main>
         <Footer help />
       </div>
     </RequireAuth>

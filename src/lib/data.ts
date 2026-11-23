@@ -73,7 +73,7 @@ export const TOPOLOGI: Record<TopoKey, TopoInfo> = {
     title: "Topologi Star",
     desc: "Semua komputer tersambung ke satu switch pusat.",
     long: "Semua PC terhubung ke satu Switch pusat. Switch meneruskan data langsung ke PC tujuan, sehingga setiap PC punya kabel sendiri.",
-    analogi: "Kantor pos: semua surat masuk ke satu meja sortir, lalu dichlor ke alamat yang tepat. Satu meja tumbang? Semua surat tertahan.",
+    analogi: "Kantor pos: semua surat masuk ke satu meja sortir, lalu disalurkan ke alamat yang tepat. Satu meja tumbang? Semua surat tertahan.",
     cara: [
       "PC mengirim data ke Switch pusat.",
       "Switch memeriksa tujuan dan meneruskan hanya ke PC itu.",

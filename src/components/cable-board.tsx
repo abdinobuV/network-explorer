@@ -31,8 +31,7 @@ import { XP } from "@/lib/progression";
 import { linkPath, portAnchor, type Point, type TopoNode, type TopoSpec } from "@/lib/topology-model";
 
 /* =============================================================================
-   LEMBAR KERJA PEMASANGAN KABEL
-   -----------------------------------------------------------------------------
+   LEMBAR KERJA PEMASANGAN KABEL — Patch-Panel Gelap
    Satu DndContext untuk seluruh ruang kerja (palet + kanvas) sehingga kabel
    bisa ditarik dari palet ke perangkat, dan kabel yang sudah terpasang bisa
    ditarik keluar untuk dicabut.
@@ -47,11 +46,11 @@ interface LogEntry {
 
 interface Props {
   spec: TopoSpec;
-  /** Dipanggil sekali saat semua kabel tersambung. */
   onComplete?: () => void;
 }
 
 const TRAY_ID = "tray";
+const GRID_BG = "#09101d";
 
 function nowLabel() {
   return new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
@@ -83,23 +82,26 @@ function TrayCable({
     <li
       ref={setNodeRef}
       className={cx(
-        "flex items-center gap-3 border bg-paper px-3 py-2 transition-colors",
-        connected ? "border-green/40 bg-green-2" : "border-rule",
+        "flex items-center gap-3 rounded-md border px-3 py-2.5 transition-colors",
+        connected
+          ? "border-ok/40 bg-ok-tint/80"
+          : selected
+            ? "border-signal bg-signal-tint"
+            : "border-border bg-canvas hover:border-border-2",
         isDragging && "opacity-40",
-        selected && !connected && "border-blueprint bg-blueprint-3",
       )}
     >
       <button
         type="button"
         onClick={onSelect}
         aria-pressed={selected}
-        className="flex flex-1 touch-none items-center gap-2 text-left"
+        className="flex flex-1 cursor-pointer touch-none items-center gap-2.5 text-left"
         {...(connected ? {} : { ...listeners, ...attributes })}
       >
-        <IconPlug size={16} className={connected ? "text-green" : "text-blueprint"} />
+        <IconPlug size={16} className={connected ? "text-ok" : "text-signal-bright"} />
         <span className="font-mono text-caption text-ink">{label}</span>
         {connected && (
-          <span className="inline-flex items-center gap-1 font-mono text-micro uppercase tracking-[0.1em] text-green">
+          <span className="inline-flex items-center gap-1 text-micro font-medium text-ok">
             <IconCheck size={13} /> terpasang
           </span>
         )}
@@ -108,9 +110,9 @@ function TrayCable({
         <button
           type="button"
           onClick={onDetach}
-          className="inline-flex items-center gap-1 rounded-xs border border-rule-2 px-2 py-1 font-mono text-micro uppercase tracking-[0.1em] text-ink-3 hover:border-redpen hover:text-redpen"
+          className="inline-flex cursor-pointer items-center gap-1 rounded-xs border border-border-2 px-2 py-1 text-micro font-medium text-ink-3 transition-colors hover:border-fault hover:text-fault"
         >
-          <IconCross size={12} /> cabut
+          <IconCross size={12} /> Cabut
         </button>
       )}
     </li>
@@ -141,7 +143,7 @@ function InstalledWire({
       <path
         d={path}
         fill="none"
-        stroke="var(--color-blueprint)"
+        stroke="var(--color-signal)"
         strokeWidth={5}
         strokeLinecap="round"
         className="trace-live"
@@ -165,19 +167,19 @@ function Device({
   shake: boolean;
 }) {
   const { setNodeRef } = useDroppable({ id: `node:${node.id}` });
-  const w = node.kind === "hub" ? 158 : 132;
-  const h = node.kind === "hub" ? 82 : 66;
+  const w = node.kind === "hub" ? 162 : 134;
+  const h = node.kind === "hub" ? 84 : 68;
   const stroke =
     state === "connected"
-      ? "var(--color-green)"
+      ? "var(--color-ok)"
       : isOver
-        ? "var(--color-blueprint)"
+        ? "var(--color-signal-bright)"
         : isTarget
-          ? "var(--color-blueprint-2)"
-          : "var(--color-rule-2)";
+          ? "var(--color-signal)"
+          : "var(--color-border-2)";
 
   const fill =
-    state === "connected" ? "var(--color-green-2)" : "var(--color-paper)";
+    state === "connected" ? "var(--color-ok-tint)" : "var(--color-surface)";
 
   return (
     <g ref={setNodeRef as unknown as (node: SVGGElement | null) => void} className={cx(shake && "shake")}>
@@ -186,7 +188,7 @@ function Device({
         y={node.y - h / 2}
         width={w}
         height={h}
-        rx={3}
+        rx={6}
         fill={fill}
         stroke={stroke}
         strokeWidth={isOver || isTarget ? 3 : 2}
@@ -195,37 +197,43 @@ function Device({
       {node.kind === "pc" && (
         <>
           <rect
-            x={node.x - 26}
-            y={node.y - 20}
-            width={52}
-            height={30}
-            rx={2}
-            fill="none"
-            stroke="var(--color-graphite)"
-            strokeWidth={2}
+            x={node.x - 28}
+            y={node.y - 21}
+            width={56}
+            height={32}
+            rx={3}
+            fill={GRID_BG}
+            stroke={state === "connected" ? "var(--color-ok)" : "var(--color-signal)"}
+            strokeWidth={1.8}
           />
-          <path d={`M ${node.x - 14} ${node.y + 10} h 28`} stroke="var(--color-graphite)" strokeWidth={2} />
+          <circle
+            cx={node.x + 20}
+            cy={node.y - 13}
+            r={2.5}
+            fill={state === "connected" ? "var(--color-ok)" : "var(--color-ink-4)"}
+          />
+          <path d={`M ${node.x - 14} ${node.y + 11} h 28`} stroke="var(--color-border-2)" strokeWidth={2} />
         </>
       )}
       {node.kind === "hub" && (
         <>
           <rect
-            x={node.x - 40}
+            x={node.x - 42}
             y={node.y - 24}
-            width={80}
-            height={26}
-            rx={2}
-            fill="none"
-            stroke="var(--color-graphite)"
-            strokeWidth={2}
+            width={84}
+            height={28}
+            rx={3}
+            fill={GRID_BG}
+            stroke="var(--color-border-2)"
+            strokeWidth={1.8}
           />
           {[0, 1, 2, 3, 4].map((i) => (
             <circle
               key={i}
               cx={node.x - 28 + i * 14}
-              cy={node.y - 11}
-              r={3}
-              fill={state === "connected" ? "var(--color-green)" : "var(--color-ink-4)"}
+              cy={node.y - 10}
+              r={3.2}
+              fill={state === "connected" ? "var(--color-ok)" : "var(--color-ink-4)"}
             />
           ))}
         </>
@@ -237,7 +245,7 @@ function Device({
         fontSize={22}
         fontFamily="var(--font-plex-mono)"
         fill="var(--color-ink)"
-        stroke="var(--color-paper)"
+        stroke={GRID_BG}
         strokeWidth={8}
         paintOrder="stroke"
       >
@@ -250,7 +258,7 @@ function Device({
         fontSize={16}
         fontFamily="var(--font-plex-mono)"
         fill="var(--color-ink-3)"
-        stroke="var(--color-paper)"
+        stroke={GRID_BG}
         strokeWidth={6}
         paintOrder="stroke"
       >
@@ -272,8 +280,6 @@ export default function CableBoard({ spec, onComplete }: Props) {
   const [log, setLog] = useState<LogEntry[]>([]);
   const [announce, setAnnounce] = useState("");
 
-  /* Preferensi "tampilkan jalur" disimpan di Pengaturan (useSyncExternalStore
-     supaya tidak perlu setState di dalam effect). */
   const showPaths = useSyncExternalStore(
     subscribePrefs,
     () => getPref("showPaths"),
@@ -408,7 +414,7 @@ export default function CableBoard({ spec, onComplete }: Props) {
         disconnect(current.cable);
         return;
       }
-      if (over.startsWith("node:") && over.slice(5) === cable.target) return; // kembali ke tempat semula
+      if (over.startsWith("node:") && over.slice(5) === cable.target) return;
       if (over.startsWith("node:")) {
         reject(current.cable, over.slice(5));
       }
@@ -424,7 +430,7 @@ export default function CableBoard({ spec, onComplete }: Props) {
     }
   };
 
-  /* ---------------------------------------------------------- Jalur yang digantung */
+  /* ---------------------------------------------------------- Jalur yang diseret */
 
   const activeCable = active ? cableById.get(active.cable) : null;
   const ghost = useMemo(() => {
@@ -440,10 +446,7 @@ export default function CableBoard({ spec, onComplete }: Props) {
     if (complete && connectedCount > 0) {
       sfx("chime");
       addLog(`SELESAI — ${connectedCount}/${spec.cables.length} tersambung`, "ok");
-      toast(
-        `Sertifikat pemasangan ${spec.title} lengkap. +${XP.praktik} XP.`,
-        "ok",
-      );
+      toast(`Sertifikat pemasangan ${spec.title} lengkap. +${XP.praktik} XP.`, "ok");
       onComplete?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -452,19 +455,19 @@ export default function CableBoard({ spec, onComplete }: Props) {
   /* ---------------------------------------------------------- Render */
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-      {/* ------------------------------------------------ Kanvas gambar teknik */}
-      <section className="min-w-0 border border-rule bg-paper">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule bg-paper-2 px-4 py-2">
-          <p className="font-mono text-micro uppercase tracking-[0.14em] text-ink-3">
-            Lembar kerja · {spec.title}
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_336px]">
+      {/* ------------------------------------------------ Kanvas patch-panel */}
+      <section className="min-w-0 overflow-hidden rounded-lg border border-border bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-2 px-4 py-2.5">
+          <p className="text-caption font-medium text-ink">
+            Papan kabel {spec.title}
           </p>
           <div className="flex items-center gap-3">
             <Meter value={connectedCount} total={spec.cables.length} label="Kabel tersambung" />
             <button
               type="button"
               onClick={togglePaths}
-              className="inline-flex items-center gap-1.5 rounded-xs border border-rule-2 px-2 py-1 font-mono text-micro uppercase tracking-[0.1em] text-ink-3 hover:border-ink hover:text-ink"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border-2 bg-surface px-2.5 py-1 text-micro font-medium text-ink-2 transition-colors hover:border-signal hover:text-signal-bright"
             >
               <IconTarget size={13} />
               {showPaths ? "Sembunyikan jalur" : "Tampilkan jalur"}
@@ -487,7 +490,7 @@ export default function CableBoard({ spec, onComplete }: Props) {
             setOverNode(null);
           }}
         >
-          <div className="drafting-grid overflow-x-auto p-2 sm:p-4">
+          <div className="lab-grid overflow-x-auto p-2 sm:p-4">
             <svg
               ref={svgRef}
               viewBox={spec.viewBox}
@@ -495,7 +498,7 @@ export default function CableBoard({ spec, onComplete }: Props) {
               role="img"
               aria-label={`Diagram ${spec.title} dengan ${spec.cables.length} komputer dan jalur pemasangan`}
             >
-              {/*.Backbone */}
+              {/* Backbone */}
               {spec.nodes
                 .filter((n) => n.kind === "backbone")
                 .map((n) => (
@@ -505,9 +508,9 @@ export default function CableBoard({ spec, onComplete }: Props) {
                       y={n.y - 9}
                       width={880}
                       height={18}
-                      rx={2}
-                      fill="var(--color-paper-3)"
-                      stroke="var(--color-rule-2)"
+                      rx={3}
+                      fill="var(--color-surface-2)"
+                      stroke="var(--color-border-2)"
                       strokeWidth={2}
                     />
                     <text
@@ -523,7 +526,7 @@ export default function CableBoard({ spec, onComplete }: Props) {
                   </g>
                 ))}
 
-              {/* Jalur bayangan (petunjuk) */}
+              {/* Jalur petunjuk */}
               {showPaths &&
                 spec.links.map((l) => {
                   const from = nodeById.get(l.from);
@@ -535,7 +538,7 @@ export default function CableBoard({ spec, onComplete }: Props) {
                       key={`ghost-${l.id}`}
                       d={linkPath(from, to)}
                       fill="none"
-                      stroke="var(--color-rule-2)"
+                      stroke="var(--color-border-2)"
                       strokeWidth={3}
                       className={cx("trace-idle", !isDone && "pulse-line")}
                     />
@@ -559,12 +562,12 @@ export default function CableBoard({ spec, onComplete }: Props) {
                 );
               })}
 
-              {/* Kabel bayangan saat diseret */}
+              {/* Kabel saat diseret */}
               {ghost && (
                 <path
                   d={ghost}
                   fill="none"
-                  stroke="var(--color-blueprint-2)"
+                  stroke="var(--color-signal-bright)"
                   strokeWidth={4}
                   strokeDasharray="8 6"
                   strokeLinecap="round"
@@ -594,29 +597,29 @@ export default function CableBoard({ spec, onComplete }: Props) {
 
           <DragOverlay dropAnimation={null}>
             {activeCable && (
-              <div className="flex items-center gap-2 rounded-xs border border-blueprint bg-paper px-3 py-2 shadow-lift">
-                <IconPlug size={16} className="text-blueprint" />
-                <span className="font-mono text-caption">{activeCable.label}</span>
+              <div className="flex items-center gap-2 rounded-md border border-signal bg-surface-2 px-3 py-2 shadow-lift">
+                <IconPlug size={16} className="text-signal-bright" />
+                <span className="font-mono text-caption text-ink">{activeCable.label}</span>
               </div>
             )}
           </DragOverlay>
         </DndContext>
 
-        <div className="border-t border-rule px-4 py-2">
+        <div className="border-t border-border px-4 py-2.5">
           <p aria-live="polite" className="sr-only">
             {announce}
           </p>
           <p className="text-caption text-ink-3">
-            Seret kabel dari palet ke perangkat yang benar. Untuk memakai keyboard: pilih kabel
-            pada panel di bawah, lalu tekan tombol perangkat sasaran.
+            Seret kabel dari palet ke perangkat tujuan. Dengan keyboard, pilih kabel terlebih
+            dahulu lalu tekan tombol perangkat sasaran.
           </p>
         </div>
       </section>
 
       {/* ------------------------------------------------ Panel samping */}
-      <aside className="min-w-0 flex flex-col gap-4">
-        <div className="border border-rule bg-paper">
-          <h3 className="border-b border-rule bg-paper-2 px-4 py-2 font-mono text-micro uppercase tracking-[0.14em] text-ink-3">
+      <aside className="flex min-w-0 flex-col gap-4">
+        <div className="overflow-hidden rounded-lg border border-border bg-surface">
+          <h3 className="border-b border-border bg-surface-2 px-4 py-2.5 text-caption font-semibold text-ink">
             Palet kabel
           </h3>
           <ul className="space-y-2 p-3">
@@ -632,10 +635,8 @@ export default function CableBoard({ spec, onComplete }: Props) {
               />
             ))}
           </ul>
-          <div className="border-t border-rule p-3">
-            <p className="mb-2 font-mono text-micro uppercase tracking-[0.12em] text-ink-3">
-              Sasaran pemasangan
-            </p>
+          <div className="border-t border-border p-3">
+            <p className="mb-2 text-micro font-medium text-ink-3">Sasaran pemasangan</p>
             <div className="flex flex-wrap gap-2">
               {spec.nodes
                 .filter((n) => n.kind !== "backbone")
@@ -659,10 +660,10 @@ export default function CableBoard({ spec, onComplete }: Props) {
                       else reject(cable.id, n.id);
                     }}
                     className={cx(
-                      "rounded-xs border px-2.5 py-1 font-mono text-micro transition-colors",
+                      "cursor-pointer rounded-sm border px-2.5 py-1 font-mono text-micro transition-colors",
                       selected && cableById.get(selected)?.target === n.id
-                        ? "border-blueprint bg-blueprint text-paper"
-                        : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink",
+                        ? "border-signal bg-signal text-ok-ink font-semibold"
+                        : "border-border-2 bg-canvas text-ink-2 hover:border-signal hover:text-signal-bright",
                     )}
                   >
                     {n.label}
@@ -670,23 +671,23 @@ export default function CableBoard({ spec, onComplete }: Props) {
                 ))}
             </div>
             {selected && (
-              <p className="mt-2 flex items-center gap-1.5 font-mono text-micro text-blueprint">
+              <p className="mt-2.5 flex items-center gap-1.5 text-micro text-signal-bright">
                 <IconInfo size={13} />
-                {cableById.get(selected)?.label} dipilih — tekan perangkat sasaran.
+                {cableById.get(selected)?.label} dipilih, tekan perangkat sasaran.
               </p>
             )}
           </div>
         </div>
 
-        <div className="border border-rule bg-paper">
-          <h3 className="border-b border-rule bg-paper-2 px-4 py-2 font-mono text-micro uppercase tracking-[0.14em] text-ink-3">
+        <div className="overflow-hidden rounded-lg border border-border bg-surface">
+          <h3 className="border-b border-border bg-surface-2 px-4 py-2.5 text-caption font-semibold text-ink">
             Catatan pemasangan
           </h3>
-          <div className="max-h-64 overflow-y-auto p-3">
+          <div className="max-h-64 overflow-y-auto bg-canvas/70 p-3">
             {log.length === 0 ? (
               <p className="font-mono text-micro text-ink-4">Belum ada aktivitas.</p>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {log.map((l) => (
                   <LogLine key={l.id} time={l.time} tone={l.tone}>
                     {l.text}
@@ -698,19 +699,17 @@ export default function CableBoard({ spec, onComplete }: Props) {
         </div>
 
         {complete && (
-          <div className="border border-green/50 bg-green-2 p-4">
-            <p className="font-mono text-micro uppercase tracking-[0.14em] text-green">
-              Sertifikat pemasangan
-            </p>
-            <h4 className="mt-1 font-serif text-title">{spec.title}</h4>
+          <div className="rounded-lg border border-ok/45 bg-ok-tint p-4">
+            <p className="text-micro font-semibold text-ok">Sertifikat pemasangan</p>
+            <h4 className="mt-1 font-display text-title text-ink">{spec.title}</h4>
             <p className="mt-1 text-caption text-ink-2">
               Seluruh {spec.cables.length} kabel terpasang sesuai aturan {spec.title.toLowerCase()}.
-              {spec.key === "ring" && " Cincin tertutup."}
+              {spec.key === "ring" && " Cincin tertutup sempurna."}
             </p>
             <ul className="mt-3 space-y-1">
               {spec.links.map((l) => (
                 <li key={l.id} className="flex items-center gap-2 font-mono text-micro text-ink-2">
-                  <IconCheck size={13} className="text-green" />
+                  <IconCheck size={13} className="text-ok" />
                   {nodeById.get(l.from)?.label} → {nodeById.get(l.to)?.label}
                 </li>
               ))}
@@ -718,22 +717,13 @@ export default function CableBoard({ spec, onComplete }: Props) {
             <p className="mt-3 font-mono text-micro text-ink-3">
               Dicetak {new Date().toLocaleDateString("id-ID", { dateStyle: "long" })}
             </p>
-            <Btn
-              tone="ghost"
-              size="sm"
-              className="mt-3"
-              onClick={() => window.print()}
-            >
+            <Btn tone="ghost" size="sm" className="mt-3" onClick={() => window.print()}>
               <IconPrint size={14} /> Cetak sertifikat
             </Btn>
           </div>
         )}
 
-        {!complete && (
-          <Callout tone="note">
-            {spec.rule}
-          </Callout>
-        )}
+        {!complete && <Callout tone="note">{spec.rule}</Callout>}
       </aside>
     </div>
   );

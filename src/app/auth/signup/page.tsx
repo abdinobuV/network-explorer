@@ -44,13 +44,13 @@ export default function SignupPage() {
 
   return (
     <AuthShell
-      chapter="Lembar pendaftaran"
+      chapter="Pendaftaran siswa"
       title="Daftar akun belajar"
-      lead="Satu akun untuk excused tiga bab materi, lembar praktik, dan kuis akhir."
+      lead="Satu akun untuk mengakses tiga bab materi, papan pemasangan kabel, sandbox, dan kuis akhir."
       footer={
         <p className="text-caption text-ink-3">
           Sudah punya akun?{" "}
-          <Link href="/auth/login" className="text-blueprint hover:underline">
+          <Link href="/auth/login" className="text-signal-bright hover:underline">
             Masuk di sini
           </Link>
         </p>
@@ -123,18 +123,18 @@ export default function SignupPage() {
           />
         </Field>
 
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2.5">
           <input
             id="setuju"
             name="setuju"
             type="checkbox"
             checked={agree}
             onChange={(e) => setAgree(e.target.checked)}
-            className="mt-1 h-4 w-4 shrink-0 accent-[#1b4d7a]"
+            className="mt-1 h-4 w-4 shrink-0 accent-[#22b8cf]"
           />
           <label htmlFor="setuju" className="text-caption text-ink-2">
             Saya menyetujui{" "}
-            <Link href="/ketentuan" className="text-blueprint hover:underline">
+            <Link href="/ketentuan" className="text-signal-bright hover:underline">
               ketentuan penggunaan
             </Link>{" "}
             dan penanganan data akun saya.

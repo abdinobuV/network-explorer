@@ -7,57 +7,57 @@ const PASAL = [
     no: "1",
     judul: "Tentang aplikasi ini",
     isi: [
-      "1.1 Network Explorer adalah bahan belajar mandiri mata Informatika kelas XI, topik topologi jaringan.",
-      "1.2 Aplikasi ini adalah prototipe tugas mata pelajaran; tidak提供服务 komersial.",
+      "1.1 Misi Topologi (Network Explorer) adalah media belajar mandiri mata pelajaran Informatika kelas XI dengan topik topologi jaringan.",
+      "1.2 Aplikasi ini merupakan prototipe tugas mata kuliah dan tidak menyediakan layanan komersial.",
     ],
   },
   {
     no: "2",
     judul: "Ketentuan belajar",
     isi: [
-      "2.1 Progres, XP, dan lencana disimpan untuk keperluan belajar pribadi.",
-      "2.2 Nilai kuis yang ditampilkan adalah hasil kerja sendiri; aplikasi tidak memengaruhi nilai rapor resmi.",
-      "2.3 Materi video bersumber dari YouTube dan tunduk pada ketentuan YouTube masing-masing.",
+      "2.1 Progres, XP, dan lencana disimpan untuk keperluan pemantauan belajar pribadi.",
+      "2.2 Nilai kuis yang ditampilkan merupakan hasil latihan mandiri dan tidak memengaruhi nilai rapor resmi sekolah.",
+      "2.3 Materi video bersumber dari YouTube dan tunduk pada ketentuan layanan YouTube.",
     ],
   },
   {
     no: "3",
     judul: "Konten dan materi",
     isi: [
-      "3.1 Seluruh teks, gambar, dan diagram dalam aplikasi dibuat oleh kelompok pengembang.",
-      "3.2 Materi video bersumber dari YouTube dan tunduk pada ketentuan YouTube masing-masing.",
-      "3.3 Seluruh gambar teknik dan soal di dalam aplikasi dibuat oleh kelompok pengembang dan boleh dipakai untuk keperluan belajar pribadi.",
+      "3.1 Seluruh teks, skema, dan soal latihan dalam aplikasi disusun oleh kelompok pengembang.",
+      "3.2 Skema jaringan dan lembar kerja boleh digunakan untuk keperluan belajar pribadi maupun diskusi kelas.",
     ],
   },
   {
     no: "4",
     judul: "Perubahan ketentuan",
     isi: [
-      "4.1 Ketentuan dapat diperbarui sewaktu-waktu; tanggal berlaku tercantum di bagian atas halaman ini.",
-      "4.2 Perubahan yang memengaruhi hak pengguna diumumkan pada halaman muka aplikasi.",
+      "4.1 Ketentuan dapat diperbarui sewaktu-waktu sesuai perkembangan aplikasi; tanggal berlaku tercantum di bagian atas halaman ini.",
+      "4.2 Perubahan yang memengaruhi hak pengguna diumumkan pada halaman beranda aplikasi.",
     ],
   },
 ];
 
 export default function KetentuanPage() {
   return (
-    <div>
+    <div className="bg-canvas">
       <Navbar pub />
       <Container width="narrow" className="py-10">
         <PageHeader
           chapter="Dokumen aplikasi"
           title="Ketentuan penggunaan"
-          lead="Aturan singkat yang berlaku saat memakai Network Explorer."
+          lead="Aturan singkat yang berlaku saat memakai Misi Topologi."
           meta="Berlaku sejak 1 November 2026"
         />
 
         <div className="mt-8 space-y-6">
           {PASAL.map((p) => (
-            <section key={p.no}>
-              <h2 className="font-serif text-title">
-                <span className="font-mono text-caption text-ink-3">{p.no}.</span> {p.judul}
+            <section key={p.no} className="rounded-lg border border-border bg-surface p-5">
+              <h2 className="font-display text-title">
+                <span className="mr-2 font-mono text-caption text-signal-bright">{p.no}.</span>
+                {p.judul}
               </h2>
-              <ul className="mt-2 space-y-1.5">
+              <ul className="mt-3 space-y-2">
                 {p.isi.map((t) => (
                   <li key={t} className="text-caption leading-relaxed text-ink-2">
                     {t}
@@ -70,9 +70,9 @@ export default function KetentuanPage() {
 
         <Link
           href="/beranda"
-          className="mt-10 inline-block border-t border-rule pt-5 font-mono text-caption uppercase tracking-[0.12em] text-blueprint hover:underline"
+          className="mt-8 inline-block border-t border-border pt-6 text-caption font-medium text-signal-bright hover:underline"
         >
-          ← Kembali
+          Kembali ke beranda
         </Link>
       </Container>
       <Footer />

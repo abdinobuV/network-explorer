@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
-import { Container, Eyebrow, Btn, Badge, Meter } from "@/components/ui";
+import { Container, Btn, Badge, Meter, cx } from "@/components/ui";
 import { IconCheck, IconCross, IconFlag, IconShield } from "@/components/icons";
 import { QUIZ } from "@/lib/data";
 import { useProg } from "@/lib/store";
@@ -26,7 +26,6 @@ export default function KuisPage() {
   const answered = Object.keys(ans).length;
   const pct = Math.round((answered / QUIZ.length) * 100);
 
-  /* Fokus ke dialog + tutup dengan Escape (aksesibilitas modal). */
   useEffect(() => {
     if (!feedback) return;
     const el = dialogRef.current;
@@ -70,217 +69,212 @@ export default function KuisPage() {
 
   return (
     <RequireAuth>
-      <div>
+      <div className="bg-canvas">
         <Navbar />
-        <Container width="page" className="py-8">
-          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-rule pb-6">
-            <div>
-              <Eyebrow>Lembar ujian · studi kasus</Eyebrow>
-              <h1 className="mt-2 font-serif text-head">Kuis akhir</h1>
-              <p className="mt-2 max-w-2xl text-caption text-ink-2">
-                Sepuluh soal studi kasus tentang struktur, aliran data, dan dampak gangguan. Pilih
-                satu jawaban untuk setiap soal. Tidak ada batas waktu.
+        <main id="konten-utama">
+          <Container width="page" className="py-8">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
+              <div>
+                <p className="text-caption font-medium text-signal-bright">Evaluasi studi kasus</p>
+                <h1 className="mt-1.5 font-display text-head">Kuis akhir</h1>
+                <p className="mt-2 max-w-2xl text-caption text-ink-2">
+                  Sepuluh soal studi kasus tentang struktur, aliran data, dan dampak gangguan. Pilih
+                  satu jawaban pada tiap soal tanpa batas waktu.
+                </p>
+              </div>
+              <p className="font-mono text-caption text-ink-2">
+                {answered}/{QUIZ.length} dijawab
               </p>
             </div>
-            <p className="font-mono text-micro uppercase tracking-[0.12em] text-ink-3">
-              {answered}/{QUIZ.length} dijawab
-            </p>
-          </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
-            {/* ---------------------------------------------- Soal */}
-            <div>
-              <article className="border border-rule bg-paper p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="font-mono text-caption text-blueprint">
-                    Soal {String(idx + 1).padStart(2, "0")} / {QUIZ.length}
-                  </p>
-                  {ans[q.id] !== undefined ? (
-                    <Badge tone="green">
-                      <IconCheck size={12} /> Sudah dijawab
-                    </Badge>
-                  ) : (
-                    <Badge tone="neutral">Belum dijawab</Badge>
-                  )}
-                </div>
+            <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19.5rem]">
+              {/* Soal */}
+              <div>
+                <article className="rounded-lg border border-border bg-surface p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="font-mono text-caption text-signal-bright">
+                      Soal {String(idx + 1).padStart(2, "0")} / {QUIZ.length}
+                    </p>
+                    {ans[q.id] !== undefined ? (
+                      <Badge tone="green">
+                        <IconCheck size={12} /> Sudah dijawab
+                      </Badge>
+                    ) : (
+                      <Badge tone="neutral">Belum dijawab</Badge>
+                    )}
+                  </div>
 
-                <p className="mt-3 font-mono text-micro uppercase tracking-[0.12em] text-ink-3">
-                  {q.tag}
-                </p>
-                <h2 className="mt-2 font-serif text-title leading-snug">{q.q}</h2>
+                  <p className="mt-3 text-micro font-medium text-ink-3">{q.tag}</p>
+                  <h2 className="mt-1.5 font-display text-title leading-snug">{q.q}</h2>
 
-                <div className="mt-4 border-l-2 border-rule-2 bg-paper-2 px-4 py-3">
-                  <p className="font-mono text-micro uppercase tracking-[0.12em] text-ink-4">
-                    Kasus
-                  </p>
-                  <p className="mt-1 text-caption leading-relaxed text-ink-2">{q.case}</p>
-                </div>
+                  <div className="mt-4 rounded-md border border-border bg-canvas/70 px-4 py-3.5">
+                    <p className="text-micro font-semibold text-signal-bright">Konteks kasus</p>
+                    <p className="mt-1 text-caption leading-relaxed text-ink-2">{q.case}</p>
+                  </div>
 
-                <ul className="mt-5 space-y-2">
-                  {q.options.map((o, i) => {
-                    const picked = ans[q.id] === i;
-                    const correct = q.answer === i;
-                    const reveal = feedback !== null;
-                    return (
-                      <li key={i}>
-                        <button
-                          type="button"
-                          onClick={() => choose(i)}
-                          aria-pressed={picked}
-                          className={[
-                            "flex w-full items-start gap-3 border px-4 py-3 text-left transition-colors",
-                            reveal && correct
-                              ? "border-green bg-green-2"
-                              : reveal && picked
-                                ? "border-redpen bg-redpen-2"
-                                : picked
-                                  ? "border-blueprint bg-blueprint-3"
-                                  : "border-rule bg-paper hover:border-ink-2",
-                          ].join(" ")}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className={[
-                              "mt-0.5 grid h-5 w-5 shrink-0 place-items-center border font-mono text-micro",
+                  <ul className="mt-5 space-y-2.5">
+                    {q.options.map((o, i) => {
+                      const picked = ans[q.id] === i;
+                      const correct = q.answer === i;
+                      const reveal = feedback !== null;
+                      return (
+                        <li key={i}>
+                          <button
+                            type="button"
+                            onClick={() => choose(i)}
+                            aria-pressed={picked}
+                            className={cx(
+                              "flex w-full cursor-pointer items-start gap-3 rounded-md border px-4 py-3 text-left transition-colors",
                               reveal && correct
-                                ? "border-green bg-green text-paper"
+                                ? "border-ok bg-ok-tint"
                                 : reveal && picked
-                                  ? "border-redpen bg-redpen text-paper"
+                                  ? "border-fault bg-fault-tint"
                                   : picked
-                                    ? "border-blueprint bg-blueprint text-paper"
-                                    : "border-rule-2 text-ink-3",
-                            ].join(" ")}
-                          >
-                            {reveal && correct ? (
-                              <IconCheck size={12} />
-                            ) : reveal && picked ? (
-                              <IconCross size={12} />
-                            ) : (
-                              HURUF[i]
+                                    ? "border-signal bg-signal-tint"
+                                    : "border-border bg-canvas/50 hover:border-border-2 hover:bg-surface-2",
                             )}
-                          </span>
-                          <span className="sr-only">Jawaban {HURUF[i]}. </span>
-                          <span className="text-caption leading-relaxed text-ink-2">{o}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </article>
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={cx(
+                                "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-xs border font-mono text-micro",
+                                reveal && correct
+                                  ? "border-ok bg-ok text-ok-ink"
+                                  : reveal && picked
+                                    ? "border-fault bg-fault text-white"
+                                    : picked
+                                      ? "border-signal bg-signal text-ok-ink"
+                                      : "border-border-2 text-ink-3",
+                              )}
+                            >
+                              {reveal && correct ? (
+                                <IconCheck size={12} />
+                              ) : reveal && picked ? (
+                                <IconCross size={12} />
+                              ) : (
+                                HURUF[i]
+                              )}
+                            </span>
+                            <span className="sr-only">Jawaban {HURUF[i]}. </span>
+                            <span className="text-caption leading-relaxed text-ink">{o}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </article>
 
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <Btn
-                  tone="ghost"
-                  onClick={() => {
-                    setIdx((i) => i - 1);
-                    setFeedback(null);
-                  }}
-                  disabled={idx === 0}
-                >
-                  ← Sebelumnya
-                </Btn>
-                <div className="flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <Btn
                     tone="ghost"
-                    onClick={() => setMarked((m) => ({ ...m, [q.id]: !m[q.id] }))}
-                    aria-pressed={!!marked[q.id]}
+                    onClick={() => {
+                      setIdx((i) => i - 1);
+                      setFeedback(null);
+                    }}
+                    disabled={idx === 0}
                   >
-                    <IconFlag size={14} />
-                    {marked[q.id] ? "Ditandai" : "Tandai"}
+                    Sebelumnya
                   </Btn>
-                  {idx < QUIZ.length - 1 ? (
+                  <div className="flex flex-wrap gap-2">
                     <Btn
-                      onClick={() => {
-                        setIdx((i) => i + 1);
-                        setFeedback(null);
-                      }}
+                      tone="ghost"
+                      onClick={() => setMarked((m) => ({ ...m, [q.id]: !m[q.id] }))}
+                      aria-pressed={!!marked[q.id]}
                     >
-                      Berikutnya →
+                      <IconFlag size={14} />
+                      {marked[q.id] ? "Ditandai" : "Tandai"}
                     </Btn>
-                  ) : (
-                    <Btn onClick={submit} disabled={answered < QUIZ.length}>
-                      Kumpulkan ({answered}/{QUIZ.length})
-                    </Btn>
-                  )}
-                </div>
-              </div>
-
-              {answered < QUIZ.length && idx === QUIZ.length - 1 && (
-                <p className="mt-2 text-caption text-amber">
-                  Lengkapi {QUIZ.length - answered} jawaban lagi sebelum mengumpulkan.
-                </p>
-              )}
-            </div>
-
-            {/* ---------------------------------------------- Sisi */}
-            <aside className="space-y-5">
-              <div className="border border-rule bg-paper">
-                <div className="border-b border-rule bg-paper-2 px-4 py-2">
-                  <Eyebrow>Progres pengerjaan</Eyebrow>
-                </div>
-                <div className="p-4">
-                  <Meter value={answered} total={QUIZ.length} label="Soal terjawab" />
-                  <p className="mt-2 font-mono text-micro text-ink-3">{pct}% selesai</p>
-
-                  <div className="mt-4 grid grid-cols-5 gap-1.5">
-                    {QUIZ.map((x, i) => (
-                      <button
-                        key={x.id}
-                        type="button"
+                    {idx < QUIZ.length - 1 ? (
+                      <Btn
+                        tone="signal"
                         onClick={() => {
-                          setIdx(i);
+                          setIdx((i) => i + 1);
                           setFeedback(null);
                         }}
-                        aria-label={`Ke soal ${i + 1}${marked[x.id] ? ", ditandai" : ""}`}
-                        aria-current={i === idx ? "true" : undefined}
-                        className={[
-                          "relative grid h-9 place-items-center border font-mono text-caption",
-                          i === idx
-                            ? "border-ink bg-ink text-paper"
-                            : ans[x.id] !== undefined
-                              ? "border-green/50 bg-green-2 text-green"
-                              : "border-rule text-ink-3 hover:border-ink-2",
-                        ].join(" ")}
                       >
-                        {i + 1}
-                        {marked[x.id] && (
-                          <span
-                            aria-hidden="true"
-                            className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-amber"
-                          />
-                        )}
-                      </button>
-                    ))}
+                        Soal berikutnya
+                      </Btn>
+                    ) : (
+                      <Btn onClick={submit} disabled={answered < QUIZ.length}>
+                        Kumpulkan ({answered}/{QUIZ.length})
+                      </Btn>
+                    )}
                   </div>
                 </div>
+
+                {answered < QUIZ.length && idx === QUIZ.length - 1 && (
+                  <p className="mt-2.5 text-caption text-caution">
+                    Lengkapi {QUIZ.length - answered} jawaban lagi sebelum mengumpulkan.
+                  </p>
+                )}
               </div>
 
-              <div className="border border-rule bg-paper p-4">
-                <Eyebrow>Petunjuk</Eyebrow>
-                <ul className="mt-2 space-y-1.5 text-caption text-ink-2">
-                  <li>Baca kondisi kasus dengan teliti sebelum memilih.</li>
-                  <li>Pembahasan muncul setiap kali kamu memilih jawaban.</li>
-                  <li>Tandai soal yang ingin kamu tinjau lagi.</li>
-                  <li>Nilai terbaik dicatat; XP hanya naik bila nilaimu memecahkan rekor.</li>
-                </ul>
-                <Btn
-                  className="mt-4 w-full"
-                  onClick={submit}
-                  disabled={answered < QUIZ.length}
-                >
-                  <IconShield size={14} /> Kumpulkan kuis
-                </Btn>
-              </div>
-            </aside>
-          </div>
-        </Container>
+              {/* Panel samping */}
+              <aside className="space-y-5">
+                <div className="overflow-hidden rounded-lg border border-border bg-surface">
+                  <div className="border-b border-border bg-surface-2 px-4 py-2.5">
+                    <p className="text-caption font-semibold text-ink">Navigasi soal</p>
+                  </div>
+                  <div className="p-4">
+                    <Meter value={answered} total={QUIZ.length} label="Soal terjawab" />
+                    <p className="mt-2 font-mono text-micro text-ink-3">{pct}% selesai</p>
+
+                    <div className="mt-4 grid grid-cols-5 gap-2">
+                      {QUIZ.map((x, i) => (
+                        <button
+                          key={x.id}
+                          type="button"
+                          onClick={() => {
+                            setIdx(i);
+                            setFeedback(null);
+                          }}
+                          aria-label={`Ke soal ${i + 1}${marked[x.id] ? ", ditandai" : ""}`}
+                          aria-current={i === idx ? "true" : undefined}
+                          className={cx(
+                            "relative grid h-9 cursor-pointer place-items-center rounded-sm border font-mono text-caption transition-colors",
+                            i === idx
+                              ? "border-signal bg-signal text-ok-ink font-semibold"
+                              : ans[x.id] !== undefined
+                                ? "border-ok/45 bg-ok-tint text-ok"
+                                : "border-border bg-canvas text-ink-3 hover:border-border-2 hover:text-ink",
+                          )}
+                        >
+                          {i + 1}
+                          {marked[x.id] && (
+                            <span
+                              aria-hidden="true"
+                              className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-caution"
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-surface p-5">
+                  <p className="text-caption font-semibold text-ink">Petunjuk</p>
+                  <ul className="mt-2.5 space-y-1.5 text-caption text-ink-2">
+                    <li>Baca kondisi kasus dengan teliti sebelum memilih.</li>
+                    <li>Pembahasan muncul setiap kali kamu memilih jawaban.</li>
+                    <li>Tandai soal yang ingin kamu tinjau kembali.</li>
+                    <li>XP hanya bertambah saat nilaimu memecahkan rekor sebelumnya.</li>
+                  </ul>
+                  <Btn className="mt-4 w-full" onClick={submit} disabled={answered < QUIZ.length}>
+                    <IconShield size={15} /> Kumpulkan kuis
+                  </Btn>
+                </div>
+              </aside>
+            </div>
+          </Container>
+        </main>
         <Footer />
       </div>
 
-      {/* ---------------------------------------------- Dialog pembahasan */}
+      {/* Dialog pembahasan */}
       {feedback && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-ink/45 p-4"
+          className="fixed inset-0 z-50 grid place-items-center bg-canvas/80 p-4 backdrop-blur-xs"
           onClick={() => setFeedback(null)}
         >
           <div
@@ -289,20 +283,19 @@ export default function KuisPage() {
             aria-modal="true"
             aria-labelledby="dialog-judul"
             tabIndex={-1}
-            className="w-full max-w-lg border border-rule bg-paper p-7 shadow-lift"
+            className="w-full max-w-lg rounded-lg border border-border-2 bg-surface p-7 shadow-lift"
             onClick={(e) => e.stopPropagation()}
           >
             <p
-              className={
-                feedback.ok
-                  ? "font-mono text-micro uppercase tracking-[0.14em] text-green"
-                  : "font-mono text-micro uppercase tracking-[0.14em] text-redpen"
-              }
+              className={cx(
+                "text-caption font-semibold",
+                feedback.ok ? "text-ok" : "text-fault",
+              )}
             >
               {feedback.ok ? "Tepat sekali" : "Belum tepat"}
             </p>
-            <h2 id="dialog-judul" className="mt-2 font-serif text-head">
-              {feedback.ok ? "Jawabanmu benar" : "Belum tepat, ya"}
+            <h2 id="dialog-judul" className="mt-1.5 font-display text-head">
+              {feedback.ok ? "Jawabanmu benar" : "Periksa kembali konsepnya"}
             </h2>
             <p className="mt-3 text-caption leading-relaxed text-ink-2">{feedback.explain}</p>
             <div className="mt-6 flex gap-3">

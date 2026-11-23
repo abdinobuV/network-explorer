@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
-import { Container, Eyebrow } from "@/components/ui";
+import { Container, Btn, BtnLink } from "@/components/ui";
 import { Logo } from "@/components/chrome";
 import { IconWarning } from "@/components/icons";
 
@@ -14,43 +13,35 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Catat galat ke konsol agar mudah ditelusuri saat presentasi.
     console.error(error);
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <Container width="page" className="flex items-center justify-between py-5">
         <Logo />
       </Container>
       <Container width="narrow" className="flex flex-1 items-center justify-center py-10">
-        <div className="w-full border border-rule bg-paper p-8 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-redpen/50 bg-redpen-2 text-redpen">
+        <div className="w-full rounded-lg border border-border bg-surface p-8 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-fault/45 bg-fault-tint text-fault">
             <IconWarning size={22} />
           </span>
-          <Eyebrow className="mt-5 justify-center">Terjadi kesalahan</Eyebrow>
-          <h1 className="mt-2 font-serif text-head">Halaman ini gagal dimuat</h1>
-          <p className="mt-3 text-caption text-ink-2">
-            Ada gangguan saat memuat bagian ini. Coba muat ulang — progres belajarmu tetap
-            tersimpan.
+          <p className="mt-5 text-caption font-medium text-fault">Terjadi kesalahan</p>
+          <h1 className="mt-1.5 font-display text-head">Halaman ini gagal dimuat</h1>
+          <p className="mx-auto mt-3 max-w-md text-caption text-ink-2">
+            Ada gangguan saat memuat bagian ini. Muat ulang untuk mencoba lagi; progres belajarmu
+            tetap tersimpan.
           </p>
           {error.digest && (
             <p className="mt-2 font-mono text-micro text-ink-4">Kode: {error.digest}</p>
           )}
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => reset()}
-              className="inline-flex items-center rounded-xs border border-ink bg-ink px-4 py-2 font-mono text-caption uppercase tracking-[0.12em] text-paper hover:bg-ink-2"
-            >
+            <Btn type="button" onClick={() => reset()}>
               Coba lagi
-            </button>
-            <Link
-              href="/misi"
-              className="inline-flex items-center rounded-xs border border-rule-2 px-4 py-2 font-mono text-caption uppercase tracking-[0.12em] text-ink hover:border-ink hover:bg-paper-2"
-            >
+            </Btn>
+            <BtnLink href="/misi" tone="ghost">
               Ke peta misi
-            </Link>
+            </BtnLink>
           </div>
         </div>
       </Container>

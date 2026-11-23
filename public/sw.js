@@ -7,7 +7,7 @@
  *  - API luar  : tidak di-cache (Firebase, YouTube).
  */
 
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = `network-explorer-${VERSION}`;
 
 const SHELL = ["/", "/beranda", "/auth/login", "/manifest.webmanifest"];

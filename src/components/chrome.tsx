@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { useAuth, useProg } from "@/lib/store";
 import { levelProgress } from "@/lib/progression";
-import { isDemoMode } from "@/lib/firebase";
 import {
   getServerSoundEnabled,
   isSoundEnabled,
@@ -14,16 +13,7 @@ import {
   sfx,
   subscribeSound,
 } from "@/lib/sound";
-import {
-  IconBook,
-  IconChart,
-  IconCloud,
-  IconGrid,
-  IconList,
-  IconShield,
-  IconVolume,
-  IconVolumeOff,
-} from "@/components/icons";
+import { IconCloud, IconVolume, IconVolumeOff } from "@/components/icons";
 import { Container, cx } from "@/components/ui";
 
 /* ------------------------------------------------------------------ Logo */
@@ -31,24 +21,22 @@ import { Container, cx } from "@/components/ui";
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" className="group flex items-center gap-2.5">
-      <span className="grid h-8 w-8 place-items-center border border-ink bg-ink text-paper">
-        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none">
-          <path d="M12 3v4M12 17v4M3 12h4M17 12h4" stroke="currentColor" strokeWidth="1.6" />
-          <circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.6" />
-          <circle cx="4" cy="4" r="1.6" fill="currentColor" />
-          <circle cx="20" cy="4" r="1.6" fill="currentColor" />
-          <circle cx="4" cy="20" r="1.6" fill="currentColor" />
-          <circle cx="20" cy="20" r="1.6" fill="currentColor" />
+      <span className="grid h-9 w-9 place-items-center rounded-md border border-border-2 bg-surface-2 text-signal transition-colors group-hover:border-signal">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+          <path d="M12 4.5v4M12 15.5v4M4.5 12h4M15.5 12h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <circle cx="12" cy="12" r="3" stroke="#2fd17a" strokeWidth="1.8" />
+          <circle cx="12" cy="3.5" r="1.6" fill="#5ce1f6" />
+          <circle cx="12" cy="20.5" r="1.6" fill="#5ce1f6" />
+          <circle cx="3.5" cy="12" r="1.6" fill="#5ce1f6" />
+          <circle cx="20.5" cy="12" r="1.6" fill="#5ce1f6" />
         </svg>
       </span>
       {!compact && (
-        <span className="leading-none">
-          <span className="block font-mono text-caption font-medium uppercase tracking-[0.18em] text-ink">
-            Network Explorer
+        <span className="leading-tight">
+          <span className="block font-display text-body font-bold tracking-tight text-ink">
+            Misi Topologi
           </span>
-          <span className="hidden font-mono text-micro uppercase tracking-[0.14em] text-ink-3 sm:block">
-            Buku Praktis Topologi
-          </span>
+          <span className="hidden text-micro text-ink-3 sm:block">Network Explorer</span>
         </span>
       )}
     </Link>
@@ -71,7 +59,7 @@ function SoundToggle() {
       aria-pressed={on}
       aria-label={on ? "Matikan efek suara" : "Aktifkan efek suara"}
       title={on ? "Matikan efek suara" : "Aktifkan efek suara"}
-      className="grid h-8 w-8 place-items-center border border-rule-2 text-ink-3 transition-colors hover:border-ink hover:text-ink"
+      className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-border-2 bg-surface-2 text-ink-2 transition-colors hover:border-signal hover:text-signal-bright"
     >
       {on ? <IconVolume size={15} /> : <IconVolumeOff size={15} />}
     </button>
@@ -81,17 +69,18 @@ function SoundToggle() {
 /* ------------------------------------------------------------------ Navigasi */
 
 const MAIN_NAV = [
-  { label: "Misi", href: "/misi" },
-  { label: "Sandbox", href: "/sandbox/star" },
+  { label: "Peta misi", href: "/misi" },
+  { label: "Sandbox", href: "/sandbox/star", match: "/sandbox" },
+  { label: "Perbandingan", href: "/perbandingan" },
+  { label: "Kuis akhir", href: "/kuis" },
   { label: "Progres", href: "/progres" },
 ];
 
-const SUB_NAV = [
-  { label: "Panduan", href: "/panduan", icon: IconBook },
-  { label: "Topologi", href: "/perbandingan", icon: IconList },
-  { label: "Kuis akhir", href: "/kuis", icon: IconShield },
-  { label: "Glosarium", href: "/glosarium", icon: IconGrid },
-  { label: "Rapor", href: "/cetak", icon: IconChart },
+const UTIL_NAV = [
+  { label: "Panduan", href: "/panduan" },
+  { label: "Glosarium", href: "/glosarium" },
+  { label: "Rapor cetak", href: "/cetak" },
+  { label: "Pengaturan", href: "/pengaturan" },
 ];
 
 export function Navbar({ pub = false }: { pub?: boolean }) {
@@ -102,10 +91,10 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
 
   if (pub) {
     return (
-      <header className="sticky top-0 z-40 border-b border-rule bg-paper/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b border-border bg-canvas/95 backdrop-blur-sm">
         <Container width="page" className="flex items-center justify-between py-3">
           <Logo />
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="hidden items-center gap-6 text-caption md:flex" aria-label="Navigasi beranda">
             {[
               ["Tentang", "/beranda#tentang"],
               ["Topologi", "/beranda#topologi"],
@@ -115,7 +104,7 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
               <Link
                 key={href}
                 href={href}
-                className="font-mono text-micro uppercase tracking-[0.14em] text-ink-3 transition-colors hover:text-ink"
+                className="text-ink-2 transition-colors hover:text-ink"
               >
                 {label}
               </Link>
@@ -124,15 +113,15 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
           <div className="flex items-center gap-3">
             <Link
               href="/auth/login"
-              className="font-mono text-micro uppercase tracking-[0.14em] text-ink-2 transition-colors hover:text-ink"
+              className="px-2 py-1.5 text-caption font-medium text-ink-2 transition-colors hover:text-ink"
             >
               Masuk
             </Link>
             <Link
               href="/auth/signup"
-              className="inline-flex items-center rounded-xs border border-ink bg-ink px-3.5 py-1.5 font-mono text-micro uppercase tracking-[0.12em] text-paper transition-colors hover:bg-ink-2"
+              className="inline-flex items-center rounded-md bg-ok px-4 py-2 text-caption font-semibold text-ok-ink transition-colors hover:brightness-105"
             >
-              Mulai
+              Mulai belajar
             </Link>
           </div>
         </Container>
@@ -143,27 +132,33 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
   const initial = (user?.name ?? "S").trim().charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-rule bg-paper/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-border bg-canvas/95 backdrop-blur-sm">
       <Container width="page" className="flex items-center justify-between gap-4 py-2.5">
-        <Logo />
+        <div className="flex items-center gap-6">
+          <Logo />
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {MAIN_NAV.map((item) => {
-            const active = path === item.href || path.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cx(
-                  "rounded-xs px-3 py-1.5 font-mono text-micro uppercase tracking-[0.12em] transition-colors",
-                  active ? "bg-ink text-paper" : "text-ink-3 hover:bg-paper-2 hover:text-ink",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigasi utama">
+            {MAIN_NAV.map((item) => {
+              const prefix = item.match ?? item.href;
+              const active = path === item.href || path.startsWith(prefix + "/");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cx(
+                    "rounded-md px-3 py-1.5 text-caption font-medium transition-colors",
+                    active
+                      ? "bg-signal-tint text-signal-bright"
+                      : "text-ink-2 hover:bg-surface hover:text-ink",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
         <div className="flex min-w-0 items-center gap-3">
           <SoundToggle />
@@ -172,39 +167,41 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
             <span
               title={syncError ?? "Progres tersimpan di cloud"}
               className={cx(
-                "hidden items-center gap-1 font-mono text-micro uppercase tracking-[0.1em] sm:inline-flex",
-                syncState === "error" ? "text-redpen" : "text-ink-3",
+                "hidden items-center gap-1.5 font-mono text-micro sm:inline-flex",
+                syncState === "error" ? "text-fault" : "text-ink-3",
               )}
             >
               <IconCloud size={14} />
               {syncState === "loading"
-                ? "menyinkron"
+                ? "sinkron"
                 : syncState === "saving"
                   ? "menyimpan"
                   : syncState === "error"
                     ? "gagal"
-                    : "tersimpan"}
+                    : "cloud"}
             </span>
           )}
 
           <div className="min-w-0 text-right leading-tight">
-            <p className="truncate text-caption font-medium text-ink">{user?.name ?? "Siswa"}</p>
-            <p className="truncate font-mono text-micro text-ink-3">
-              {xp.toLocaleString("id-ID")} XP · Tingkat {lv.level}
+            <p className="max-w-[120px] truncate text-caption font-medium text-ink sm:max-w-[180px]">
+              {user?.name ?? "Siswa"}
+            </p>
+            <p className="truncate font-mono text-micro text-ok">
+              {xp.toLocaleString("id-ID")} XP · Lv.{lv.level}
             </p>
           </div>
 
           <Link
             href="/profil"
-            className="grid h-8 w-8 place-items-center overflow-hidden rounded-full border border-rule-2 bg-paper-2 font-mono text-caption text-ink transition-colors hover:border-ink"
+            className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border border-border-2 bg-surface-2 font-display text-caption font-bold text-signal-bright transition-colors hover:border-signal"
             aria-label="Halaman profil"
           >
             {user?.photoURL ? (
               <Image
                 src={user.photoURL}
                 alt=""
-                width={32}
-                height={32}
+                width={36}
+                height={36}
                 className="h-full w-full object-cover"
                 referrerPolicy="no-referrer"
               />
@@ -215,35 +212,50 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
         </div>
       </Container>
 
-      <div className="border-t border-rule bg-paper-2">
+      <div className="border-t border-border-3 bg-surface/80">
         <Container width="page" className="flex items-center gap-1 overflow-x-auto py-1.5">
-          {SUB_NAV.map((item) => {
+          {/* Tampilkan rute utama di layar < lg agar tetap 1 klik di mobile/tablet */}
+          {MAIN_NAV.map((item) => {
+            const prefix = item.match ?? item.href;
+            const active = path === item.href || path.startsWith(prefix + "/");
+            return (
+              <Link
+                key={`mob-${item.href}`}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cx(
+                  "shrink-0 rounded-xs px-2.5 py-1 text-micro font-medium transition-colors lg:hidden",
+                  active
+                    ? "bg-signal-tint text-signal-bright"
+                    : "text-ink-2 hover:text-ink",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+
+          <span className="mx-1 h-3.5 w-px shrink-0 bg-border lg:hidden" aria-hidden="true" />
+
+          {UTIL_NAV.map((item) => {
             const active = path === item.href;
-            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "inline-flex shrink-0 items-center gap-1.5 rounded-xs px-2.5 py-1 font-mono text-micro uppercase tracking-[0.1em] transition-colors",
-                  active ? "bg-paper text-ink" : "text-ink-3 hover:text-ink",
+                  "shrink-0 rounded-xs px-2.5 py-1 text-micro font-medium transition-colors",
+                  item.href === "/pengaturan" && "lg:ml-auto",
+                  active
+                    ? "bg-surface-3 text-ink"
+                    : "text-ink-3 hover:bg-surface-2 hover:text-ink",
                 )}
               >
-                <Icon size={13} />
                 {item.label}
               </Link>
             );
           })}
-          <Link
-            href="/pengaturan"
-            className={cx(
-              "ml-auto shrink-0 rounded-xs px-2.5 py-1 font-mono text-micro uppercase tracking-[0.1em] transition-colors",
-              path === "/pengaturan" ? "bg-paper text-ink" : "text-ink-3 hover:text-ink",
-            )}
-          >
-            Pengaturan
-          </Link>
         </Container>
       </div>
     </header>
@@ -254,25 +266,25 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
 
 export function Footer({ help = false }: { help?: boolean }) {
   return (
-    <footer className="mt-16 border-t border-rule bg-paper-2">
-      <Container width="page" className="flex flex-col gap-2 py-5 md:flex-row md:items-center md:justify-between">
-        <p className="font-mono text-micro uppercase tracking-[0.12em] text-ink-3">
-          Network Explorer · Buku Praktis Topologi Jaringan · Informatika SMA Kelas XI
+    <footer className="mt-16 border-t border-border bg-surface">
+      <Container width="page" className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
+        <p className="text-micro text-ink-3">
+          Misi Topologi, Network Explorer — Informatika SMA Kelas XI
         </p>
-        <nav className="flex flex-wrap gap-4 font-mono text-micro uppercase tracking-[0.12em]">
+        <nav className="flex flex-wrap gap-5 text-micro" aria-label="Tautan kaki halaman">
           {help ? (
-            <Link href="/glosarium" className="text-blueprint hover:underline">
+            <Link href="/glosarium" className="text-signal-bright hover:underline">
               Butuh bantuan? Buka glosarium
             </Link>
           ) : (
             <>
-              <Link href="/glosarium" className="text-blueprint hover:underline">
+              <Link href="/glosarium" className="text-ink-2 hover:text-signal-bright">
                 Glosarium
               </Link>
-              <Link href="/privasi" className="text-blueprint hover:underline">
+              <Link href="/privasi" className="text-ink-2 hover:text-signal-bright">
                 Privasi
               </Link>
-              <Link href="/ketentuan" className="text-blueprint hover:underline">
+              <Link href="/ketentuan" className="text-ink-2 hover:text-signal-bright">
                 Ketentuan
               </Link>
             </>
@@ -289,9 +301,8 @@ export function DemoNotice() {
   const { isDemo } = useAuth();
   if (!isDemo) return null;
   return (
-    <p className="border border-amber/40 bg-amber-2 px-3 py-2 text-caption text-ink-2">
+    <p className="rounded-md border border-caution/35 bg-caution-tint px-3.5 py-2.5 text-caption text-ink-2">
       Mode demo aktif: data disimpan di peramban ini saja dan belum disinkronkan ke cloud.
-      {isDemoMode ? "" : ""}
     </p>
   );
 }

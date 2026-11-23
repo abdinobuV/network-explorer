@@ -20,14 +20,14 @@ async function masuk(page: import("@playwright/test").Page) {
 test.describe("tamu", () => {
   test("halaman sampul tampil dan bisa dimasuki", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Buku Praktis");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Network Explorer");
     await expect(page.getByRole("link", { name: "Mulai belajar" })).toBeVisible();
   });
 
   test("halaman yang dilindungi mengalihkan ke login", async ({ page }) => {
     await page.goto("/misi");
     await page.waitForURL("**/auth/login");
-    await expect(page.getByRole("heading", { name: /Masuk ke buku latihan/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Masuk ke Network Explorer/i })).toBeVisible();
   });
 
   test("halaman publik terbuka", async ({ page }) => {

@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
 /* =============================================================================
-   DESIGN KIT — "Buku Teknis"
-   Semua komponen di sini adalah satu-satunya sumber gaya untuk aplikasi.
-   Tidak ada lagi kelas .card/.btn-* yang dipakai langsung di halaman.
+   KOMPONEN ANTARMUKA — Network Lab Gelap
+   Satu sumber gaya untuk seluruh halaman. Permukaan solid bertingkat, tipografi
+   sentence-case yang jernih, dan monospace khusus untuk data teknis.
    ========================================================================== */
 
 export function cx(...parts: Array<string | false | null | undefined>) {
@@ -34,28 +34,19 @@ export function Container({
   );
 }
 
-/* ---------------------------------------------------------------- Label kecil */
+/* ---------------------------------------------------------------- Label konteks */
 
-/** Label mono dengan garis pendahuluan — pengganti "eyebrow" cyan lama. */
+/** Penanda konteks ringkas dalam sentence case — bukan label kapital dekoratif. */
 export function Eyebrow({
   children,
   className,
-  rule = true,
 }: {
   children: ReactNode;
   className?: string;
   rule?: boolean;
 }) {
   return (
-    <p
-      className={cx(
-        "flex items-center gap-2 font-mono text-micro uppercase tracking-[0.14em] text-ink-3",
-        className,
-      )}
-    >
-      {rule && <span aria-hidden="true" className="h-px w-6 bg-rule-2" />}
-      {children}
-    </p>
+    <p className={cx("text-caption font-medium text-signal-bright", className)}>{children}</p>
   );
 }
 
@@ -73,10 +64,10 @@ export function Paper({
   return (
     <div
       className={cx(
-        "border border-rule",
-        tone === "sunk" && "bg-paper-3",
-        tone === "raised" && "bg-paper-2",
-        tone === "plain" && "bg-paper",
+        "rounded-lg border border-border",
+        tone === "sunk" && "bg-canvas",
+        tone === "raised" && "bg-surface-2",
+        tone === "plain" && "bg-surface",
         className,
       )}
     >
@@ -87,7 +78,6 @@ export function Paper({
 
 /* ---------------------------------------------------------------- Catatan */
 
-/** Kotak catatan dengan garis kiri berwarna + label mono. */
 export function Callout({
   tone = "note",
   label,
@@ -100,16 +90,22 @@ export function Callout({
   className?: string;
 }) {
   const tones = {
-    note: "border-l-blueprint bg-blueprint-3 text-ink",
-    warn: "border-l-amber bg-amber-2 text-ink",
-    ok: "border-l-green bg-green-2 text-ink",
-    error: "border-l-redpen bg-redpen-2 text-ink",
+    note: "border-border border-l-signal bg-signal-tint/70 text-ink",
+    warn: "border-caution/30 border-l-caution bg-caution-tint/80 text-ink",
+    ok: "border-ok/30 border-l-ok bg-ok-tint/80 text-ink",
+    error: "border-fault/35 border-l-fault bg-fault-tint/85 text-ink",
   } as const;
-  const labels = { note: "Catatan", warn: "Peringatan", ok: "Tepat", error: "Kesalahan" } as const;
+  const labelTones = {
+    note: "text-signal-bright",
+    warn: "text-caution",
+    ok: "text-ok",
+    error: "text-fault",
+  } as const;
+  const labels = { note: "Catatan", warn: "Perhatian", ok: "Tepat", error: "Kesalahan" } as const;
 
   return (
-    <div className={cx("border border-rule border-l-[3px] px-4 py-3", tones[tone], className)}>
-      <p className="mb-1 font-mono text-micro uppercase tracking-[0.14em] text-ink-3">
+    <div className={cx("rounded-md border border-l-[3px] px-4 py-3.5", tones[tone], className)}>
+      <p className={cx("mb-1 text-micro font-semibold", labelTones[tone])}>
         {label ?? labels[tone]}
       </p>
       <div className="text-caption leading-relaxed text-ink-2">{children}</div>
@@ -119,19 +115,23 @@ export function Callout({
 
 /* ---------------------------------------------------------------- Tombol */
 
-type BtnTone = "primary" | "ghost" | "quiet" | "danger";
+type BtnTone = "primary" | "signal" | "ghost" | "quiet" | "danger";
 
 const BTN_TONES: Record<BtnTone, string> = {
   primary:
-    "bg-ink text-paper border-ink hover:bg-ink-2 disabled:hover:bg-ink",
+    "bg-ok text-ok-ink border-ok font-semibold hover:brightness-105 disabled:hover:brightness-100",
+  signal:
+    "bg-signal text-ok-ink border-signal font-semibold hover:brightness-105 disabled:hover:brightness-100",
   ghost:
-    "bg-transparent text-ink border-rule-2 hover:border-ink hover:bg-paper-2 disabled:hover:border-rule-2 disabled:hover:bg-transparent",
-  quiet: "bg-transparent text-ink-2 border-transparent hover:bg-paper-2 hover:text-ink",
-  danger: "bg-transparent text-redpen border-redpen/50 hover:bg-redpen hover:text-paper",
+    "bg-surface text-ink border-border-2 font-medium hover:border-signal hover:text-signal-bright hover:bg-signal-tint/50 disabled:hover:border-border-2 disabled:hover:bg-surface disabled:hover:text-ink",
+  quiet:
+    "bg-transparent text-ink-2 border-transparent font-medium hover:bg-surface-2 hover:text-ink",
+  danger:
+    "bg-fault-tint text-fault border-fault/50 font-medium hover:bg-fault hover:text-white",
 };
 
 const BTN_SIZES = {
-  sm: "px-3 py-1.5 text-caption",
+  sm: "px-3.5 py-1.5 text-caption",
   md: "px-4 py-2 text-caption",
   lg: "px-6 py-3 text-body",
 } as const;
@@ -145,7 +145,7 @@ export function Btn({
   return (
     <button
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-xs border font-medium transition-colors",
+        "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border transition-colors",
         "disabled:cursor-not-allowed disabled:opacity-45",
         BTN_TONES[tone],
         BTN_SIZES[size],
@@ -165,7 +165,7 @@ export function BtnLink({
   return (
     <Link
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-xs border font-medium transition-colors",
+        "inline-flex items-center justify-center gap-2 rounded-md border transition-colors",
         BTN_TONES[tone],
         BTN_SIZES[size],
         className,
@@ -194,13 +194,13 @@ export function Field({
 }) {
   return (
     <div className={cx("flex flex-col gap-1.5", className)}>
-      <label htmlFor={htmlFor} className="font-mono text-micro uppercase tracking-[0.12em] text-ink-3">
+      <label htmlFor={htmlFor} className="text-caption font-medium text-ink-2">
         {label}
       </label>
       {children}
-      {hint && !error && <p className="text-caption text-ink-3">{hint}</p>}
+      {hint && !error && <p className="text-micro text-ink-3">{hint}</p>}
       {error && (
-        <p className="text-caption text-redpen" role="alert">
+        <p className="text-micro text-fault" role="alert">
           {error}
         </p>
       )}
@@ -209,8 +209,8 @@ export function Field({
 }
 
 const CONTROL =
-  "w-full rounded-xs border border-rule-2 bg-paper px-3 py-2 text-body text-ink placeholder:text-ink-4 " +
-  "focus:border-blueprint focus:outline-none focus:ring-2 focus:ring-blueprint/25 disabled:bg-paper-3";
+  "w-full rounded-md border border-border-2 bg-canvas px-3.5 py-2.5 text-body text-ink placeholder:text-ink-4 " +
+  "focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal/25 disabled:bg-surface-2 disabled:text-ink-3";
 
 export function Input({ className, ...rest }: ComponentProps<"input">) {
   return <input className={cx(CONTROL, className)} {...rest} />;
@@ -219,8 +219,9 @@ export function Input({ className, ...rest }: ComponentProps<"input">) {
 export function Textarea({ className, ...rest }: ComponentProps<"textarea">) {
   return <textarea className={cx(CONTROL, "min-h-24 resize-y", className)} {...rest} />;
 }
+
 export function Select({ className, ...rest }: ComponentProps<"select">) {
-  return <select className={cx(CONTROL, "appearance-none pr-8", className)} {...rest} />;
+  return <select className={cx(CONTROL, "pr-8", className)} {...rest} />;
 }
 
 export function Toggle({
@@ -239,7 +240,7 @@ export function Toggle({
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <label htmlFor={id} className="block text-caption font-medium text-ink">
+        <label htmlFor={id} className="block text-body font-medium text-ink">
           {label}
         </label>
         {description && <p className="mt-0.5 text-caption text-ink-3">{description}</p>}
@@ -251,15 +252,15 @@ export function Toggle({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={cx(
-          "relative mt-0.5 h-5 w-9 shrink-0 rounded-full border transition-colors",
-          checked ? "border-blueprint bg-blueprint" : "border-rule-2 bg-paper-3",
+          "relative mt-0.5 h-6 w-11 shrink-0 cursor-pointer rounded-full border transition-colors",
+          checked ? "border-signal bg-signal" : "border-border-2 bg-surface-3",
         )}
       >
         <span
           aria-hidden="true"
           className={cx(
-            "absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full transition-all",
-            checked ? "left-[18px] bg-paper" : "left-[3px] bg-ink-4",
+            "absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full transition-all",
+            checked ? "left-[22px] bg-ok-ink" : "left-[3px] bg-ink-3",
           )}
         />
       </button>
@@ -279,16 +280,16 @@ export function Badge({
   className?: string;
 }) {
   const tones = {
-    neutral: "border-rule-2 text-ink-2 bg-paper-2",
-    blue: "border-blueprint/40 text-blueprint bg-blueprint-3",
-    green: "border-green/40 text-green bg-green-2",
-    amber: "border-amber/40 text-amber bg-amber-2",
-    red: "border-redpen/40 text-redpen bg-redpen-2",
+    neutral: "border-border-2 text-ink-2 bg-surface-2",
+    blue: "border-signal/35 text-signal-bright bg-signal-tint",
+    green: "border-ok/35 text-ok bg-ok-tint",
+    amber: "border-caution/35 text-caution bg-caution-tint",
+    red: "border-fault/40 text-fault bg-fault-tint",
   } as const;
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1 rounded-xs border px-2 py-0.5 font-mono text-micro uppercase tracking-[0.1em]",
+        "inline-flex items-center gap-1.5 rounded-xs border px-2.5 py-0.5 text-micro font-medium",
         tones[tone],
         className,
       )}
@@ -298,7 +299,7 @@ export function Badge({
   );
 }
 
-/** Meter bersegmen — untuk "3/4 tersambung". */
+/** Indikator LED bersegmen — dipakai untuk progres kabel/tahap. */
 export function Meter({
   value,
   total,
@@ -312,9 +313,9 @@ export function Meter({
 }) {
   const safe = Math.max(0, Math.min(value, total));
   return (
-    <div className={cx("flex items-center gap-3", className)}>
+    <div className={cx("flex min-w-0 items-center gap-3", className)}>
       <div
-        className="flex gap-1"
+        className="flex min-w-0 flex-1 gap-1"
         role="meter"
         aria-valuenow={safe}
         aria-valuemin={0}
@@ -326,20 +327,20 @@ export function Meter({
             key={i}
             aria-hidden="true"
             className={cx(
-              "h-2.5 w-6 border",
-              i < safe ? "border-blueprint bg-blueprint" : "border-rule-2 bg-paper-3",
+              "h-2.5 flex-1 max-w-6 min-w-2 rounded-[2px] border",
+              i < safe ? "border-ok bg-ok" : "border-border-2 bg-surface-3",
             )}
           />
         ))}
       </div>
-      <span className="font-mono text-caption text-ink-2">
+      <span className="shrink-0 font-mono text-caption text-ink-2">
         {safe}/{total}
       </span>
     </div>
   );
 }
 
-/** Bar persentase — untuk angka 0–100 (bukan jumlah butir). */
+/** Bar persentase untuk progres 0–100. */
 export function PercentBar({
   value,
   label,
@@ -353,23 +354,22 @@ export function PercentBar({
   return (
     <div className={cx("flex items-center gap-3", className)}>
       <div
-        className="h-2.5 flex-1 border border-rule-2 bg-paper-3"
+        className="h-2.5 flex-1 overflow-hidden rounded-xs border border-border-2 bg-surface-3"
         role="progressbar"
         aria-valuenow={safe}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={label ?? "Kemajuan"}
       >
-        <div className="h-full bg-blueprint" style={{ width: `${safe}%` }} />
+        <div className="h-full bg-signal transition-all" style={{ width: `${safe}%` }} />
       </div>
       <span className="font-mono text-caption text-ink-2">{safe}%</span>
     </div>
   );
 }
 
-/* ---------------------------------------------------------------- Gambar teknik */
+/* ---------------------------------------------------------------- Gambar skema */
 
-/** Pembungkus gambar: nomor gambar + caption + sumber. */
 export function Figure({
   no,
   caption,
@@ -377,7 +377,6 @@ export function Figure({
   children,
   className,
 }: {
-  /** Nomor gambar, mis. "1.1". */
   no: string;
   caption: string;
   source?: string;
@@ -386,10 +385,10 @@ export function Figure({
 }) {
   return (
     <figure className={cx("m-0", className)}>
-      <div className="border border-rule bg-paper-3 p-3">{children}</div>
-      <figcaption className="mt-2 font-mono text-micro text-ink-3">
-        <span className="text-ink-2">Gambar {no}.</span> {caption}
-        {source && <span className="text-ink-4"> — {source}</span>}
+      <div className="overflow-hidden rounded-lg border border-border bg-surface p-3">{children}</div>
+      <figcaption className="mt-2.5 text-caption text-ink-3">
+        <span className="font-mono text-micro text-ink-2">Skema {no}.</span> {caption}
+        {source && <span className="text-ink-4"> ({source})</span>}
       </figcaption>
     </figure>
   );
@@ -397,7 +396,6 @@ export function Figure({
 
 /* ---------------------------------------------------------------- Kepala halaman */
 
-/** Kepala halaman ala bab buku: nomor bab, judul, ringkasan, meta. */
 export function PageHeader({
   chapter,
   title,
@@ -414,13 +412,13 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <header className={cx("border-b border-rule pb-6", className)}>
-      {chapter && <Eyebrow>{chapter}</Eyebrow>}
-      <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-        <h1 className="font-serif text-head leading-tight">{title}</h1>
-        {meta && <div className="font-mono text-micro text-ink-3">{meta}</div>}
+    <header className={cx("border-b border-border pb-6", className)}>
+      {chapter && <p className="text-caption font-medium text-signal-bright">{chapter}</p>}
+      <div className="mt-1.5 flex flex-wrap items-end justify-between gap-4">
+        <h1 className="font-display text-head leading-tight">{title}</h1>
+        {meta && <div className="font-mono text-micro text-ink-2">{meta}</div>}
       </div>
-      {lead && <p className="mt-3 max-w-2xl text-lead text-ink-2">{lead}</p>}
+      {lead && <p className="mt-2.5 max-w-2xl text-lead text-ink-2">{lead}</p>}
       {children}
     </header>
   );
@@ -437,28 +435,28 @@ export function StatusDot({
 }) {
   const tones = {
     grey: "bg-ink-4",
-    green: "bg-green",
-    amber: "bg-amber",
-    red: "bg-redpen",
-    blue: "bg-blueprint",
+    green: "bg-ok",
+    amber: "bg-caution",
+    red: "bg-fault",
+    blue: "bg-signal",
   } as const;
   return (
-    <span className="inline-flex items-center gap-1.5">
+    <span className="inline-flex items-center gap-2">
       <span aria-hidden="true" className={cx("inline-block h-2 w-2 rounded-full", tones[tone])} />
-      {label && <span className="font-mono text-micro uppercase tracking-[0.1em] text-ink-3">{label}</span>}
+      {label && <span className="text-micro font-medium text-ink-2">{label}</span>}
     </span>
   );
 }
 
 export function Kbd({ children }: { children: ReactNode }) {
   return (
-    <kbd className="rounded-xs border border-rule-2 bg-paper-2 px-1.5 py-0.5 font-mono text-micro text-ink-2">
+    <kbd className="rounded-xs border border-border-2 bg-surface-2 px-1.5 py-0.5 font-mono text-micro text-ink">
       {children}
     </kbd>
   );
 }
 
-/** Baris log monospace (dipakai di ruang praktik & sandbox). */
+/** Baris log terminal monospace untuk ruang praktik dan sandbox. */
 export function LogLine({
   time,
   children,
@@ -469,9 +467,9 @@ export function LogLine({
   tone?: "default" | "ok" | "error";
 }) {
   const tones = {
-    default: "text-ink-3",
-    ok: "text-green",
-    error: "text-redpen",
+    default: "text-ink-2",
+    ok: "text-ok",
+    error: "text-fault",
   } as const;
   return (
     <p className="flex gap-3 font-mono text-micro leading-relaxed">

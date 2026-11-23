@@ -16,8 +16,8 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
 
   if (!ready || !authed) {
     return (
-      <div className="grid min-h-[60vh] place-items-center">
-        <p className="font-mono text-caption uppercase tracking-[0.14em] text-ink-3">
+      <div className="grid min-h-[60vh] place-items-center bg-canvas">
+        <p className="text-caption text-ink-3">
           {ready ? "Mengalihkan ke halaman masuk…" : "Memuat sesi…"}
         </p>
       </div>

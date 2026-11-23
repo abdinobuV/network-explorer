@@ -41,13 +41,13 @@ export default function LupaPage() {
 
   return (
     <AuthShell
-      chapter="Lembar pemulihan"
+      chapter="Pemulihan akun"
       title="Atur ulang kata sandi"
-      lead="Masukkan email akunmu. Kami mengirim tautan untuk membuat kata sandi baru."
+      lead="Masukkan email akunmu. Kami akan mengirim tautan untuk membuat kata sandi baru."
       footer={
         <p className="text-caption text-ink-3">
           Ingat kata sandinya?{" "}
-          <Link href="/auth/login" className="text-blueprint hover:underline">
+          <Link href="/auth/login" className="text-signal-bright hover:underline">
             Kembali ke halaman masuk
           </Link>
         </p>
@@ -55,8 +55,8 @@ export default function LupaPage() {
     >
       {ok ? (
         <Callout tone="ok">
-          Tautan reset sudah dikirim ke <span className="font-mono">{email}</span>. Buka tautan
-          tersebut pada peramban yang sama untuk mengatur kata sandi baru.
+          Tautan reset sudah dikirim ke <span className="font-mono text-ink">{email}</span>. Buka
+          tautan tersebut pada peramban yang sama untuk mengatur kata sandi baru.
         </Callout>
       ) : (
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
@@ -87,7 +87,7 @@ export default function LupaPage() {
           </Btn>
 
           <Callout tone="note">
-            Demi keamanan, kami hanya menampilkan jawaban bahwa email terdaftar atau tidak.
+            Demi keamanan, sistem menampilkan respon yang sama baik email terdaftar maupun tidak.
           </Callout>
         </form>
       )}

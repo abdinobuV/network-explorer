@@ -7,14 +7,14 @@ import { fontVars } from "./fonts";
 
 export const metadata: Metadata = {
   title: {
-    default: "Network Explorer — Buku Praktis Topologi Jaringan",
-    template: "%s · Network Explorer",
+    default: "MISI TOPOLOGI — Network Explorer",
+    template: "%s | MISI TOPOLOGI",
   },
   description:
-    "Pelajari topologi Bus, Ring, dan Star secara interaktif: baca bab, pasang kabel di lembar kerja teknik, lalu uji jaringannya. Informatika SMA Kelas XI.",
-  applicationName: "Network Explorer",
-  authors: [{ name: "Kelompok 3 — PTIK, UNIMED" }],
-  keywords: ["topologi jaringan", "bus", "ring", "star", "informatika SMA", "materi sekolah"],
+    "Laboratorium interaktif topologi Bus, Ring, dan Star untuk Informatika SMA Kelas XI: pelajari cara kerja, pasang kabel, uji aliran paket, dan kerjakan studi kasus.",
+  applicationName: "MISI TOPOLOGI",
+  authors: [{ name: "Kelompok 3, PTIK UNIMED" }],
+  keywords: ["topologi jaringan", "bus", "ring", "star", "informatika SMA", "simulasi jaringan"],
   formatDetection: { telephone: false },
   manifest: "/manifest.webmanifest",
   icons: {
@@ -27,17 +27,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f4f1e8",
-  colorScheme: "light",
+  themeColor: "#0b1220",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" data-scroll-behavior="smooth" className={`${fontVars} h-full`}>
-      <body className="min-h-full bg-paper text-ink antialiased">
+      <body className="min-h-full bg-canvas text-ink antialiased">
         <a
           href="#konten-utama"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-xs focus:bg-ink focus:px-4 focus:py-2 focus:text-caption focus:text-paper"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-signal focus:px-4 focus:py-2 focus:text-caption focus:font-semibold focus:text-ok-ink"
         >
           Lompat ke konten utama
         </a>

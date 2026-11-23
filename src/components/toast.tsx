@@ -21,19 +21,19 @@ export default function ToastViewport() {
         <div
           key={t.id}
           className={cx(
-            "pointer-events-auto flex items-start gap-2.5 border px-4 py-3 shadow-lift",
-            t.tone === "ok" && "border-green/50 bg-green-2 text-ink",
-            t.tone === "error" && "border-redpen/50 bg-redpen-2 text-ink",
-            t.tone === "default" && "border-rule bg-paper text-ink",
+            "pointer-events-auto flex items-start gap-2.5 rounded-md border px-4 py-3 shadow-lift",
+            t.tone === "ok" && "border-ok/45 bg-ok-tint text-ink",
+            t.tone === "error" && "border-fault/45 bg-fault-tint text-ink",
+            t.tone === "default" && "border-border-2 bg-surface-2 text-ink",
           )}
         >
           <span className="mt-0.5 shrink-0">
             {t.tone === "ok" ? (
-              <IconCheck size={15} className="text-green" />
+              <IconCheck size={15} className="text-ok" />
             ) : t.tone === "error" ? (
-              <IconCross size={15} className="text-redpen" />
+              <IconCross size={15} className="text-fault" />
             ) : (
-              <IconInfo size={15} className="text-blueprint" />
+              <IconInfo size={15} className="text-signal-bright" />
             )}
           </span>
           <p className="flex-1 text-caption leading-relaxed">{t.message}</p>
@@ -41,7 +41,7 @@ export default function ToastViewport() {
             type="button"
             onClick={() => dismissToast(t.id)}
             aria-label="Tutup notifikasi"
-            className="font-mono text-micro text-ink-3 hover:text-ink"
+            className="cursor-pointer font-mono text-micro text-ink-3 hover:text-ink"
           >
             ✕
           </button>

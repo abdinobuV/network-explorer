@@ -1,12 +1,23 @@
 import localFont from "next/font/local";
 
 /**
- * IBM Plex — diserve sendiri dari /fonts (tidak ada permintaan ke CDN Google),
- * sehingga build tetap jalan tanpa internet dan tidak ada permintaan ke pihak ketiga.
- *
- * Sans  → teks isi        Mono → angka, kode, port, label data
- * Serif → judul bab & sampul
+ * Font lokal di src/app/fonts (zero permintaan CDN, aman untuk CSP & offline):
+ *  - Display (Space Grotesk): judul halaman, heading bagian, angka utama
+ *  - Sans (IBM Plex Sans): teks bacaan, antarmuka, tombol, navigasi
+ *  - Mono (IBM Plex Mono): khusus data teknis (port, ID PC, latensi, log, XP)
  */
+
+export const displayFont = localFont({
+  src: [
+    { path: "./fonts/space-grotesk-500-latin.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/space-grotesk-700-latin.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-display-face",
+  display: "swap",
+  preload: true,
+  fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
+  adjustFontFallback: "Arial",
+});
 
 export const plexSans = localFont({
   src: [
@@ -32,13 +43,4 @@ export const plexMono = localFont({
   adjustFontFallback: "Arial",
 });
 
-export const plexSerif = localFont({
-  src: [{ path: "./fonts/ibm-plex-serif-600-latin.woff2", weight: "600", style: "normal" }],
-  variable: "--font-plex-serif",
-  display: "swap",
-  preload: true,
-  fallback: ["Georgia", "Times New Roman", "serif"],
-  adjustFontFallback: "Times New Roman",
-});
-
-export const fontVars = `${plexSans.variable} ${plexMono.variable} ${plexSerif.variable}`;
+export const fontVars = `${displayFont.variable} ${plexSans.variable} ${plexMono.variable}`;

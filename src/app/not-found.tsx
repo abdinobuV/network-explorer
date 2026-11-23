@@ -1,35 +1,26 @@
-import Link from "next/link";
-import { Container, Eyebrow } from "@/components/ui";
+import { Container, BtnLink } from "@/components/ui";
 import { Logo } from "@/components/chrome";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <Container width="page" className="flex items-center justify-between py-5">
         <Logo />
       </Container>
       <Container width="narrow" className="flex flex-1 items-center justify-center py-10">
-        <div className="w-full border border-rule bg-paper p-8 text-center">
-          <Eyebrow className="justify-center">Halaman 404</Eyebrow>
-          <p className="mt-4 font-serif text-cover leading-none">404</p>
-          <h1 className="mt-3 font-serif text-head">Halaman ini tidak ada</h1>
-          <p className="mt-3 text-caption text-ink-2">
-            Alamat yang kamu buka tidak dikenali. Mungkin tautannya salah ketik, atau halamannya
-            sudah dipindahkan.
+        <div className="w-full rounded-lg border border-border bg-surface p-8 text-center">
+          <p className="font-mono text-chapter font-bold text-signal-bright">404</p>
+          <h1 className="mt-2 font-display text-head">Halaman ini tidak ditemukan</h1>
+          <p className="mx-auto mt-3 max-w-md text-caption text-ink-2">
+            Alamat yang kamu buka tidak dikenali. Periksa tautannya atau kembali ke peta misi.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/misi"
-              className="inline-flex items-center rounded-xs border border-ink bg-ink px-4 py-2 font-mono text-caption uppercase tracking-[0.12em] text-paper hover:bg-ink-2"
-            >
+            <BtnLink href="/misi" tone="primary">
               Ke peta misi
-            </Link>
-            <Link
-              href="/beranda"
-              className="inline-flex items-center rounded-xs border border-rule-2 px-4 py-2 font-mono text-caption uppercase tracking-[0.12em] text-ink hover:border-ink hover:bg-paper-2"
-            >
-              Halaman muka
-            </Link>
+            </BtnLink>
+            <BtnLink href="/beranda" tone="ghost">
+              Halaman beranda
+            </BtnLink>
           </div>
         </div>
       </Container>

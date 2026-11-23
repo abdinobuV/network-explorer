@@ -54,7 +54,7 @@ function ResetInner() {
   if (isDemo) {
     return (
       <Callout tone="warn">
-        Mode demo aktif sehingga tidak ada server email. Halaman ini dipakai pada mode Firebase,
+        Mode demo aktif sehingga tidak ada server email. Halaman ini dipakai pada mode Firebase
         saat tautan reset dari email diarahkan ke sini.
       </Callout>
     );
@@ -88,11 +88,8 @@ function ResetInner() {
             sandi.
           </span>
         </Callout>
-        <Link
-          href="/auth/lupa"
-          className="inline-block font-mono text-caption uppercase tracking-[0.12em] text-blueprint hover:underline"
-        >
-          Minta tautan baru →
+        <Link href="/auth/lupa" className="inline-block text-caption font-medium text-signal-bright hover:underline">
+          Minta tautan baru
         </Link>
       </div>
     );
@@ -143,17 +140,11 @@ function ResetInner() {
 export default function ResetKataSandiPage() {
   return (
     <AuthShell
-      chapter="Lembar pengaturan ulang"
+      chapter="Pengaturan ulang sandi"
       title="Buat kata sandi baru"
       lead="Masukkan kata sandi baru dan konfirmasinya. Tautan yang kamu buka hanya berlaku sekali."
     >
-      <Suspense
-        fallback={
-          <p className="font-mono text-caption uppercase tracking-[0.12em] text-ink-3">
-            Memuat tautan…
-          </p>
-        }
-      >
+      <Suspense fallback={<p className="text-caption text-ink-3">Memuat tautan…</p>}>
         <ResetInner />
       </Suspense>
     </AuthShell>

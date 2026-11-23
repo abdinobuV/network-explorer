@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
-import { Container, Eyebrow, PageHeader, Meter, Badge, StatusDot } from "@/components/ui";
+import { Container, PageHeader, Meter, Badge, StatusDot, BtnLink } from "@/components/ui";
 import { TopoMini } from "@/components/topo";
 import { TOPOLOGI } from "@/lib/data";
 import { TOPO_SPECS } from "@/lib/topology-model";
@@ -19,176 +19,212 @@ export default function MisiPage() {
 
   return (
     <RequireAuth>
-      <div>
+      <div className="bg-canvas">
         <Navbar />
-        <Container width="page" className="py-10">
-          <PageHeader
-            chapter="Daftar isi"
-            title="Peta misi belajar"
-            lead="Tiga bab materi, tiga lembar praktik, satu simulasi, satu kuis akhir. Kerjakan berurutan — tiap bab membuka lembar berikutnya."
-            meta={
-              <span className="inline-flex items-center gap-2">
-                <StatusDot tone="blue" label={`Tingkat ${lv.level}`} />
-                <span>{xp.toLocaleString("id-ID")} XP</span>
-              </span>
-            }
-          />
-
-          <div className="mt-8">
-            <div className="overflow-x-auto border border-rule">
-              <table className="tech-table min-w-[42rem]">
-                <caption className="sr-only">Daftar bab dan status penyelesaian</caption>
-                <thead>
-                  <tr>
-                    <th scope="col" className="w-12">
-                      Bab
-                    </th>
-                    <th scope="col">Topologi</th>
-                    <th scope="col">Aturan pemasangan</th>
-                    <th scope="col" className="w-48">
-                      Kemajuan
-                    </th>
-                    <th scope="col" className="w-28">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {URUT.map((key, i) => {
-                    const t = TOPOLOGI[key];
-                    const spec = TOPO_SPECS[key];
-                    const keys = [materiKey(key), praktikKey(key), simulasiKey(key)];
-                    const doneCount = keys.filter((k) => done[k]).length;
-                    const lengkap = doneCount === keys.length;
-                    return (
-                      <tr key={key}>
-                        <td className="font-mono text-ink-3">{String(i + 1).padStart(2, "0")}</td>
-                        <td>
-                          <Link
-                            href={`/materi/${key}`}
-                            className="font-medium text-ink underline-offset-4 hover:text-blueprint hover:underline"
-                          >
-                            {t.title}
-                          </Link>
-                          <p className="mt-0.5 text-caption text-ink-3">{spec.subtitle}</p>
-                        </td>
-                        <td className="max-w-sm text-caption">{spec.rule}</td>
-                        <td>
-                          <Meter
-                            value={doneCount}
-                            total={keys.length}
-                            label={`Kemajuan ${t.title}`}
-                          />
-                        </td>
-                        <td>
-                          {lengkap ? (
-                            <Badge tone="green">
-                              <IconCheck size={12} /> Selesai
-                            </Badge>
-                          ) : doneCount > 0 ? (
-                            <Badge tone="amber">Berjalan</Badge>
-                          ) : (
-                            <Badge tone="neutral">Belum</Badge>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {URUT.map((key, i) => (
-              <Link
-                key={key}
-                href={`/materi/${key}`}
-                className="group border border-rule bg-paper p-4 transition-colors hover:border-blueprint"
-              >
-                <div className="drafting-grid border border-rule p-2">
-                  <TopoMini kind={key} />
-                </div>
-                <p className="mt-3 font-mono text-micro uppercase tracking-[0.14em] text-ink-4">
-                  Bab {String(i + 1).padStart(2, "0")} · {TOPOLOGI[key].level.split("•")[1]?.trim()}
-                </p>
-                <h2 className="mt-1 font-serif text-title group-hover:text-blueprint">
-                  {TOPOLOGI[key].title}
-                </h2>
-                <p className="mt-1.5 text-caption text-ink-2">{TOPOLOGI[key].desc}</p>
-                <span className="mt-3 inline-flex items-center gap-1.5 font-mono text-micro uppercase tracking-[0.12em] text-blueprint">
-                  Buka bab <IconArrow size={13} />
+        <main id="konten-utama">
+          <Container width="page" className="py-10">
+            <PageHeader
+              chapter="Studi topologi dasar"
+              title="Peta misi belajar"
+              lead="Tiga bab materi, tiga papan pemasangan kabel, simulasi jaringan, dan satu kuis akhir. Kerjakan berurutan agar setiap konsep saling terhubung."
+              meta={
+                <span className="inline-flex items-center gap-3">
+                  <StatusDot tone="green" label={`Tingkat ${lv.level}`} />
+                  <span className="text-ok">{xp.toLocaleString("id-ID")} XP</span>
                 </span>
-              </Link>
-            ))}
-          </div>
+              }
+            />
 
-          <section className="mt-10 border border-rule bg-paper-2 p-6">
-            <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-              <div>
-                <Eyebrow>Evaluasi akhir</Eyebrow>
-                <h2 className="mt-2 font-serif text-head">Kuis akhir</h2>
-                <p className="mt-2 max-w-lg text-caption text-ink-2">
-                  Sepuluh soal studi kasus, masing-masing dengan pembahasan. Nilai terbaik dicatat;
-                  XP hanya bertambah bila nilaimu menjadi rekor baru.
-                  {quizBest !== null && (
-                    <>
-                      {" "}
-                      Rekormu saat ini:{" "}
-                      <span className="font-mono">
-                        {quizBest}/10
-                      </span>
-                      .
-                    </>
-                  )}
-                </p>
+            {/* Kartu utama tiga topologi */}
+            <div className="mt-8 grid gap-5 md:grid-cols-3">
+              {URUT.map((key, i) => {
+                const t = TOPOLOGI[key];
+                const keys = [materiKey(key), praktikKey(key), simulasiKey(key)];
+                const doneCount = keys.filter((k) => done[k]).length;
+                const lengkap = doneCount === keys.length;
+                return (
+                  <article
+                    key={key}
+                    className="flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-signal/60"
+                  >
+                    <div className="flex items-center justify-between gap-2 border-b border-border bg-surface-2 px-4 py-2.5">
+                      <span className="font-mono text-micro text-ink-3">Level {i + 1}</span>
+                      {lengkap ? (
+                        <Badge tone="green">
+                          <IconCheck size={12} /> Selesai
+                        </Badge>
+                      ) : doneCount > 0 ? (
+                        <Badge tone="amber">{doneCount}/3 tahap</Badge>
+                      ) : (
+                        <Badge tone="neutral">Belum mulai</Badge>
+                      )}
+                    </div>
+
+                    <div className="flex flex-1 flex-col p-5">
+                      <h2 className="font-display text-title text-ink">{t.title}</h2>
+                      <p className="mt-2 text-caption leading-relaxed text-ink-2">{t.desc}</p>
+
+                      <div className="lab-grid mt-4 rounded-md border border-border-3 p-2.5">
+                        <TopoMini kind={key} />
+                      </div>
+
+                      <div className="mt-5 flex items-center justify-between gap-3 pt-1">
+                        <Meter value={doneCount} total={keys.length} label={`Kemajuan ${t.title}`} />
+                        <Link
+                          href={`/materi/${key}`}
+                          className="inline-flex items-center gap-1.5 text-caption font-semibold text-signal-bright hover:underline"
+                        >
+                          Pelajari <IconArrow size={14} />
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            {/* Banner Kuis Akhir */}
+            <section className="mt-8 rounded-lg border border-border bg-surface p-6">
+              <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
+                <div>
+                  <p className="text-caption font-medium text-signal-bright">Evaluasi akhir</p>
+                  <h2 className="mt-1 font-display text-head">Kuis akhir studi kasus</h2>
+                  <p className="mt-2 max-w-xl text-caption leading-relaxed text-ink-2">
+                    Sepuluh soal studi kasus jaringan lengkap dengan pembahasan. Nilai terbaik
+                    dicatat; XP bertambah hanya bila nilaimu mencetak rekor baru.
+                    {quizBest !== null && (
+                      <>
+                        {" "}
+                        Rekor saat ini:{" "}
+                        <span className="font-mono text-ink">{quizBest}/10</span>.
+                      </>
+                    )}
+                  </p>
+                </div>
+                <BtnLink href="/kuis" tone="primary" size="lg" className="shrink-0">
+                  <IconShield size={16} /> Kerjakan kuis
+                </BtnLink>
               </div>
-              <Link
-                href="/kuis"
-                className="inline-flex items-center gap-2 rounded-xs border border-ink bg-ink px-5 py-2.5 font-mono text-caption uppercase tracking-[0.12em] text-paper hover:bg-ink-2"
-              >
-                <IconShield size={15} /> Kerjakan kuis
-              </Link>
-            </div>
-          </section>
+            </section>
 
-          <section className="mt-8 border border-rule">
-            <div className="border-b border-rule bg-paper-2 px-5 py-3">
-              <Eyebrow>Penilaian</Eyebrow>
-            </div>
-            <table className="tech-table">
-              <thead>
-                <tr>
-                  <th scope="col">Rentang nilai</th>
-                  <th scope="col">Predikat</th>
-                  <th scope="col">Tindak lanjut</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="font-mono">80–100</td>
-                  <td>Baik sekali</td>
-                  <td>Lanjutkan ke simulasi lanjutan dan coba menjelaskan ke teman.</td>
-                </tr>
-                <tr>
-                  <td className="font-mono">60–79</td>
-                  <td>Baik</td>
-                  <td>Ulangi bab dengan nilai terendah, lalu kerjakan ulang kuis.</td>
-                </tr>
-                <tr>
-                  <td className="font-mono">0–59</td>
-                  <td>Perlu diulang</td>
-                  <td>Baca ulang bab dan ulangi lembar praktik sebelum mengulang kuis.</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+            {/* Ringkasan aturan & status */}
+            <section className="mt-8 overflow-hidden rounded-lg border border-border bg-surface">
+              <div className="border-b border-border bg-surface-2 px-5 py-3">
+                <h2 className="font-display text-body font-semibold text-ink">
+                  Ringkasan aturan dan status tahap
+                </h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="tech-table min-w-[42rem]">
+                  <caption className="sr-only">Daftar bab dan status penyelesaian</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col" className="w-16">
+                        Level
+                      </th>
+                      <th scope="col">Topologi</th>
+                      <th scope="col">Aturan pemasangan</th>
+                      <th scope="col" className="w-44">
+                        Kemajuan
+                      </th>
+                      <th scope="col" className="w-28">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {URUT.map((key, i) => {
+                      const t = TOPOLOGI[key];
+                      const spec = TOPO_SPECS[key];
+                      const keys = [materiKey(key), praktikKey(key), simulasiKey(key)];
+                      const doneCount = keys.filter((k) => done[k]).length;
+                      const lengkap = doneCount === keys.length;
+                      return (
+                        <tr key={key}>
+                          <td className="font-mono text-ink-3">{String(i + 1).padStart(2, "0")}</td>
+                          <td>
+                            <Link
+                              href={`/materi/${key}`}
+                              className="font-medium text-ink underline-offset-4 hover:text-signal-bright hover:underline"
+                            >
+                              {t.title}
+                            </Link>
+                            <p className="mt-0.5 text-micro text-ink-3">{spec.subtitle}</p>
+                          </td>
+                          <td className="max-w-sm text-caption">{spec.rule}</td>
+                          <td>
+                            <Meter
+                              value={doneCount}
+                              total={keys.length}
+                              label={`Kemajuan ${t.title}`}
+                            />
+                          </td>
+                          <td>
+                            {lengkap ? (
+                              <Badge tone="green">
+                                <IconCheck size={12} /> Selesai
+                              </Badge>
+                            ) : doneCount > 0 ? (
+                              <Badge tone="amber">Berjalan</Badge>
+                            ) : (
+                              <Badge tone="neutral">Belum</Badge>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
 
-          <p className="mt-6 font-mono text-micro text-ink-4">
-            Total XP yang bisa diperoleh:{" "}
-            {(XP.materi + XP.praktik + XP.simulasi) * 3 + XP.kuisPerJawaban * 10} XP
-          </p>
-        </Container>
+            {/* Rubrik penilaian */}
+            <section className="mt-8 overflow-hidden rounded-lg border border-border bg-surface">
+              <div className="border-b border-border bg-surface-2 px-5 py-3">
+                <h2 className="font-display text-body font-semibold text-ink">
+                  Rentang penilaian kuis
+                </h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="tech-table min-w-[34rem]">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="w-32">
+                        Skor
+                      </th>
+                      <th scope="col" className="w-40">
+                        Predikat
+                      </th>
+                      <th scope="col">Tindak lanjut</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="font-mono text-ok">80–100</td>
+                      <td className="font-medium text-ink">Baik sekali</td>
+                      <td>Lanjutkan eksplorasi di sandbox dan coba jelaskan konsepnya ke teman.</td>
+                    </tr>
+                    <tr>
+                      <td className="font-mono text-signal-bright">60–79</td>
+                      <td className="font-medium text-ink">Baik</td>
+                      <td>Ulangi modul yang paling menantang, lalu kerjakan ulang kuis.</td>
+                    </tr>
+                    <tr>
+                      <td className="font-mono text-caution">0–59</td>
+                      <td className="font-medium text-ink">Perlu diulang</td>
+                      <td>Baca ulang materi dan selesaikan papan praktik sebelum mengulang kuis.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <p className="mt-5 font-mono text-micro text-ink-4">
+              Total XP yang dapat diraih:{" "}
+              {(XP.materi + XP.praktik + XP.simulasi) * 3 + XP.kuisPerJawaban * 10} XP
+            </p>
+          </Container>
+        </main>
         <Footer help />
       </div>
     </RequireAuth>

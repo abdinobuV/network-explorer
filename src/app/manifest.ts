@@ -2,18 +2,18 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Network Explorer — Buku Praktis Topologi Jaringan",
-    short_name: "Network Explorer",
+    name: "MISI TOPOLOGI — Network Explorer",
+    short_name: "Misi Topologi",
     description:
-      "Pelajari topologi Bus, Ring, dan Star secara interaktif: baca bab, pasang kabel di lembar kerja teknik, lalu uji jaringannya.",
+      "Laboratorium interaktif topologi Bus, Ring, dan Star: pelajari materi, pasang kabel di ruang praktik, lalu uji aliran data di sandbox.",
     lang: "id",
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
-    background_color: "#f4f1e8",
-    theme_color: "#f4f1e8",
-    categories: ["education", "books"],
+    background_color: "#0b1220",
+    theme_color: "#0b1220",
+    categories: ["education"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },

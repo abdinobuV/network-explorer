@@ -13,23 +13,21 @@ export default function VideoBlock({ topo }: { topo: keyof typeof TOPOLOGI }) {
   const spec = TOPO_SPECS[topo];
 
   return (
-    <div className="border border-rule bg-paper">
-      <div className="flex items-center justify-between gap-3 border-b border-rule bg-paper-2 px-3 py-2">
-        <p className="font-mono text-micro uppercase tracking-[0.12em] text-ink-3">
-          Video ringkasan · {spec.title}
-        </p>
+    <div className="overflow-hidden rounded-lg border border-border bg-surface">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-surface-2 px-4 py-2.5">
+        <p className="text-caption font-medium text-ink">Video ringkasan {spec.title}</p>
         <a
           href={info.video.watchUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 font-mono text-micro uppercase tracking-[0.1em] text-blueprint hover:underline"
+          className="inline-flex items-center gap-1 text-micro font-medium text-signal-bright hover:underline"
         >
           Buka di YouTube
           <IconExternal size={12} />
         </a>
       </div>
 
-      <div className="aspect-video bg-ink">
+      <div className="aspect-video bg-canvas">
         <iframe
           className="h-full w-full"
           src={`https://www.youtube-nocookie.com/embed/${info.video.id}?start=${info.video.start}&rel=0`}
@@ -40,18 +38,18 @@ export default function VideoBlock({ topo }: { topo: keyof typeof TOPOLOGI }) {
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
         <p className="text-caption text-ink-3">
-          {info.video.title} — {info.video.channel}. Video berbahasa Inggris; aktifkan subtitle
-          Indonesia lewat tombol <span className="font-mono">CC</span> pada pemutar.
+          {info.video.title} ({info.video.channel}). Aktifkan teks terjemahan Indonesia lewat
+          tombol <span className="font-mono text-ink-2">CC</span> pada pemutar.
         </p>
         <a
           href={`${info.video.watchUrl}&t=${info.video.start}s`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 font-mono text-micro uppercase tracking-[0.1em] text-blueprint hover:underline"
+          className="inline-flex items-center gap-1 font-mono text-micro text-signal-bright hover:underline"
         >
-          Mulai dari menit {Math.floor(info.video.start / 60)}:{String(info.video.start % 60).padStart(2, "0")}
+          Menit {Math.floor(info.video.start / 60)}:{String(info.video.start % 60).padStart(2, "0")}
           <IconExternal size={12} />
         </a>
       </div>

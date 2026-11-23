@@ -4,40 +4,55 @@ import { TOPO_SPECS, linkPath, type TopoNode } from "@/lib/topology-model";
 import type { TopoKey } from "@/lib/data";
 
 /* =============================================================================
-   SKEMA TEKNIK — digambar ulang dalam bahasa gambar teknik (garis tinta),
-   bukan gaya "neon". Semua warna diambil dari token CSS sehingga konsisten
-   dengan halaman.
+   SKEMA JARINGAN GELAP — bahasa visual patch-panel & osiloskop
+   Garis jalur cyan terukur, paket data hijau LED, gangguan merah tegas.
    ========================================================================== */
 
 const INK = "var(--color-ink)";
-const GRAPHITE = "var(--color-graphite)";
-const RULE = "var(--color-rule-2)";
+const SURFACE = "var(--color-surface)";
+const SURFACE_2 = "var(--color-surface-2)";
+const BORDER = "var(--color-border-2)";
 const MUTED = "var(--color-ink-3)";
-const BLUE = "var(--color-blueprint)";
+const SIGNAL = "var(--color-signal)";
+const SIGNAL_BRIGHT = "var(--color-signal-bright)";
+const OK = "var(--color-ok)";
+const FAULT = "var(--color-fault)";
+const CAUTION = "var(--color-caution)";
+const GRID_BG = "#09101d";
 
-function PcGlyph({ x, y, label }: { x: number; y: number; label: string }) {
+function PcGlyph({ x, y, label, broken = false }: { x: number; y: number; label: string; broken?: boolean }) {
   return (
     <g>
       <rect
-        x={x - 30}
+        x={x - 32}
         y={y - 26}
-        width={60}
-        height={34}
-        rx={2}
-        fill="var(--color-paper)"
-        stroke={GRAPHITE}
+        width={64}
+        height={36}
+        rx={4}
+        fill={SURFACE}
+        stroke={broken ? FAULT : SIGNAL}
         strokeWidth={2}
       />
-      <path d={`M ${x - 16} ${y + 8} h 32`} stroke={GRAPHITE} strokeWidth={2} />
-      <path d={`M ${x - 16} ${y + 8} v 8 M ${x + 16} ${y + 8} v 8`} stroke={GRAPHITE} strokeWidth={2} />
+      <rect
+        x={x - 24}
+        y={y - 19}
+        width={48}
+        height={21}
+        rx={2}
+        fill={GRID_BG}
+        stroke={BORDER}
+        strokeWidth={1.2}
+      />
+      <circle cx={x + 22} cy={y + 4} r={2.2} fill={broken ? FAULT : OK} />
+      <path d={`M ${x - 16} ${y + 10} h 32 M ${x - 10} ${y + 10} v 7 M ${x + 10} ${y + 10} v 7 M ${x - 18} ${y + 17} h 36`} stroke={BORDER} strokeWidth={2} strokeLinecap="round" />
       <text
         x={x}
         y={y + 44}
         textAnchor="middle"
         fontSize={19}
         fontFamily="var(--font-plex-mono)"
-        fill={INK}
-        stroke="var(--color-paper)"
+        fill={broken ? FAULT : INK}
+        stroke={GRID_BG}
         strokeWidth={7}
         paintOrder="stroke"
       >
@@ -47,65 +62,52 @@ function PcGlyph({ x, y, label }: { x: number; y: number; label: string }) {
   );
 }
 
-function HubGlyph({ x, y, label, caption }: { x: number; y: number; label: string; caption?: string }) {
+function HubGlyph({ x, y, label }: { x: number; y: number; label: string; caption?: string }) {
   return (
     <g>
       <rect
-        x={x - 48}
-        y={y - 24}
-        width={96}
-        height={48}
-        rx={2}
-        fill="var(--color-paper)"
-        stroke={INK}
+        x={x - 52}
+        y={y - 25}
+        width={104}
+        height={50}
+        rx={5}
+        fill={SURFACE_2}
+        stroke={OK}
         strokeWidth={2.5}
       />
       {[0, 1, 2, 3].map((i) => (
-        <rect
-          key={i}
-          x={x - 36 + i * 20}
-          y={y - 12}
-          width={12}
-          height={8}
-          rx={1}
-          fill="none"
-          stroke={GRAPHITE}
-          strokeWidth={1.6}
-        />
+        <g key={i}>
+          <rect
+            x={x - 38 + i * 21}
+            y={y - 12}
+            width={13}
+            height={10}
+            rx={1.5}
+            fill={GRID_BG}
+            stroke={BORDER}
+            strokeWidth={1.4}
+          />
+          <circle cx={x - 31.5 + i * 21} cy={y + 8} r={2.3} fill={OK} />
+        </g>
       ))}
       <text
         x={x}
         y={y + 42}
         textAnchor="middle"
-        fontSize={19}
+        fontSize={17}
         fontFamily="var(--font-plex-mono)"
         fill={INK}
-        stroke="var(--color-paper)"
-        strokeWidth={7}
+        stroke={GRID_BG}
+        strokeWidth={8}
         paintOrder="stroke"
       >
         {label}
       </text>
-      {caption && (
-        <text
-          x={x}
-          y={y + 60}
-          textAnchor="middle"
-          fontSize={14}
-          fontFamily="var(--font-plex-mono)"
-          fill={MUTED}
-          stroke="var(--color-paper)"
-          strokeWidth={6}
-          paintOrder="stroke"
-        >
-          {caption}
-        </text>
-      )}
     </g>
   );
 }
 
-/** Diagram ringkas untuk kartu. */
+/** Diagram ringkas untuk kartu pilihan topologi. */
 export function TopoMini({ kind }: { kind: TopoKey }) {
   const spec = TOPO_SPECS[kind];
   const byId = new Map(spec.nodes.map((n) => [n.id, n]));
@@ -127,9 +129,9 @@ export function TopoMini({ kind }: { kind: TopoKey }) {
             key={l.id}
             d={linkPath(from, to)}
             fill="none"
-            stroke={RULE}
-            strokeWidth={3}
-            strokeDasharray="10 7"
+            stroke={SIGNAL}
+            strokeWidth={3.2}
+            strokeOpacity={0.75}
           />
         );
       })}
@@ -137,15 +139,16 @@ export function TopoMini({ kind }: { kind: TopoKey }) {
         n.kind === "pc" ? (
           <g key={n.id}>
             <rect
-              x={n.x - 26}
-              y={n.y - 20}
-              width={52}
-              height={28}
-              rx={2}
-              fill="none"
-              stroke={GRAPHITE}
+              x={n.x - 28}
+              y={n.y - 21}
+              width={56}
+              height={30}
+              rx={4}
+              fill={SURFACE}
+              stroke={SIGNAL_BRIGHT}
               strokeWidth={2}
             />
+            <circle cx={n.x + 19} cy={n.y - 12} r={2.4} fill={OK} />
             <text
               x={n.x}
               y={n.y + 34}
@@ -160,29 +163,38 @@ export function TopoMini({ kind }: { kind: TopoKey }) {
         ) : n.kind === "hub" ? (
           <g key={n.id}>
             <rect
-              x={n.x - 34}
-              y={n.y - 18}
-              width={68}
-              height={36}
-              rx={2}
-              fill="none"
-              stroke={INK}
+              x={n.x - 38}
+              y={n.y - 20}
+              width={76}
+              height={40}
+              rx={5}
+              fill={SURFACE_2}
+              stroke={OK}
               strokeWidth={2.5}
             />
             <text
               x={n.x}
-              y={n.y + 36}
+              y={n.y + 5}
               textAnchor="middle"
               fontSize={15}
               fontFamily="var(--font-plex-mono)"
-              fill={INK}
+              fill={OK}
             >
               SWITCH
             </text>
           </g>
         ) : (
           <g key={n.id}>
-            <rect x={60} y={n.y - 8} width={880} height={16} rx={2} fill="var(--color-paper-3)" stroke={RULE} strokeWidth={2} />
+            <rect
+              x={60}
+              y={n.y - 8}
+              width={880}
+              height={16}
+              rx={3}
+              fill={SURFACE_2}
+              stroke={BORDER}
+              strokeWidth={2}
+            />
           </g>
         ),
       )}
@@ -190,7 +202,7 @@ export function TopoMini({ kind }: { kind: TopoKey }) {
   );
 }
 
-/** Diagram bab lengkap dengan aliran data. */
+/** Diagram penuh dengan animasi aliran paket dan dukungan simulasi putus kabel. */
 export function TopoDiagram({
   kind,
   animate = true,
@@ -198,11 +210,12 @@ export function TopoDiagram({
 }: {
   kind: TopoKey;
   animate?: boolean;
-  /** Node yang dicabut / rusak — ditampilkan dengan garis putus-putus merah. */
+  /** Node yang dicabut / rusak — ditampilkan dengan jalur putus-putus merah. */
   brokenId?: string | null;
 }) {
   const spec = TOPO_SPECS[kind];
   const byId = new Map<string, TopoNode>(spec.nodes.map((n) => [n.id, n]));
+  const isRingBroken = kind === "ring" && Boolean(brokenId);
 
   return (
     <svg
@@ -217,35 +230,40 @@ export function TopoDiagram({
         const from = byId.get(l.from);
         const to = byId.get(l.to);
         if (!from || !to) return null;
-        const broken =
-          brokenId === l.from || brokenId === l.to;
+        const broken = brokenId === l.from || brokenId === l.to;
+        const halted = broken || isRingBroken;
         return (
           <path
             key={l.id}
             d={linkPath(from, to)}
             fill="none"
-            stroke={broken ? "var(--color-redpen)" : BLUE}
+            stroke={broken ? FAULT : isRingBroken ? BORDER : SIGNAL}
             strokeWidth={4}
-            strokeDasharray={broken ? "6 8" : animate ? "14 9" : undefined}
-            className={animate && !broken ? "trace-live" : undefined}
-            opacity={broken ? 0.75 : 1}
+            strokeDasharray={broken ? "7 8" : animate && !halted ? "12 8" : undefined}
+            className={animate && !halted ? "trace-live" : undefined}
+            opacity={broken ? 0.85 : isRingBroken ? 0.5 : 1}
           />
         );
       })}
 
       {/* Paket data berjalan */}
       {animate &&
+        !isRingBroken &&
         spec.links.slice(0, 3).map((l, i) => {
+          if (brokenId === l.from || brokenId === l.to) return null;
           const from = byId.get(l.from);
           const to = byId.get(l.to);
           if (!from || !to) return null;
           return (
-            <circle key={`pkt-${l.id}`} r={7} fill="var(--color-green)">
+            <circle key={`pkt-${l.id}`} r={7} fill={OK} opacity={i === 0 ? 1 : 0}>
+              {i > 0 && (
+                <set attributeName="opacity" to="1" begin={`${i * 0.55}s`} fill="freeze" />
+              )}
               <animateMotion
-                dur={`${2.2 + i * 0.5}s`}
+                dur={`${2.2 + i * 0.45}s`}
                 repeatCount="indefinite"
                 path={linkPath(from, to)}
-                begin={`${i * 0.6}s`}
+                begin={`${i * 0.55}s`}
               />
             </circle>
           );
@@ -254,18 +272,21 @@ export function TopoDiagram({
       {/* Perangkat */}
       {spec.nodes.map((n) =>
         n.kind === "pc" ? (
-          <g key={n.id} opacity={brokenId === n.id ? 0.45 : 1}>
-            <PcGlyph x={n.x} y={n.y} label={n.id} />
+          <g key={n.id} opacity={brokenId === n.id ? 0.65 : 1}>
+            <PcGlyph x={n.x} y={n.y} label={n.id} broken={brokenId === n.id} />
             {brokenId === n.id && (
               <text
                 x={n.x}
-                y={n.y - 40}
+                y={n.y - 38}
                 textAnchor="middle"
-                fontSize={16}
+                fontSize={15}
                 fontFamily="var(--font-plex-mono)"
-                fill="var(--color-redpen)"
+                fill={FAULT}
+                stroke={GRID_BG}
+                strokeWidth={5}
+                paintOrder="stroke"
               >
-                KABEL PUTUS
+                TERPUTUS
               </text>
             )}
           </g>
@@ -278,17 +299,26 @@ export function TopoDiagram({
               y={n.y - 9}
               width={880}
               height={18}
-              rx={2}
-              fill="var(--color-paper-3)"
-              stroke={RULE}
+              rx={3}
+              fill={SURFACE_2}
+              stroke={brokenId === n.id ? FAULT : BORDER}
               strokeWidth={2}
             />
             {[
               [60, "Terminator"],
               [940, "Terminator"],
             ].map(([x, label]) => (
-              <g key={String(label)}>
-                <rect x={Number(x) - 8} y={n.y - 13} width={16} height={26} rx={1} fill="var(--color-amber-2)" stroke="var(--color-amber)" strokeWidth={2} />
+              <g key={`${x}-${label}`}>
+                <rect
+                  x={Number(x) - 8}
+                  y={n.y - 13}
+                  width={16}
+                  height={26}
+                  rx={2}
+                  fill="var(--color-caution-tint)"
+                  stroke={CAUTION}
+                  strokeWidth={2}
+                />
                 <text
                   x={Number(x)}
                   y={n.y + 34}

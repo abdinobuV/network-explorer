@@ -46,17 +46,17 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      chapter="Lembar masuk"
-      title="Masuk ke buku latihan"
-      lead="Progres, nilai, dan lencana tersimpan pada akunmu — di perangkat ini atau di cloud."
+      chapter="Akses siswa"
+      title="Masuk ke Network Explorer"
+      lead="Progres, nilai kuis, dan lencana tersimpan pada akunmu di perangkat ini atau di cloud."
       footer={
         <p className="text-caption text-ink-3">
           Belum punya akun?{" "}
-          <Link href="/auth/signup" className="text-blueprint hover:underline">
+          <Link href="/auth/signup" className="text-signal-bright hover:underline">
             Daftar sekarang
-          </Link>{" "}
-          ·{" "}
-          <Link href="/auth/lupa" className="text-blueprint hover:underline">
+          </Link>
+          {" · "}
+          <Link href="/auth/lupa" className="text-signal-bright hover:underline">
             Lupa kata sandi
           </Link>
         </p>
@@ -102,7 +102,7 @@ export default function LoginPage() {
               onClick={() => setShow((v) => !v)}
               aria-label={show ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
               aria-pressed={show}
-              className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center text-ink-3 hover:text-ink"
+              className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 cursor-pointer place-items-center rounded-sm text-ink-3 hover:text-ink"
             >
               <IconEye size={16} />
             </button>
@@ -116,9 +116,9 @@ export default function LoginPage() {
         {!isDemo && (
           <>
             <div className="flex items-center gap-3" aria-hidden="true">
-              <span className="h-px flex-1 bg-rule" />
-              <span className="font-mono text-micro uppercase tracking-[0.12em] text-ink-4">atau</span>
-              <span className="h-px flex-1 bg-rule" />
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-micro text-ink-4">atau</span>
+              <span className="h-px flex-1 bg-border" />
             </div>
             <Btn
               type="button"
@@ -136,9 +136,9 @@ export default function LoginPage() {
         {isDemo && (
           <Callout tone="warn">
             Mode demo aktif. Gunakan akun bawaan{" "}
-            <span className="font-mono">{demoEmail}</span> /{" "}
-            <span className="font-mono">{demoPassword}</span> — atau daftar akun sendiri. Data
-            hanya tersimpan di peramban ini.
+            <span className="font-mono text-ink">{demoEmail}</span> /{" "}
+            <span className="font-mono text-ink">{demoPassword}</span> atau daftar akun sendiri.
+            Data tersimpan di peramban ini.
           </Callout>
         )}
       </form>
