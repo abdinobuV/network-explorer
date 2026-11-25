@@ -4,14 +4,15 @@ import { notFound, useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
-import { Container, PageHeader, Callout, BtnLink, Badge, Figure, cx } from "@/components/ui";
+import { Container, PageHeader, Callout, BtnLink, Badge, Figure, Textarea, Btn, cx } from "@/components/ui";
 import { TopoDiagram } from "@/components/topo";
 import VideoBlock from "@/components/video-block";
 import { TOPOLOGI } from "@/lib/data";
 import { TOPO_SPECS } from "@/lib/topology-model";
-import { useProg } from "@/lib/store";
+import { useLearningAnalytics, useProg } from "@/lib/store";
 import { XP, materiKey } from "@/lib/progression";
-import { IconArrow, IconVolume, IconVolumeOff, IconCheck } from "@/components/icons";
+import { IconArrow, IconVolume, IconVolumeOff, IconCheck, IconSparkle } from "@/components/icons";
+import { toast } from "@/lib/toast";
 
 const SUBBAB = ["Cara kerja", "Kelebihan", "Kekurangan", "Cek pemahaman"];
 
@@ -23,19 +24,32 @@ export default function MateriPage() {
 
   const spec = TOPO_SPECS[info.key];
   const { markDone, done } = useProg();
+  const { trackMateriVisit, trackMateriTime, addReflection } = useLearningAnalytics();
   const [tab, setTab] = useState<"diagram" | "narasi" | "video">("diagram");
   const [showAns, setShowAns] = useState(false);
+  const [cekDraft, setCekDraft] = useState("");
+  const [cekSaved, setCekSaved] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const enteredAtRef = useRef<number | null>(null);
 
   const teksNarasi = `${info.long} ${info.cara.join(" ")}`;
   const idxBab = Object.keys(TOPOLOGI).indexOf(info.key) + 1;
 
   useEffect(() => {
+    trackMateriVisit(info.key, tab);
+  }, [info.key, tab, trackMateriVisit]);
+
+  useEffect(() => {
+    enteredAtRef.current = Date.now();
     return () => {
       if (typeof window !== "undefined") window.speechSynthesis?.cancel();
+      if (enteredAtRef.current !== null) {
+        const elapsedSec = Math.round((Date.now() - enteredAtRef.current) / 1000);
+        if (elapsedSec >= 3) trackMateriTime(info.key, elapsedSec);
+      }
     };
-  }, []);
+  }, [info.key, trackMateriTime]);
 
   function toggleNarasi() {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
@@ -198,22 +212,62 @@ export default function MateriPage() {
                   </div>
                 </section>
 
-                {/* Cek pemahaman */}
+                {/* Cek pemahaman (Berbasis proses — tulis dulu sebelum melihat kunci) */}
                 <section className="mt-6 rounded-lg border border-signal/35 bg-surface p-6">
-                  <h2 className="font-display text-title text-signal-bright">Cek pemahaman</h2>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="font-display text-title text-signal-bright">Cek pemahaman</h2>
+                    {cekSaved && (
+                      <Badge tone="green">
+                        <IconCheck size={12} /> Bukti proses tersimpan
+                      </Badge>
+                    )}
+                  </div>
                   <p className="mt-2.5 text-body text-ink">{info.cek.q}</p>
+                  <div className="mt-3">
+                    <label htmlFor="cek-jawaban" className="block text-micro text-ink-3">
+                      Tulis jawabanmu sendiri dulu sebelum membuka kunci (tercatat sebagai bukti proses):
+                    </label>
+                    <Textarea
+                      id="cek-jawaban"
+                      value={cekDraft}
+                      onChange={(e) => setCekDraft(e.target.value)}
+                      placeholder="Tuliskan penjelasan singkat dengan bahasamu sendiri…"
+                      className="mt-1.5 min-h-20"
+                    />
+                  </div>
                   {showAns && (
                     <p className="mt-4 border-l-2 border-ok pl-4 text-caption leading-relaxed text-ink-2">
                       {info.cek.a}
                     </p>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => setShowAns((v) => !v)}
-                    className="mt-4 cursor-pointer rounded-md border border-border-2 bg-surface-2 px-4 py-2 text-caption font-medium text-ink transition-colors hover:border-signal hover:text-signal-bright"
-                  >
-                    {showAns ? "Sembunyikan jawaban" : "Lihat jawaban"}
-                  </button>
+                  <div className="mt-4 flex flex-wrap gap-2.5">
+                    <Btn
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        if (cekDraft.trim().length >= 8) {
+                          addReflection({
+                            context: `Cek Pemahaman ${info.title}`,
+                            topo: info.key,
+                            text: cekDraft,
+                            source: "cek-pemahaman",
+                          });
+                          setCekSaved(true);
+                          toast("Jawaban refleksimu tersimpan sebagai bukti proses.", "ok");
+                        }
+                        setShowAns(true);
+                      }}
+                    >
+                      {cekDraft.trim().length >= 8 ? "Simpan refleksi & cek kunci" : "Bandingkan dengan kunci"}
+                    </Btn>
+                    <button
+                      type="button"
+                      onClick={() => setShowAns((v) => !v)}
+                      className="cursor-pointer rounded-md border border-border-2 bg-surface-2 px-4 py-2 text-caption font-medium text-ink transition-colors hover:border-signal hover:text-signal-bright"
+                    >
+                      {showAns ? "Sembunyikan jawaban" : "Lihat jawaban"}
+                    </button>
+                  </div>
                 </section>
 
                 <section className="mt-6">
@@ -272,6 +326,13 @@ export default function MateriPage() {
                     className="mt-4 w-full"
                   >
                     Lanjut ke lembar praktik <IconArrow size={14} />
+                  </BtnLink>
+                  <BtnLink
+                    href={`/asisten?topic=${info.key}`}
+                    tone="ghost"
+                    className="mt-2.5 w-full"
+                  >
+                    <IconSparkle size={14} /> Diskusikan di Asisten AI
                   </BtnLink>
                 </div>
               </aside>

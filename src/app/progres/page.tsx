@@ -7,7 +7,7 @@ import { Container, PageHeader, PercentBar, Badge, StatusDot, BtnLink, cx } from
 import { TopoMini } from "@/components/topo";
 import { TOPOLOGI } from "@/lib/data";
 import { TOPO_SPECS } from "@/lib/topology-model";
-import { useProg } from "@/lib/store";
+import { useLearningAnalytics, useProg } from "@/lib/store";
 import {
   KUIS_KEY,
   TOPO_KEYS,
@@ -22,10 +22,11 @@ import {
   topoXp,
   XP_PER_LEVEL,
 } from "@/lib/progression";
-import { IconArrow, IconTrophy } from "@/components/icons";
+import { IconArrow, IconAward, IconChart, IconSparkle, IconTrophy } from "@/components/icons";
 
 export default function ProgresPage() {
   const { xp, done, activity, quizBest, quizAttempts } = useProg();
+  const { summary, certification } = useLearningAnalytics();
   const lv = levelProgress(xp);
   const persen = overallPercent({ activity, done, quizBest, quizAttempts });
   const berikutnya = nextStage({ activity, done, quizBest, quizAttempts });
@@ -58,9 +59,14 @@ export default function ProgresPage() {
             />
 
             {/* Ringkasan */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                ["Penyelesaian tahap", `${persen}%`, "dari 10 tahap belajar"],
+                ["Penyelesaian tahap", `${persen}%`, "dari 10 tahap belajar (Progress)"],
+                [
+                  "Indeks penguasaan",
+                  summary.masteryRate === null ? "—" : `${summary.masteryRate}%`,
+                  "Mastery dari kuis & akurasi praktik",
+                ],
                 ["Tingkat", String(lv.level), `${lv.need - lv.into} XP menuju tingkat ${lv.level + 1}`],
                 ["Nilai kuis terbaik", quizBest === null ? "—" : `${quizBest}/10`, `${quizAttempts} percobaan`],
               ].map(([label, nilai, ket]) => (
@@ -70,6 +76,28 @@ export default function ProgresPage() {
                   <p className="mt-2 text-caption text-ink-3">{ket}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Akses cepat ke Learning Analytics, Asisten AI & Sertifikat */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface px-5 py-3.5">
+              <p className="text-caption text-ink-2">
+                Sertifikasi Kompetensi:{" "}
+                <span className="font-mono text-ok">
+                  {certification.completedCount}/{certification.totalChecks} syarat
+                </span>
+                {certification.eligible ? " — Sertifikat siap dicetak!" : ""}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <BtnLink href="/analitik" tone="signal" size="sm">
+                  <IconChart size={14} /> Dashboard Analitik
+                </BtnLink>
+                <BtnLink href="/asisten" tone="ghost" size="sm">
+                  <IconSparkle size={14} /> Studio AI
+                </BtnLink>
+                <BtnLink href="/cetak" tone="ghost" size="sm">
+                  <IconAward size={14} /> Rapor & Sertifikat
+                </BtnLink>
+              </div>
             </div>
 
             {/* Langkah berikutnya */}

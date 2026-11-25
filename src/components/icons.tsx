@@ -319,3 +319,31 @@ export const IconExternal = (p: IconProps) => (
     <path d="M18 14v5.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19.5v-11A1.5 1.5 0 0 1 5.5 7H11" />
   </Svg>
 );
+
+export const IconSparkle = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" />
+    <path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z" />
+  </Svg>
+);
+
+export const IconAward = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="9" r="5.5" />
+    <path d="M8.5 13.8 7 21l5-2.5L17 21l-1.5-7.2" />
+    <path d="m10 9 1.3 1.3L14.2 7.5" />
+  </Svg>
+);
+
+export const IconPulse = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 12h4l2.5-6 4 12 2.5-6H21" />
+  </Svg>
+);
+
+export const IconRefresh = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M20 11a8 8 0 1 0 2 5.3" />
+    <path d="M20 4v7h-7" />
+  </Svg>
+);

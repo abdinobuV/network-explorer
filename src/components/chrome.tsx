@@ -73,13 +73,15 @@ const MAIN_NAV = [
   { label: "Sandbox", href: "/sandbox/star", match: "/sandbox" },
   { label: "Perbandingan", href: "/perbandingan" },
   { label: "Kuis akhir", href: "/kuis" },
+  { label: "Analitik", href: "/analitik" },
+  { label: "Asisten AI", href: "/asisten" },
   { label: "Progres", href: "/progres" },
 ];
 
 const UTIL_NAV = [
   { label: "Panduan", href: "/panduan" },
   { label: "Glosarium", href: "/glosarium" },
-  { label: "Rapor cetak", href: "/cetak" },
+  { label: "Sertifikat & rapor", href: "/cetak" },
   { label: "Pengaturan", href: "/pengaturan" },
 ];
 

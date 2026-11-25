@@ -9,7 +9,7 @@ import { Container, PageHeader, Callout, BtnLink, Badge } from "@/components/ui"
 import CableBoard from "@/components/cable-board";
 import { TOPOLOGI } from "@/lib/data";
 import { TOPO_SPECS, isTopoKey } from "@/lib/topology-model";
-import { useProg } from "@/lib/store";
+import { useLearningAnalytics, useProg } from "@/lib/store";
 import { XP, praktikKey } from "@/lib/progression";
 import { IconArrow, IconCheck, IconInfo } from "@/components/icons";
 
@@ -21,6 +21,7 @@ export default function PraktikPage() {
   const info = TOPOLOGI[key];
   const spec = TOPO_SPECS[key];
   const { markDone, done } = useProg();
+  const { trackPracticeEvent } = useLearningAnalytics();
   const [selesai, setSelesai] = useState(done[praktikKey(key)] ?? false);
   const idx = Object.keys(TOPOLOGI).indexOf(key) + 1;
 
@@ -58,7 +59,12 @@ export default function PraktikPage() {
             />
 
             <div className="mt-6">
-              <CableBoard key={key} spec={spec} onComplete={handleComplete} />
+              <CableBoard
+                key={key}
+                spec={spec}
+                onComplete={handleComplete}
+                onTelemetry={(ev, dur) => trackPracticeEvent(key, ev, dur)}
+              />
             </div>
 
             <div className="mt-8 grid gap-5 md:grid-cols-2">

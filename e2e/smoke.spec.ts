@@ -110,4 +110,23 @@ test.describe("siswa", () => {
     await page.goto("/cetak");
     await expect(page.getByRole("heading", { name: "Rapor Belajar" })).toBeVisible();
   });
+
+  test("membuka dashboard Learning Analytics dan mode guru", async ({ page }) => {
+    await masuk(page);
+    await page.goto("/analitik");
+    await expect(page.getByRole("heading", { name: "Dashboard Learning Analytics" })).toBeVisible();
+    await page.getByRole("tab", { name: /Tinjauan Kelas/i }).click();
+    await expect(page.getByText(/Fokus Intervensi Soal #5/i)).toBeVisible();
+  });
+
+  test("menggunakan Asisten Belajar AI dengan pemikiran awal dan verifikasi", async ({ page }) => {
+    await masuk(page);
+    await page.goto("/asisten");
+    await expect(page.getByRole("heading", { name: /Asisten Belajar AI/i })).toBeVisible();
+    await page
+      .getByLabel(/Langkah 0/i)
+      .fill("Menurut saya pada Star hanya PC yang putus kabelnya yang terisolasi.");
+    await page.getByRole("button", { name: /Tanya Asisten AI/i }).click();
+    await expect(page.getByText(/Checklist Verifikasi: Ask AI, Then Think/i)).toBeVisible();
+  });
 });

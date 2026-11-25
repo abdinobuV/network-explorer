@@ -7,7 +7,7 @@ import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
 import { Container, PageHeader, Btn, Field, Input, Select, Callout, Toggle } from "@/components/ui";
 import { IconLogout, IconWarning } from "@/components/icons";
-import { useAuth, useProg } from "@/lib/store";
+import { useAuth, useLearningAnalytics, useProg } from "@/lib/store";
 import {
   getServerSoundEnabled,
   isSoundEnabled,
@@ -23,6 +23,11 @@ export default function PengaturanPage() {
   const router = useRouter();
   const { user, update, logout, isDemo } = useAuth();
   const { reset, syncState, syncError, activity } = useProg();
+  const {
+    data: analytics,
+    setTrackingConsent,
+    resetAnalytics,
+  } = useLearningAnalytics();
 
   const [nama, setNama] = useState(user?.name ?? "");
   const [kelas, setKelas] = useState(user?.kelas ?? "XI");
@@ -160,6 +165,15 @@ export default function PengaturanPage() {
                         onChange={(v) => setPref("showPaths", v)}
                       />
                     </div>
+                    <div className="border-t border-border-3 pt-5">
+                      <Toggle
+                        id="analitik-consent"
+                        label="Pencatatan Learning Analytics"
+                        description="Rekam waktu belajar, akurasi praktik, dan analisis butir soal untuk rekomendasi adaptif."
+                        checked={analytics.trackingConsent}
+                        onChange={(v) => setTrackingConsent(v)}
+                      />
+                    </div>
                   </div>
                 </section>
 
@@ -185,7 +199,8 @@ export default function PengaturanPage() {
                       tone="danger"
                       onClick={() => {
                         reset();
-                        toast("Seluruh progres belajar telah dihapus.", "default");
+                        resetAnalytics();
+                        toast("Seluruh progres dan jejak analitik belajar telah dihapus.", "default");
                       }}
                     >
                       Hapus seluruh progres
@@ -222,9 +237,11 @@ export default function PengaturanPage() {
                   <p className="text-caption font-semibold text-ink">Tautan cepat</p>
                   <ul className="mt-2.5 space-y-2 text-caption">
                     {[
+                      ["Dashboard Learning Analytics", "/analitik"],
+                      ["Asisten Belajar AI", "/asisten"],
                       ["Atur ulang kata sandi", "/auth/lupa"],
                       ["Peta misi", "/misi"],
-                      ["Rapor belajar", "/cetak"],
+                      ["Sertifikat & rapor belajar", "/cetak"],
                     ].map(([label, href]) => (
                       <li key={href}>
                         <Link href={href} className="text-signal-bright hover:underline">

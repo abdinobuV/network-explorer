@@ -16,10 +16,12 @@ Dibuat oleh **Kelompok 3**, Program Studi Pendidikan TIK, Universitas Negeri Med
 | Materi | `/materi/[bus\|ring\|star]` | Tiga bab: cara kerja, kelebihan, kekurangan, cek pemahaman, video, narasi |
 | Praktik | `/praktik/[topo]` | Lembar kerja pemasangan kabel (drag & drop) |
 | Simulasi | `/sandbox/[topo]` | Kirim data, cabut kabel, lihat dampaknya |
-| Evaluasi | `/kuis`, `/kuis/hasil` | 10 soal studi kasus + pembahasan |
-| Referensi | `/perbandingan`, `/glosarium`, `/panduan` | Tabel perbandingan, indeks istilah, panduan belajar |
-| Progres | `/progres`, `/profil`, `/cetak` | Kartu progres, profil siswa, rapor siap cetak |
-| Akun | `/auth/*` | Masuk, daftar, lupa & atur ulang kata sandi |
+| Evaluasi | `/kuis`, `/kuis/hasil` | Pre-Test diagnostik, Kuis Akhir (10 studi kasus), & Latihan Adaptif per konsep |
+| Learning Analytics | `/analitik` | Dashboard 4-tingkat (Descriptive, Diagnostic, Predictive, Prescriptive), Mode Siswa & Mode Guru, 5 grafik |
+| Asisten Belajar AI | `/asisten`, `/api/ai-tutor` | 7 fungsi AI siswa + Mode Guru, prompt TCCO, *Ask AI Then Think*, Lab Hallucination, Transparansi 5W+C |
+| Referensi | `/perbandingan`, `/glosarium`, `/panduan` | Tabel perbandingan, indeks istilah, modul panduan penggunaan |
+| Progres & Sertifikasi | `/progres`, `/profil`, `/cetak` | Kartu progres, profil siswa, Sertifikat Kompetensi Digital & Rapor Proses siap cetak |
+| Akun & Privasi | `/auth/*`, `/privasi`, `/pengaturan` | Masuk, daftar, lupa sandi, kontrol privasi & ekspor data analitik |
 
 Aturan pemasangan **berbeda tiap topologi** — inilah inti pembelajarannya:
 
@@ -146,10 +148,14 @@ src/
 │   ├── icons.tsx         # ikon garis SVG kustom (pengganti emoji)
 │   ├── chrome.tsx        # Logo, Navbar, Footer
 │   ├── topo.tsx          # skema teknik Bus/Ring/Star
-│   ├── cable-board.tsx   # lembar kerja pemasangan kabel (drag & drop)
+│   ├── cable-board.tsx   # lembar kerja pemasangan kabel (drag & drop + telemetri)
+│   ├── analytics-charts.tsx # grafik SVG Line, Bar, dan Donut untuk Learning Analytics
 │   └── auth-shell.tsx    # cangkang halaman autentikasi
 └── lib/
     ├── progression.ts    # aturan XP, level, tahap — fungsi murni
+    ├── analytics.ts      # mesin Learning Analytics 4-tingkat & kelayakan sertifikat
+    ├── analytics-store.ts # store jejak digital (localStorage + sinkronisasi cloud)
+    ├── ai-tutor.ts       # mesin Asisten AI pedagogis, evaluasi prompt TCCO & transparansi 5W+C
     ├── topology-model.ts # model Bus/Ring/Star + perhitungan jalur
     ├── progress-store.ts # progres lokal + sinkronisasi cloud
     ├── auth-session.ts   # sesi pengguna (mode demo & Firebase)

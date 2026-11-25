@@ -64,8 +64,9 @@ export default function BerandaPage() {
                 Pahami topologi dengan merangkai dan mengujinya langsung.
               </h1>
               <p className="mt-4 max-w-lg text-lead text-ink-2">
-                Tiga modul topologi, tiga papan pemasangan kabel, simulasi ping, dan kuis studi
-                kasus dalam satu ruang belajar untuk Informatika SMA Kelas XI.
+                Tiga modul topologi, tiga papan pemasangan kabel, simulasi ping, Dashboard Learning
+                Analytics 4-tingkat, dan Asisten Belajar AI yang bertanggung jawab untuk Informatika
+                SMA Kelas XI.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <BtnLink href="/auth/signup" tone="primary" size="lg">
@@ -100,6 +101,18 @@ export default function BerandaPage() {
                 [
                   "Bandingkan sebelum memilih",
                   "Gunakan tabel perbandingan dan studi kasus untuk memilih topologi yang tepat bagi laboratorium sekolah.",
+                ],
+                [
+                  "Learning Analytics 4-tingkat",
+                  "Pantau Descriptive, Diagnostic, Predictive, hingga Prescriptive Analytics untuk rekomendasi latihan adaptif personal.",
+                ],
+                [
+                  "Asisten AI yang bertanggung jawab",
+                  "Latih prompting TCCO, verifikasi output lewat Ask AI, Then Think, deteksi halusinasi, dan transparansi 5W+C.",
+                ],
+                [
+                  "Rapor proses & sertifikat digital",
+                  "Penilaian memadukan hasil evaluasi, bukti refleksi proses, dan sertifikat kompetensi ber-ID verifikasi siap cetak.",
                 ],
               ].map(([judul, isi]) => (
                 <Paper key={judul} className="p-6">

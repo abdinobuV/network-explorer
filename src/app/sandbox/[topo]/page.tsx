@@ -8,7 +8,7 @@ import RequireAuth from "@/components/require-auth";
 import { Container, PageHeader, Callout, Btn, Badge, cx } from "@/components/ui";
 import { TOPOLOGI, type TopoKey } from "@/lib/data";
 import { TOPO_SPECS, isTopoKey, linkPath, pathBetween, type TopoLink } from "@/lib/topology-model";
-import { useProg } from "@/lib/store";
+import { useLearningAnalytics, useProg } from "@/lib/store";
 import { XP, simulasiKey } from "@/lib/progression";
 import { IconArrow, IconCheck, IconCross, IconPlug } from "@/components/icons";
 
@@ -33,6 +33,7 @@ export default function SandboxPage() {
   const info = TOPOLOGI[key];
   const spec = TOPO_SPECS[key];
   const { markDone, done } = useProg();
+  const { trackSimulationEvent } = useLearningAnalytics();
 
   const [rusak, setRusak] = useState<string | null>(null);
   const [jalur, setJalur] = useState<TopoLink[]>([]);
@@ -74,6 +75,7 @@ export default function SandboxPage() {
       setSending(false);
       setHasil({ ok: false, ms: 0, hops: 0 });
       tambahLog(`GAGAL — tidak ada jalur dari ${dari} ke ${ke}.`, "error");
+      trackSimulationEvent(key, "ping_fail");
       return;
     }
 
@@ -90,6 +92,7 @@ export default function SandboxPage() {
             setLangkah(-1);
             setHasil({ ok: true, ms, hops: route.length });
             tambahLog(`BALASAN diterima — ${ms} ms, ${route.length} hop.`, "ok");
+            trackSimulationEvent(key, "ping_ok");
             if (!sudahSimulasi) {
               setSudahSimulasi(true);
               markDone({
@@ -114,6 +117,7 @@ export default function SandboxPage() {
       tambahLog(`Kabel ${nodeById.get(link.from)?.label}–${nodeById.get(link.to)?.label} diperbaiki.`, "ok");
     } else {
       setRusak(linkId);
+      trackSimulationEvent(key, "fault_toggle");
       tambahLog(
         `Kabel ${nodeById.get(link.from)?.label}–${nodeById.get(link.to)?.label} DICABUT.`,
         "error",

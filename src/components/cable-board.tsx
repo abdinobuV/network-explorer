@@ -47,6 +47,7 @@ interface LogEntry {
 interface Props {
   spec: TopoSpec;
   onComplete?: () => void;
+  onTelemetry?: (event: "correct" | "reject" | "complete", durationSec?: number) => void;
 }
 
 const TRAY_ID = "tray";
@@ -270,7 +271,7 @@ function Device({
 
 /* ------------------------------------------------------------------ Komponen utama */
 
-export default function CableBoard({ spec, onComplete }: Props) {
+export default function CableBoard({ spec, onComplete, onTelemetry }: Props) {
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [active, setActive] = useState<{ cable: string; from: "tray" | "wire" } | null>(null);
   const [pointer, setPointer] = useState<Point | null>(null);
@@ -279,6 +280,11 @@ export default function CableBoard({ spec, onComplete }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [announce, setAnnounce] = useState("");
+  const startedAtRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    startedAtRef.current = Date.now();
+  }, [spec.key]);
 
   const showPaths = useSyncExternalStore(
     subscribePrefs,
@@ -349,8 +355,9 @@ export default function CableBoard({ spec, onComplete }: Props) {
         "ok",
       );
       setAnnounce(`${cable.label} tersambung ke ${target?.label ?? cable.target}.`);
+      onTelemetry?.("correct");
     },
-    [addLog, cableById, connected, nodeById],
+    [addLog, cableById, connected, nodeById, onTelemetry],
   );
 
   const disconnect = useCallback(
@@ -375,9 +382,10 @@ export default function CableBoard({ spec, onComplete }: Props) {
       setRejectId(nodeId);
       setAnnounce(cable?.reject ?? "Sambungan ditolak.");
       addLog(`DITOLAK — ${cable?.reject ?? "sambungan tidak sesuai topologi."}`, "error");
+      onTelemetry?.("reject");
       window.setTimeout(() => setRejectId(null), 420);
     },
-    [addLog, cableById],
+    [addLog, cableById, onTelemetry],
   );
 
   /* ---------------------------------------------------------- Handler DnD */
@@ -447,6 +455,9 @@ export default function CableBoard({ spec, onComplete }: Props) {
       sfx("chime");
       addLog(`SELESAI — ${connectedCount}/${spec.cables.length} tersambung`, "ok");
       toast(`Sertifikat pemasangan ${spec.title} lengkap. +${XP.praktik} XP.`, "ok");
+      const elapsed =
+        startedAtRef.current !== null ? Math.round((Date.now() - startedAtRef.current) / 1000) : undefined;
+      onTelemetry?.("complete", elapsed);
       onComplete?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -6,9 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
 import { Container, PageHeader, BtnLink, Badge, Callout } from "@/components/ui";
-import { IconArrow, IconCheck, IconCross, IconPrint, IconTrophy } from "@/components/icons";
-import { QUIZ } from "@/lib/data";
-import { useProg } from "@/lib/store";
+import { IconArrow, IconChart, IconCheck, IconCross, IconPrint, IconSparkle, IconTrophy } from "@/components/icons";
+import { CONCEPT_META, QUIZ, type ConceptKey } from "@/lib/data";
+import { useLearningAnalytics, useProg } from "@/lib/store";
 import { levelProgress, XP_PER_LEVEL } from "@/lib/progression";
 
 const HURUF = ["A", "B", "C", "D"];
@@ -47,8 +47,10 @@ function predikat(nilai: number, total: number) {
 function HasilInner() {
   const sp = useSearchParams();
   const { xp, quizBest, quizAttempts } = useProg();
+  const { summary } = useLearningAnalytics();
 
   const dariUrl = Number(sp.get("score"));
+  const modeParam = sp.get("mode");
   let simpanan: Simpanan | null = null;
   try {
     simpanan = JSON.parse(localStorage.getItem(LAST_KEY) || "null") as Simpanan | null;
@@ -63,6 +65,18 @@ function HasilInner() {
   const lv = levelProgress(xp);
   const p = predikat(score, total);
   const benar = QUIZ.filter((q) => jawaban[q.id] === q.answer).length;
+
+  // Hitung konsep paling banyak keliru dari jawaban percobaan ini (Diagnostic & Prescriptive)
+  const wrongByConcept: Partial<Record<ConceptKey, number>> = {};
+  QUIZ.forEach((q) => {
+    if (jawaban[q.id] !== undefined && jawaban[q.id] !== q.answer) {
+      wrongByConcept[q.concept] = (wrongByConcept[q.concept] ?? 0) + 1;
+    }
+  });
+  const weakConceptFromAttempt = (Object.entries(wrongByConcept) as Array<[ConceptKey, number]>)
+    .sort((a, b) => b[1] - a[1])[0]?.[0];
+  const recommendedConcept: ConceptKey | null =
+    weakConceptFromAttempt ?? summary.weakestConcept?.concept ?? null;
 
   return (
     <div className="bg-canvas">
@@ -136,8 +150,20 @@ function HasilInner() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <BtnLink href="/cetak" className="w-full">
-                  <IconPrint size={14} /> Cetak rapor
+                <BtnLink href="/analitik" tone="signal" className="w-full">
+                  <IconChart size={14} /> Analisis Learning Analytics
+                </BtnLink>
+                {recommendedConcept && score < total && (
+                  <BtnLink
+                    href={`/kuis?mode=adaptive&focus=${recommendedConcept}`}
+                    tone="primary"
+                    className="w-full"
+                  >
+                    <IconSparkle size={14} /> Latihan Adaptif ({CONCEPT_META[recommendedConcept].short})
+                  </BtnLink>
+                )}
+                <BtnLink href="/cetak" tone="ghost" className="w-full">
+                  <IconPrint size={14} /> Cetak rapor & sertifikat
                 </BtnLink>
                 <BtnLink href="/kuis" tone="ghost" className="w-full">
                   Ulangi kuis
@@ -186,17 +212,42 @@ function HasilInner() {
                 </div>
               </section>
 
-              <Callout tone={score / total >= 0.8 ? "ok" : "warn"} label="Rekomendasi belajar">
-                {p.saran}
-                {score < total && (
-                  <>
-                    {" "}
-                    Materi yang paling sering tertukar biasanya ada pada{" "}
-                    <Link href="/materi/ring" className="font-medium text-signal-bright hover:underline">
-                      modul Ring
+              <Callout
+                tone={score / total >= 0.8 ? "ok" : "warn"}
+                label={
+                  modeParam === "pretest"
+                    ? "Rekomendasi adaptif dari Pre-Test"
+                    : "Prescriptive Analytics · Rekomendasi belajar personal"
+                }
+              >
+                <p>{p.saran}</p>
+                {recommendedConcept && score < total && (
+                  <p className="mt-2">
+                    Berdasarkan pola jawabanmu, kesalahan paling banyak muncul pada{" "}
+                    <strong className="text-ink">{CONCEPT_META[recommendedConcept].label}</strong>.{" "}
+                    Disarankan meninjau{" "}
+                    <Link
+                      href={CONCEPT_META[recommendedConcept].materiHref}
+                      className="font-medium text-signal-bright hover:underline"
+                    >
+                      modul {CONCEPT_META[recommendedConcept].short}
+                    </Link>
+                    , mengerjakan{" "}
+                    <Link
+                      href={`/kuis?mode=adaptive&focus=${recommendedConcept}`}
+                      className="font-medium text-signal-bright hover:underline"
+                    >
+                      Latihan Adaptif
+                    </Link>
+                    , atau berdiskusi kritis di{" "}
+                    <Link
+                      href={`/asisten?topic=${recommendedConcept}`}
+                      className="font-medium text-signal-bright hover:underline"
+                    >
+                      Asisten Belajar AI
                     </Link>
                     .
-                  </>
+                  </p>
                 )}
               </Callout>
 

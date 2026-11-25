@@ -148,7 +148,7 @@ async function hydrate(uid: string) {
         {
           key: "progres-lama",
           label: "Progres sebelum pembaruan aplikasi",
-          xp: cloud.xp,
+          xp: cloud.xp ?? 0,
           at: 0,
         },
       ];

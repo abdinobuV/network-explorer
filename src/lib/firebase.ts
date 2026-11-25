@@ -207,11 +207,12 @@ export async function applyNewPassword(
 /* ------------------------------------------------------------------ Firestore */
 
 export interface CloudProg {
-  xp: number;
-  done: Record<string, boolean>;
-  quizBest: number | null;
+  xp?: number;
+  done?: Record<string, boolean>;
+  quizBest?: number | null;
   quizAttempts?: number;
   activity?: ActivityEntry[];
+  analytics?: unknown;
   name?: string;
   email?: string;
   kelas?: string;

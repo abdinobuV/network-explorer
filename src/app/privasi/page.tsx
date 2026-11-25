@@ -38,6 +38,24 @@ const BAGIAN = [
       "4.2 Pada mode demo, kata sandi disimpan sebagai sidik digital (hash), bukan teks biasa, dan tidak dikirim ke server mana pun.",
     ],
   },
+  {
+    no: "5",
+    judul: "Learning Analytics, privasi, dan etika data",
+    isi: [
+      "5.1 Data pembelajaran adalah data pengguna: aplikasi mencatat jejak belajar (waktu akses modul, akurasi praktik kabel, riwayat pre-test/post-test, dan refleksi) semata-mata untuk memberikan umpan balik dan rekomendasi adaptif.",
+      "5.2 Transparansi & kendali penuh (Access Control): siswa dapat meninjau seluruh jejak datanya, mengekspor dalam format JSON, menjeda pencatatan, atau menghapus data analitik kapan saja di halaman Dashboard Analitik (/analitik) atau Pengaturan.",
+      "5.3 Prinsip non-labeling: indikator prediktif hanya bersifat indikasi awal (bukan kepastian dan bukan label kemampuan siswa). Data membantu keputusan guru, bukan menggantikan professional judgment pendidik.",
+    ],
+  },
+  {
+    no: "6",
+    judul: "Penggunaan Generative AI yang bertanggung jawab",
+    isi: [
+      "6.1 Asisten Belajar AI dirancang untuk membantu proses berpikir (Explain, Example, Practice, Feedback, Compare, Reflect) dan tidak menggantikan kontribusi intelektual siswa.",
+      "6.2 Secara bawaan, Asisten Belajar AI berjalan dengan mesin pedagogis lokal tanpa mengirim data pribadi ke layanan AI eksternal. Jika pengelola mengaktifkan API Generative AI di server, hanya isi prompt pembelajaran (tanpa email/sandi) yang dikirim.",
+      "6.3 Output AI bukan otomatis benar: aplikasi menyediakan protokol verifikasi Ask AI, Then Think dan generator Pernyataan Transparansi 5W+C untuk menjaga integritas akademik.",
+    ],
+  },
 ];
 
 export default function PrivasiPage() {

@@ -123,23 +123,53 @@ untuk menganimasi paket serta menentukan hop (latency).
 
 ---
 
-## 7. Keputusan desain visual
+## 7. Learning Analytics & Asisten AI Pedagogis (Pengembangan UAS)
 
-Arahnya **“buku teknis / gambar teknik”**, bukan dashboard gelap:
+### 7.1 Arsitektur Learning Analytics (`src/lib/analytics.ts` & `src/lib/analytics-store.ts`)
+
+Seluruh komputasi analitik berada di fungsi murni `computeAnalytics(progress, analytics)` dan `evaluateCertification(...)` sehingga deterministik dan teruji langsung di Vitest (`analytics.test.ts`).
+
+**8 Learning Data (Digital Traces) yang direkam otomatis:**
+1. Frekuensi login & stempel waktu sesi (`loginCount`, `lastLoginAt`).
+2. Akses bab materi, tab media yang dibuka (diagram/narasi/video), dan *time on task* (`materi`).
+3. Akurasi praktik kabel: sambungan benar, sambungan ditolak, penyelesaian, dan durasi tercepat (`praktik`).
+4. Uji simulasi Sandbox: pengiriman ping, ping gagal, dan eksperimen cabut kabel (`simulasi`).
+5. Riwayat evaluasi lengkap: jenis tes (`pretest` / `posttest` / `adaptive`), skor, durasi, dan peta jawaban per butir soal (`quizHistory`).
+6. Bukti refleksi tertulis siswa pada Cek Pemahaman & Studio AI (`reflections`).
+7. Jejak sesi AI: fungsi AI, skor kelengkapan prompt TCCO, jumlah iterasi, langkah verifikasi *Ask AI, Then Think*, pernyataan transparansi 5W+C, dan penyelesaian Lab Deteksi Hallucination (`aiSessions`, `hallucinationSolved`).
+8. Kronologi aktivitas digital (`traces`).
+
+**4 Tingkat Analytics yang dihasilkan:**
+- **Descriptive:** Progress vs Mastery (*"Progress 100% belum tentu memahami 100%"*), rata-rata skor, perubahan Pre→Post, akurasi praktik, *time on task*, dan kualitas interaksi (menghindari *vanity metrics*).
+- **Diagnostic:** Analisis 10 butir soal, identifikasi soal tersulit (*Most Difficult Question*) & konsep terlemah, serta pipeline **Data → Informasi → Interpretasi → Keputusan**.
+- **Predictive:** Indikator dini pola hambatan belajar dengan prinsip **etika non-labeling** (*prediksi bukan kepastian; data tidak menggantikan professional judgment guru*).
+- **Prescriptive:** Rekomendasi adaptif personal yang mengarahkan langsung ke modul lemah, Sandbox, atau **Latihan Adaptif** (`/kuis?mode=adaptive&focus=...`).
+
+### 7.2 Asisten Belajar AI (`src/lib/ai-tutor.ts` & `src/app/api/ai-tutor/route.ts`)
+
+- Mendukung **7 fungsi siswa** (`Explain`, `Example`, `Practice`, `Feedback`, `Brainstorm`, `Compare`, `Reflect`) dan **1 Mode Guru** (`Draft Guru` dengan peringatan *pedagogical judgment*).
+- Menerapkan gerbang anti-ketergantungan (*pemikiran awal sebelum bertanya*), evaluasi prompt **TCCO** (*Task, Context, Constraint, Output*), *iterative prompting*, checklist **Ask AI, Then Think**, Lab Deteksi Hallucination, serta generator Pernyataan Transparansi **5W+C**.
+- Berjalan tanpa ketergantungan API eksternal lewat Mesin Pedagogis Lokal, dan otomatis memakai Gemini API bila `GEMINI_API_KEY` diisi di sisi server.
+
+---
+
+## 8. Keputusan desain visual
+
+Arahnya **“Network Lab / Patch-Bay Gelap”** (dengan mode cetak otomatis kertas putih untuk rapor & sertifikat):
 
 | Aspek | Keputusan |
 |---|---|
-| Palet | Kertas hangat `#f4f1e8`, tinta `#1b1a16`, aksen *drafting blue* `#1b4d7a`, *red-pen* `#b3352b` |
-| Tipografi | IBM Plex Serif (judul) · Sans (isi) · Mono (angka, port, label) — diserve sendiri |
-| Bentuk | Radius 2 px, garis rambut 1 px, tanpa gradien dekoratif, tanpa glow, tanpa glassmorphism |
-| Ikon | 25 ikon garis SVG kustom menggantikan seluruh emoji |
-| Nomor gambar | Gambar diberi nomor bab (`Gambar 1.1`) seperti buku teks |
+| Palet | Kanvas navy-slate `#0b1220`, permukaan bertingkat `#111b2e`–`#1c2c47`, sinyal cyan `#22b8cf`, LED hijau `#2fd17a`, fault merah `#f25c72` |
+| Tipografi | Space Grotesk (display) · IBM Plex Sans (isi) · IBM Plex Mono (ID perangkat, port, latensi, metrik, XP) — diserve sendiri |
+| Visualisasi | Komponen SVG ringan tanpa library berat (Line Chart, Bar Chart, Donut Chart) |
+| Ikon | Ikon garis SVG kustom menggantikan seluruh emoji |
+| Cetak | `@media print` mengalihkan warna otomatis ke kertas putih tinta gelap untuk Rapor Proses & Sertifikat Kompetensi |
 
 Token warna, radius, dan skala tipografi berada di blok `@theme` pada `src/app/globals.css`.
 
 ---
 
-## 8. Mode demo vs Firebase
+## 9. Mode demo vs Firebase
 
 Mode dipilih otomatis:
 
@@ -149,19 +179,19 @@ export const isDemoMode =
 ```
 
 - **Mode demo** — seluruh data di `localStorage`, kata sandi di-hash SHA-256.
-- **Mode Firebase** — akun sungguhan, progres di Firestore.
+- **Mode Firebase** — akun sungguhan, progres & analitik disinkronkan ke Firestore.
 
 Keduanya memakai antarmuka `AuthApi` yang sama, sehingga halaman tidak perlu tahu mode mana yang
 aktif.
 
 ---
 
-## 9. Pengujian
+## 10. Pengujian
 
 | Jenis | Alat | Cakupan |
 |---|---|---|
-| Unit | Vitest | XP/level/tahap, anti-farming kuis, penggabungan cloud, model topologi, jalur sandbox, penyimpanan lokal, hash kata sandi |
-| Asap | Playwright | Sampul, guard rute, masuk, baca bab, pasang kabel (benar & salah), simulasi, kuis, rapor cetak |
+| Unit (50 tes) | Vitest | XP/level/tahap, anti-farming kuis, penggabungan cloud, Learning Analytics 4-tingkat & sertifikasi, prompt TCCO & Asisten AI, model topologi, jalur sandbox, penyimpanan lokal, hash kata sandi |
+| Asap E2E (12 tes) | Playwright | Sampul, guard rute, masuk, baca bab, pasang kabel (benar & salah), simulasi, kuis, rapor cetak, Dashboard Learning Analytics (Mode Siswa & Guru), Asisten Belajar AI |
 
 `npm run verify` menjalankan lint → typecheck → unit test → build. Uji asap dijalankan terpisah
 (`npm run test:e2e`) karena memerlukan peramban.

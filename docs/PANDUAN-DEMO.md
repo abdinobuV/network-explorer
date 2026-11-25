@@ -1,71 +1,54 @@
-# Panduan demo
+# Panduan Demonstrasi Proyek UAS
 
-Checklist sebelum dan saat presentasi. Target waktu: **8–10 menit**.
+Checklist sebelum dan saat presentasi UAS (**Learning Analytics, Dashboard & Responsible AI**). Target waktu: **10–12 menit**.
 
 ---
 
 ## Sebelum presentasi
 
-- [ ] `npm run verify` hijau (lint + typecheck + test + build).
-- [ ] `npm run test:e2e` hijau bila ada waktu.
-- [ ] Buka aplikasi sekali di peramban yang akan dipakai, pastikan mode demo aktif.
-- [ ] Pastikan data lama sudah dibersihkan: **Pengaturan → Hapus seluruh progres**.
-- [ ] Siapkan koneksi internet (video YouTube) atau pastikan video sudah pernah dibuka agar ter-cache.
-- [ ] Buka tab baru untuk kode akun demo:
-      `navigator@example.com` / `password123`
+- [ ] `npm run verify` hijau (`lint` + `typecheck` + 50 unit test + `next build`).
+- [ ] `npm run test:e2e` hijau (12/12 uji Playwright lulus).
+- [ ] Pastikan akun demo siap: `navigator@example.com` / `password123`.
+- [ ] Siapkan juga 2 berkas pengumpulan di folder `laporan_uas/`:
+  - `Dokumen_Proyek_UAS_Network_Explorer_Kelompok3.docx`
+  - `Modul_Penggunaan_Multimedia_UAS_Network_Explorer_Kelompok3.docx`
 
 ---
 
-## Alur demo (urutan yang disarankan)
+## Alur Demonstrasi UAS (10–12 Menit)
 
-| # | Durasi | Langkah | Yang ditunjukkan |
+| # | Durasi | Rute | Poin Utama yang Ditunjukkan ke Dosen |
 |---|---|---|---|
-| 1 | 0:30 | `/` → sampul | Buku ini disusun seperti buku teknik, bukan dashboard |
-| 2 | 0:30 | `/beranda` | Tiga bab, empat langkah belajar |
-| 3 | 1:00 | Masuk → `/misi` | Peta misi; tabel status; target XP terlihat nyata (bukan angka contoh) |
-| 4 | 1:30 | `/materi/star` | Struktur bab: cara kerja, kelebihan, kekurangan, cek pemahaman, narasi audio (TTS), video |
-| 5 | 3:00 | `/praktik/star` | **Sorotan utama**: tarik kabel ke switch, coba salah sasaran (ditolak + alasannya), cabut kabel, bunyi, sertifikat |
-| 6 | 1:30 | `/sandbox/star` | Kirim data → animasi paket → cabut satu kabel → kirim lagi → dampaknya terlihat |
-| 7 | 1:30 | `/kuis` | Satu soal + pembahasan langsung, tandai soal, kumpulkan |
-| 8 | 0:30 | `/kuis/hasil` | Nilai, analisis per bab, rekomendasi |
-| 9 | 0:30 | `/progres` dan `/cetak` | Progres terhitung otomatis; rapor siap cetak |
+| 1 | 0:45 | `/` → `/beranda` | Ringkasan peningkatan dari UTS ke UAS: 3 modul topologi, Learning Analytics 4-tingkat, Asisten AI bertanggung jawab, dan Sertifikat Kompetensi Digital. |
+| 2 | 1:00 | Masuk → `/misi` | Tunjukkan banner **Personalized Learning (Rekomendasi Adaptif)** di bagian atas yang berubah otomatis sesuai data belajar siswa. |
+| 3 | 1:30 | `/materi/star` & `/praktik/star` | Tunjukkan **perekaman Learning Data nyata**: waktu baca materi, kotak **Cek Pemahaman tertulis** (bukti proses), serta praktik pasang kabel (coba 1 sambungan benar dan 1 sambungan ditolak agar terlihat terekam di akurasi praktik). |
+| 4 | 1:00 | `/sandbox/star` | Kirim ping → cabut satu kabel → kirim ping lagi. Jelaskan bahwa jumlah uji ping & uji gangguan kabel langsung tercatat sebagai *digital traces*. |
+| 5 | 1:30 | `/kuis` → `/kuis/hasil` | Tunjukkan 3 mode evaluasi: **Pre-Test Diagnostik**, **Kuis Akhir (Post-Test)**, dan **Latihan Adaptif**. Tunjukkan rekomendasi personal di `/kuis/hasil` yang otomatis menunjuk konsep yang paling sering salah. |
+| 6 | 3:00 | `/analitik` (**Sorotan UAS**) | 1) Klik **Pratinjau data contoh** untuk menampilkan data multi-percobaan (Pre-Test 50% → Post-Test 80%).<br>2) Tunjukkan **4 tingkat analytics**: Descriptive (*Progress vs Mastery* + anti-*vanity metrics*), 5 visualisasi (Line, Bar, Donut, Progress Bar, Table), Diagnostic (*Data → Informasi → Interpretasi → Keputusan* + Analisis 10 Butir Soal), Predictive (etika non-labeling), dan Prescriptive (tombol Latihan Adaptif).<br>3) Beralih ke tab **Tinjauan Kelas (Mode Guru)** — tampilkan 32 siswa, Soal #5 tersulit (38%), dan prinsip *data tidak menggantikan guru*.<br>4) Tunjukkan panel **Privasi & Kendali Data** (toggle consent + Ekspor JSON). |
+| 7 | 2:00 | `/asisten` | 1) Tunjukkan **Langkah 0 (Anti-Ketergantungan)** dan **Builder Prompt TCCO (4/4 unsur)** + chip iterasi.<br>2) Kirim prompt → tampilkan checklist **Ask AI, Then Think**.<br>3) Buka tab **Lab Deteksi Hallucination** (3 kasus kesalahan AI) dan **Pernyataan Transparansi 5W+C**. |
+| 8 | 1:00 | `/cetak` | Tunjukkan 5 syarat kelayakan sertifikat, **Sertifikat Kompetensi Digital** ber-ID verifikasi (`NE-XI-2026-XXXXXX`), ringkasan Learning Analytics, **Bukti Proses & Refleksi**, serta **Pernyataan Transparansi AI** yang siap cetak PDF. |
 
 ---
 
-## Poin yang layak/story
+## Poin Cerita Penting untuk Tanya-Jawab Dosen
 
-1. **Aturan pemasangan berbeda tiap topologi** — Bus ke backbone, Ring ke PC berikutnya searah
-   jarum jam, Star ke switch. Ini yang membedakan tiga level secara materi, bukan hanya gambar.
-2. **XP tidak bisa di-inflate** — mengulang kuis dengan nilai lebih rendah tidak menambah XP.
-3. **Angka di dashboard bukan angka contoh** — semua berasal dari kegiatan yang benar-benar
-   dikerjakan, lengkap dengan kronologi waktu.
-4. **Bisa dipakai tanpa internet** — mode demo + service worker.
+1. **8 Learning Data Nyata (melebihi syarat minimal 5):** login, waktu & tab materi/video, akurasi & tolakan praktik kabel, uji ping/gangguan Sandbox, riwayat kuis per butir soal (Pre/Post/Adaptif), refleksi tertulis, sesi verifikasi AI, dan log *digital traces*.
+2. **Bukan sekadar grafik, tetapi mendukung keputusan belajar:** setiap grafik menjawab pertanyaan spesifik (Line = tren waktu, Bar = soal/konsep tersulit, Donut = Progress vs Mastery, Table = jejak individual) dan berujung pada **Prescriptive Recommendation (Latihan Adaptif)**.
+3. **Menghindari Vanity Metrics & Labeling:** dashboard tidak menilai siswa dari jumlah klik mentah, dan sinyal prediktif selalu disertai konteks alternatif serta penegasan *professional judgment* guru.
+4. **Offline-ready & Privacy-first:** berjalan 100% di mode demo tanpa server eksternal; siswa dapat menjeda pelacakan, mengekspor JSON, atau menghapus jejak datanya kapan saja.
 
 ---
 
-## Kalau ada kendala saat demo
-
-| Masalah | Solusi |
-|---|---|
-| Internet mati | Mode demo tetap jalan; video tidak bisa dibuka — jelaskan verbally saja |
-| Firebase error saat sinkron | Progress masih tersimpan lokal; status sinkronisasi di navigasi berubah jadi “gagal” |
-| Keluhan drag-drop di proyektor | Gunakan jalur alternatif keyboard: pilih kabel di palet → tekan perangkat sasaran |
-| Suara terlalu keras | Tombol suara di navigasi (ikon speaker) |
-| Animasi mengganggu | Reduce Motion di sistem operasi |
-
----
-
-## Screenshot untuk laporan
-
-`laporan_uts/shot.py` mengambil 10 tangkapan layar dari aplikasi yang berjalan.
+## Mengambil Ulang Screenshot & Dokumen UAS
 
 ```bash
-# jalankan aplikasi lebih dulu di port 3212
-npm run dev -- --port 3212
+# 1. Jalankan server produksi di port 3214
+npm run build
+npx next start -p 3214
 
-# lalu jalankan skrip
-python laporan_uts/shot.py
+# 2. Ambil 10 screenshot terbaru UAS
+python laporan_uas/shot_uas.py
+
+# 3. Bangun ulang Dokumen Proyek UAS & Modul Penggunaan (.docx)
+python laporan_uas/build_uas_docs.py
 ```
-
-Skrip memakai Playwright (Python) dan menyuntik sesi demo ke `localStorage` supaya seluruh
-halaman terlindungi dapat diambil tanpa harus login satu per satu.

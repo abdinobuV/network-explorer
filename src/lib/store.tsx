@@ -37,6 +37,28 @@ import {
   type ActivityEntry,
   type TopoKey,
 } from "@/lib/progression";
+import {
+  addReflection,
+  getAnalytics,
+  getServerAnalytics,
+  markHallucinationSolved,
+  recordAiTransparency,
+  recordQuizTelemetry,
+  resetAnalytics,
+  setTrackingConsent,
+  subscribeAnalytics,
+  trackMateriTime,
+  trackMateriVisit,
+  trackPracticeEvent,
+  trackSimulationEvent,
+} from "@/lib/analytics-store";
+import {
+  computeAnalytics,
+  evaluateCertification,
+  type AnalyticsSummary,
+  type CertificationStatus,
+  type LearningAnalyticsState,
+} from "@/lib/analytics";
 
 /* ------------------------------------------------------------------ Sesi */
 
@@ -104,6 +126,54 @@ export function useProg(): ProgApi {
     cloudOn: !isDemoMode,
     syncState,
     syncError,
+  };
+}
+
+/* ------------------------------------------------------------------ Analytics */
+
+export interface AnalyticsApi {
+  data: LearningAnalyticsState;
+  summary: AnalyticsSummary;
+  certification: CertificationStatus;
+  trackMateriVisit: typeof trackMateriVisit;
+  trackMateriTime: typeof trackMateriTime;
+  trackPracticeEvent: typeof trackPracticeEvent;
+  trackSimulationEvent: typeof trackSimulationEvent;
+  recordQuizTelemetry: typeof recordQuizTelemetry;
+  addReflection: typeof addReflection;
+  recordAiTransparency: typeof recordAiTransparency;
+  markHallucinationSolved: typeof markHallucinationSolved;
+  setTrackingConsent: typeof setTrackingConsent;
+  resetAnalytics: typeof resetAnalytics;
+}
+
+export function useLearningAnalytics(): AnalyticsApi {
+  const user = useSyncExternalStore(subscribeSession, getSession, getServerSession);
+  const progress = useSyncExternalStore(subscribeProgress, getProgress, getServerProgress);
+  const data = useSyncExternalStore(subscribeAnalytics, getAnalytics, getServerAnalytics);
+
+  const summary = computeAnalytics(progress, data);
+  const certification = evaluateCertification(
+    user?.uid ?? "guest",
+    progress,
+    data,
+    totalXp(progress),
+  );
+
+  return {
+    data,
+    summary,
+    certification,
+    trackMateriVisit,
+    trackMateriTime,
+    trackPracticeEvent,
+    trackSimulationEvent,
+    recordQuizTelemetry,
+    addReflection,
+    recordAiTransparency,
+    markHallucinationSolved,
+    setTrackingConsent,
+    resetAnalytics,
   };
 }
 

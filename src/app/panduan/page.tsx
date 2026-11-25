@@ -3,54 +3,79 @@
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
 import { Container, PageHeader, Callout, BtnLink, Kbd } from "@/components/ui";
-import { IconArrow, IconCheck, IconTarget } from "@/components/icons";
+import {
+  IconArrow,
+  IconAward,
+  IconChart,
+  IconCheck,
+  IconSparkle,
+  IconTarget,
+} from "@/components/icons";
 
 const TUJUAN = [
-  "Menjelaskan cara kerja topologi Bus, Ring, dan Star beserta karakteristiknya.",
-  "Membedakan kelebihan dan kekurangan masing-masing topologi.",
-  "Memasang kabel pada lembar kerja sesuai aturan tiap topologi.",
-  "Menganalisis dampak gangguan jaringan terhadap jenis topologi tertentu.",
+  "Menjelaskan cara kerja topologi Bus, Ring, dan Star beserta karakteristik perangkatnya (backbone, terminator, switch).",
+  "Memasang kabel pada lembar kerja teknik sesuai aturan arsitektur tiap topologi.",
+  "Menganalisis dampak gangguan jaringan melalui simulasi pengiriman paket ping dan pencabutan kabel.",
+  "Menggunakan Dashboard Learning Analytics untuk mengevaluasi proses belajar dan memilih latihan adaptif.",
+  "Memanfaatkan Asisten Belajar AI secara kritis, terverifikasi (Ask AI, Then Think), dan transparan (5W+C).",
 ];
 
 const LANGKAH = [
   {
     no: "1",
-    judul: "Baca materinya",
-    durasi: "± 10 menit",
+    judul: "Pre-Test Diagnostik (Opsional tapi Disarankan)",
+    durasi: "± 5 menit",
     isi: [
-      "Mulai dari Level 1 (Bus) dan lanjutkan berurutan hingga Star.",
-      "Pahami bagian Cara Kerja sebelum membuka bagian Cek Pemahaman.",
-      "Coba ulangi analoginya dengan bahasamu sendiri agar lebih melekat.",
+      "Buka menu Kuis Akhir lalu pilih mode Pre-Test Diagnostik sebelum membaca materi.",
+      "Hasil Pre-Test disimpan otomatis sebagai pembanding peningkatan skor (Pre-Test → Post-Test) pada Dashboard Analitik.",
     ],
   },
   {
     no: "2",
-    judul: "Pasang kabelnya",
-    durasi: "± 5 menit",
+    judul: "Pelajari Materi & Tulis Cek Pemahaman",
+    durasi: "± 10 menit",
     isi: [
-      "Buka Lembar Praktik untuk topologi yang sedang dipelajari.",
-      "Seret kabel dari palet ke perangkat yang benar. Salah sasaran akan ditolak beserta alasannya.",
-      "Kabel yang terpasang bisa dicabut kembali lewat tombol Cabut atau ditarik keluar.",
+      "Mulai dari Level 1 (Bus) berurutan ke Ring dan Star melalui Peta Misi.",
+      "Eksplorasi tab Diagram Animasi, Narasi Audio (TTS), dan Video Ringkasan.",
+      "Tulis jawabanmu sendiri pada bagian Cek Pemahaman sebelum membuka kunci — jawabanmu tersimpan sebagai bukti proses belajar.",
     ],
   },
   {
     no: "3",
-    judul: "Uji jaringannya",
-    durasi: "± 5 menit",
+    judul: "Pasang Kabel & Uji Gangguan di Sandbox",
+    durasi: "± 10 menit",
     isi: [
-      "Di Sandbox, kirim paket ping dari satu komputer ke komputer lain.",
-      "Cabut satu kabel lalu kirim data lagi, dan amati perubahannya.",
-      "Bandingkan mengapa dampaknya berbeda di Bus, Ring, dan Star.",
+      "Seret kabel dari palet ke perangkat tujuan pada Lembar Praktik (atau pakai keyboard: pilih kabel → pilih perangkat).",
+      "Setelah selesai, buka Sandbox untuk mengirim paket ping, mencabut satu kabel, dan mengamati dampak gangguan tiap topologi.",
+      "Akurasi pemasangan kabel dan uji gangguan tercatat otomatis sebagai Learning Data.",
     ],
   },
   {
     no: "4",
-    judul: "Kerjakan kuis akhir",
-    durasi: "± 15 menit",
+    judul: "Kerjakan Kuis Akhir & Latihan Adaptif",
+    durasi: "± 12 menit",
     isi: [
-      "Jawab sepuluh studi kasus jaringan di Kuis Akhir.",
-      "Baca pembahasan setiap soal, termasuk soal yang sudah kamu jawab benar.",
-      "Ulangi materi terkait bila skormu masih di bawah 80.",
+      "Jawab 10 soal studi kasus di Kuis Akhir dan pelajari pembahasan tiap soal.",
+      "Jika ada konsep dengan akurasi < 80%, ikuti rekomendasi Latihan Adaptif (3 soal terarah khusus topik lemah).",
+    ],
+  },
+  {
+    no: "5",
+    judul: "Tinjau Dashboard Learning Analytics",
+    durasi: "± 5 menit",
+    isi: [
+      "Buka menu Analitik untuk melihat 4 tingkat analisis: Descriptive (Progress vs Mastery), Diagnostic (Analisis Butir Soal), Predictive (Indikasi Dini Non-Labeling), dan Prescriptive (Rekomendasi Adaptif).",
+      "Guru/penguji dapat beralih ke tab Tinjauan Kelas (Mode Guru) untuk melihat simulasi kelas 32 siswa dan analisis soal tersulit.",
+    ],
+  },
+  {
+    no: "6",
+    judul: "Gunakan Asisten AI & Cetak Sertifikat",
+    durasi: "± 8 menit",
+    isi: [
+      "Di menu Asisten AI, tulis dulu pemikiran awalmu (Langkah 0), susun prompt TCCO secara iteratif, lalu verifikasi hasilnya lewat checklist Ask AI, Then Think.",
+      "Selesaikan Lab Deteksi Hallucination dan susun Pernyataan Transparansi 5W+C bila memakai bantuan AI.",
+      "Buka halaman Sertifikat & Rapor (/cetak) untuk melihat kelayakan Sertifikat Kompetensi Digital dan mencetaknya sebagai PDF.",
     ],
   },
 ];
@@ -63,9 +88,9 @@ export default function PanduanPage() {
         <main id="konten-utama">
           <Container width="page" className="py-10">
             <PageHeader
-              chapter="Petunjuk sesi"
-              title="Panduan belajar"
-              lead="Urutan pemakaian Network Explorer secara efektif dari materi pertama sampai rapor cetak."
+              chapter="Modul penggunaan multimedia"
+              title="Panduan belajar & penggunaan"
+              lead="Urutan lengkap pemakaian Network Explorer dari Pre-Test, praktik kabel, simulasi, Dashboard Learning Analytics, Asisten AI, hingga cetak Sertifikat Kompetensi."
             />
 
             <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -109,26 +134,37 @@ export default function PanduanPage() {
                   ))}
                 </section>
 
-                <Callout tone="note" label="Catatan untuk guru">
-                  Lembar praktik sengaja menerapkan aturan pemasangan berbeda tiap topologi. Bila
-                  siswa salah menyambung, minta mereka menjelaskan mengapa komputer pada Bus tidak
-                  boleh disambung langsung ke komputer lain tanpa melalui backbone.
+                <Callout tone="note" label="Panduan singkat untuk guru / pendidik">
+                  Gunakan tab <strong>Tinjauan Kelas (Mode Guru)</strong> pada halaman Analitik
+                  untuk meninjau soal tersulit dan merancang intervensi berbasis data, serta
+                  gunakan mode <strong>Draft Guru</strong> di Asisten AI untuk menyusun draft studi
+                  kasus dan rubrik. Ingat prinsip utama: data dan AI membantu keputusan pendidik,
+                  bukan menggantikan <em>professional judgment</em> guru.
                 </Callout>
               </div>
 
               <aside className="space-y-5">
                 <div className="rounded-lg border border-border bg-surface p-5">
-                  <p className="text-caption font-semibold text-ink">Target belajar</p>
+                  <p className="text-caption font-semibold text-ink">Target kelulusan sertifikat</p>
                   <p className="mt-2 text-caption leading-relaxed text-ink-2">
-                    Selesaikan 10 tahap belajar: 3 topologi (materi, praktik, simulasi) ditambah
-                    satu kuis akhir.
+                    Tuntaskan 3 materi, 3 papan praktik, 3 simulasi, raih nilai kuis ≥ 80%, dan
+                    simpan minimal 1 bukti proses (refleksi mandiri atau uji verifikasi AI).
                   </p>
                   <div className="mt-4 flex flex-col gap-2">
                     <BtnLink href="/misi" className="w-full">
                       <IconTarget size={14} /> Buka peta misi
                     </BtnLink>
-                    <BtnLink href="/progres" tone="ghost" className="w-full">
-                      <IconArrow size={14} /> Lihat progres
+                    <BtnLink href="/analitik" tone="signal" className="w-full">
+                      <IconChart size={14} /> Dashboard Analitik
+                    </BtnLink>
+                    <BtnLink href="/asisten" tone="ghost" className="w-full">
+                      <IconSparkle size={14} /> Asisten Belajar AI
+                    </BtnLink>
+                    <BtnLink href="/cetak" tone="ghost" className="w-full">
+                      <IconAward size={14} /> Sertifikat & Rapor
+                    </BtnLink>
+                    <BtnLink href="/progres" tone="quiet" className="w-full">
+                      <IconArrow size={14} /> Ringkasan progres
                     </BtnLink>
                   </div>
                 </div>
@@ -143,6 +179,7 @@ export default function PanduanPage() {
                     </li>
                     <li>Efek suara dapat dimatikan lewat tombol suara di bilah atas.</li>
                     <li>Animasi paket berhenti otomatis bila Reduce Motion aktif di sistem.</li>
+                    <li>Pencatatan Learning Analytics dapat dijeda, diekspor (JSON), atau dihapus di Pengaturan.</li>
                   </ul>
                 </div>
               </aside>

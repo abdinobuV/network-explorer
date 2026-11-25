@@ -7,15 +7,17 @@ import { Container, PageHeader, Meter, Badge, StatusDot, BtnLink } from "@/compo
 import { TopoMini } from "@/components/topo";
 import { TOPOLOGI } from "@/lib/data";
 import { TOPO_SPECS } from "@/lib/topology-model";
-import { useProg } from "@/lib/store";
+import { useLearningAnalytics, useProg } from "@/lib/store";
 import { XP, levelProgress, materiKey, praktikKey, simulasiKey } from "@/lib/progression";
-import { IconArrow, IconCheck, IconShield } from "@/components/icons";
+import { IconArrow, IconChart, IconCheck, IconShield, IconSparkle } from "@/components/icons";
 
 const URUT = ["bus", "ring", "star"] as const;
 
 export default function MisiPage() {
   const { done, xp, quizBest } = useProg();
+  const { summary } = useLearningAnalytics();
   const lv = levelProgress(xp);
+  const topRec = summary.recommendations[0];
 
   return (
     <RequireAuth>
@@ -34,6 +36,30 @@ export default function MisiPage() {
                 </span>
               }
             />
+
+            {/* Rekomendasi adaptif berbasis Learning Analytics */}
+            {topRec && (
+              <section className="mt-6 flex flex-col items-start justify-between gap-4 rounded-lg border border-signal/35 bg-signal-tint/60 p-5 md:flex-row md:items-center">
+                <div>
+                  <p className="font-mono text-micro text-signal-bright">
+                    PERSONALIZED LEARNING · REKOMENDASI ADAPTIF
+                  </p>
+                  <p className="mt-1 font-display text-title text-ink">{topRec.title}</p>
+                  <p className="mt-1 max-w-2xl text-caption text-ink-2">{topRec.reason}</p>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <BtnLink href={topRec.href} tone="primary" size="sm">
+                    {topRec.actionLabel} <IconArrow size={13} />
+                  </BtnLink>
+                  <BtnLink href="/analitik" tone="ghost" size="sm">
+                    <IconChart size={13} /> Analitik
+                  </BtnLink>
+                  <BtnLink href="/asisten" tone="ghost" size="sm">
+                    <IconSparkle size={13} /> Asisten AI
+                  </BtnLink>
+                </div>
+              </section>
+            )}
 
             {/* Kartu utama tiga topologi */}
             <div className="mt-8 grid gap-5 md:grid-cols-3">
