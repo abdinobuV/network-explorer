@@ -9,7 +9,7 @@
  *  3. XP hanya bisa didapat sekali per kegiatan (lihat lib/progression.ts).
  */
 
-import { isDemoMode, loadCloudProg, saveCloudProg } from "@/lib/firebase";
+import { isDemoMode, loadCloudProg, saveCloudLeaderboard, saveCloudProg } from "@/lib/firebase";
 import { getSession, subscribeSession } from "@/lib/auth-session";
 import { readItem, writeItem, removeItem } from "@/lib/storage";
 import {
@@ -18,6 +18,7 @@ import {
   mergeProgress,
   recordActivity,
   recordQuiz,
+  stageCount,
   totalXp,
   type ActivityEntry,
   type ProgressState,
@@ -96,8 +97,9 @@ function schedulePush(uid: string) {
 
 async function pushNow(uid: string) {
   const session = getSession();
+  const xpVal = totalXp(state);
   const result = await saveCloudProg(uid, {
-    xp: totalXp(state),
+    xp: xpVal,
     done: state.done,
     quizBest: state.quizBest,
     quizAttempts: state.quizAttempts,
@@ -107,6 +109,20 @@ async function pushNow(uid: string) {
     kelas: session?.kelas,
     role: session?.role ?? "siswa",
   });
+  // Ikut perbarui koleksi leaderboard ringkas (khusus siswa — guru tidak ikut papan peringkat)
+  if (session && session.role !== "guru") {
+    const stages = stageCount(state);
+    const anon = readItem<boolean>(`misi-lb-anon-${uid}`, false);
+    void saveCloudLeaderboard(uid, {
+      name: session.name,
+      kelas: session.kelas || "XI",
+      xp: xpVal,
+      stagesDone: stages,
+      quizBest: state.quizBest,
+      certified: stages >= 9 && state.quizBest !== null && state.quizBest >= 8,
+      anonymous: anon,
+    });
+  }
   if (result.ok) {
     setSync("saved");
   } else {

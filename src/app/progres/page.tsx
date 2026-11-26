@@ -88,6 +88,9 @@ export default function ProgresPage() {
                 {certification.eligible ? " — Sertifikat siap dicetak!" : ""}
               </p>
               <div className="flex flex-wrap gap-2">
+                <BtnLink href="/leaderboard" tone="ghost" size="sm">
+                  <IconTrophy size={14} /> Leaderboard
+                </BtnLink>
                 <BtnLink href="/analitik" tone="signal" size="sm">
                   <IconChart size={14} /> Dashboard Analitik
                 </BtnLink>

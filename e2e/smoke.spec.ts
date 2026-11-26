@@ -148,6 +148,20 @@ test.describe("siswa", () => {
     await page.getByRole("button", { name: /Tanya Asisten AI/i }).click();
     await expect(page.getByText(/Checklist Verifikasi: Ask AI, Then Think/i)).toBeVisible();
   });
+
+  test("membuka leaderboard siswa tanpa membocorkan email dan bisa mengaktifkan Mode Anonim", async ({
+    page,
+  }) => {
+    await masuk(page);
+    await page.goto("/leaderboard");
+    await expect(page.getByRole("heading", { name: "Leaderboard Siswa" })).toBeVisible();
+    await expect(page.getByText("Alya Putri Rahma").first()).toBeVisible();
+    // Email peserta lain tidak boleh muncul di leaderboard
+    await expect(page.getByText("alya.putri@sekolah.sch.id")).toHaveCount(0);
+
+    await page.getByRole("switch", { name: /Mode Anonim/i }).click();
+    await expect(page.getByText(/Peserta #/i).first()).toBeVisible();
+  });
 });
 
 test.describe("guru", () => {

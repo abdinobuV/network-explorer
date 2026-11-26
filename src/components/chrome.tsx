@@ -84,6 +84,7 @@ const TEACHER_NAV = [
 ];
 
 const UTIL_NAV = [
+  { label: "Leaderboard", href: "/leaderboard" },
   { label: "Sandbox", href: "/sandbox/star", match: "/sandbox" },
   { label: "Perbandingan", href: "/perbandingan" },
   { label: "Progres", href: "/progres" },
@@ -93,6 +94,7 @@ const UTIL_NAV = [
 ];
 
 const TEACHER_UTIL_NAV = [
+  { label: "Leaderboard", href: "/leaderboard" },
   { label: "Referensi Topologi", href: "/perbandingan" },
   { label: "Glosarium", href: "/glosarium" },
   { label: "Panduan Guru", href: "/panduan" },

@@ -28,6 +28,7 @@ import {
   IconSearch,
   IconShield,
   IconSparkle,
+  IconTrophy,
   IconUser,
   IconWarning,
 } from "@/components/icons";
@@ -208,6 +209,9 @@ export default function GuruDashboardPage() {
                 </BtnLink>
                 <BtnLink href="/analitik" tone="ghost" size="sm">
                   <IconChart size={14} /> Analitik Kelas
+                </BtnLink>
+                <BtnLink href="/leaderboard" tone="ghost" size="sm">
+                  <IconTrophy size={14} /> Leaderboard Siswa
                 </BtnLink>
               </div>
             </PageHeader>

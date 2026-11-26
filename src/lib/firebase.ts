@@ -290,3 +290,60 @@ export async function saveCloudProg(
     return { ok: false, error: "Gagal menyimpan progres ke cloud." };
   }
 }
+
+/* ------------------------------------------------------------------ Leaderboard publik-aman */
+
+export interface CloudLeaderboardDoc {
+  uid: string;
+  name: string;
+  kelas: string;
+  xp: number;
+  stagesDone: number;
+  quizBest: number | null;
+  certified: boolean;
+  anonymous?: boolean;
+  updatedAt?: unknown;
+}
+
+export async function saveCloudLeaderboard(
+  uid: string,
+  entry: Omit<CloudLeaderboardDoc, "uid" | "updatedAt">,
+): Promise<SaveResult> {
+  if (!db) return { ok: false, error: "Firestore tidak dikonfigurasi." };
+  try {
+    await setDoc(
+      doc(db, "leaderboard", uid),
+      { ...entry, updatedAt: serverTimestamp() },
+      { merge: true },
+    );
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Gagal memperbarui papan peringkat." };
+  }
+}
+
+export async function loadCloudLeaderboard(): Promise<{
+  ok: boolean;
+  entries: CloudLeaderboardDoc[];
+  error?: string;
+}> {
+  if (!db) return { ok: false, entries: [], error: "Firestore tidak dikonfigurasi." };
+  try {
+    const snap = await getDocs(collection(db, "leaderboard"));
+    const entries: CloudLeaderboardDoc[] = snap.docs.map((d) => ({
+      uid: d.id,
+      ...(d.data() as Omit<CloudLeaderboardDoc, "uid">),
+    }));
+    return { ok: true, entries };
+  } catch (e) {
+    const code = (e as { code?: string })?.code;
+    if (code === "permission-denied") {
+      return {
+        ok: false,
+        entries: [],
+        error: "Akses leaderboard ditolak Firestore. Pastikan firestore.rules terbaru sudah di-deploy.",
+      };
+    }
+    return { ok: false, entries: [], error: "Gagal memuat leaderboard dari cloud." };
+  }
+}
