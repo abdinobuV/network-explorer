@@ -28,6 +28,17 @@ SESSION = {
     "name": "Siswa Navigator",
     "email": "navigator@example.com",
     "kelas": "XI",
+    "role": "siswa",
+    "photoURL": None,
+    "provider": "demo",
+}
+
+TEACHER_SESSION = {
+    "uid": "demo-guru",
+    "name": "Ibu Reni (Guru Informatika)",
+    "email": "guru@example.com",
+    "kelas": "Guru",
+    "role": "guru",
     "photoURL": None,
     "provider": "demo",
 }
@@ -189,41 +200,74 @@ def jalankan() -> None:
             ("08-analitik-siswa", "/analitik"),
             ("11-sertifikat-rapor", "/cetak"),
             ("12-panduan-uas", "/panduan"),
+            ("14-leaderboard-siswa", "/leaderboard"),
         ]
 
         for name, route in static_jobs:
-            page.goto(URL + route, wait_until="networkidle", timeout=60000)
-            page.wait_for_timeout(1000)
+            page.goto(URL + route, wait_until="load", timeout=60000)
+            page.wait_for_selector("h1", timeout=30000)
+            page.wait_for_timeout(1400)
+            page.evaluate("window.scrollTo(0, 0)")
+            page.wait_for_timeout(300)
             page.screenshot(path=os.path.join(OUT, f"{name}.png"), full_page=True)
             print("shot", name)
 
         # 05: Sandbox Star interaktif (cabut 1 kabel agar Baki Kabel Lepas terlihat nyata)
-        page.goto(URL + "/sandbox/star", wait_until="networkidle", timeout=60000)
+        page.goto(URL + "/sandbox/star", wait_until="load", timeout=60000)
+        page.wait_for_selector("h1", timeout=30000)
         page.get_by_role("button", name="Cabut 1 kabel").click()
         page.evaluate("window.scrollTo(0, 0)")
-        page.wait_for_timeout(600)
+        page.wait_for_timeout(700)
         page.screenshot(path=os.path.join(OUT, "05-sandbox-star.png"), full_page=True)
         print("shot 05-sandbox-star")
 
-        # 09: Analitik Mode Guru
-        page.goto(URL + "/analitik", wait_until="networkidle", timeout=60000)
-        page.get_by_role("tab", name="Tinjauan Kelas (Mode Guru)").click()
-        page.wait_for_timeout(800)
-        page.screenshot(path=os.path.join(OUT, "09-analitik-guru.png"), full_page=True)
-        print("shot 09-analitik-guru")
-
         # 10: Asisten AI dengan respons & checklist Ask AI, Then Think
-        page.goto(URL + "/asisten", wait_until="networkidle", timeout=60000)
+        page.goto(URL + "/asisten", wait_until="load", timeout=60000)
+        page.wait_for_selector("h1", timeout=30000)
         page.get_by_label("Langkah 0", exact=False).fill(
             "Menurut saya pada topologi Ring tunggal jika satu kabel putus aliran berhenti, sedangkan di Star hanya satu PC yang terisolasi."
         )
         page.get_by_role("button", name="Tanya Asisten AI").click()
-        page.wait_for_selector("text=Checklist Verifikasi: Ask AI, Then Think", timeout=15000)
+        page.wait_for_selector("text=Checklist Verifikasi: Ask AI, Then Think", timeout=20000)
         page.evaluate("window.scrollTo(0, 0)")
-        page.wait_for_timeout(600)
+        page.wait_for_timeout(700)
         page.screenshot(path=os.path.join(OUT, "10-asisten-ai.png"), full_page=True)
         print("shot 10-asisten-ai")
 
+        ctx.close()
+
+        # Konteks Guru (RBAC role="guru") untuk Dashboard Pemantauan & Analitik Kelas
+        gctx = browser.new_context(viewport={"width": 1440, "height": 960})
+        gctx.add_init_script(
+            f"window.localStorage.setItem('misi-session', {json.dumps(json.dumps(TEACHER_SESSION))});"
+            f"window.localStorage.setItem('misi-prog-demo-navigator', {json.dumps(json.dumps(PROGRESS))});"
+            f"window.localStorage.setItem('misi-analytics-demo-navigator', {json.dumps(json.dumps(ANALYTICS))});"
+        )
+        gpage = gctx.new_page()
+
+        # 09: Analitik Kelas Khusus Guru
+        gpage.goto(URL + "/analitik", wait_until="load", timeout=60000)
+        gpage.wait_for_selector("h1", timeout=30000)
+        gpage.wait_for_timeout(1400)
+        gpage.evaluate("window.scrollTo(0, 0)")
+        gpage.wait_for_timeout(300)
+        gpage.screenshot(path=os.path.join(OUT, "09-analitik-guru.png"), full_page=True)
+        print("shot 09-analitik-guru")
+
+        # 13: Dashboard Pemantauan Murid (/guru) lewat alur masuk guru resmi
+        gpage.goto(URL + "/auth/login", wait_until="load", timeout=60000)
+        gpage.get_by_label("Email", exact=True).fill("guru@example.com")
+        gpage.locator("#password").fill("guru12345")
+        gpage.get_by_role("button", name="Masuk", exact=True).click()
+        gpage.wait_for_url("**/guru", timeout=30000)
+        gpage.wait_for_selector("text=Alya Putri Rahma", timeout=30000)
+        gpage.wait_for_timeout(1200)
+        gpage.evaluate("window.scrollTo(0, 0)")
+        gpage.wait_for_timeout(300)
+        gpage.screenshot(path=os.path.join(OUT, "13-dashboard-guru.png"), full_page=True)
+        print("shot 13-dashboard-guru")
+
+        gctx.close()
         browser.close()
     print("done ->", OUT)
 
