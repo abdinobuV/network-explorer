@@ -313,6 +313,124 @@ export function hopsBetween(spec: TopoSpec, from: string, to: string): number {
   return path.length ? path.length : -1;
 }
 
+export interface DirectedHop {
+  linkId: string;
+  from: string;
+  to: string;
+}
+
+export interface SandboxRouteOptions {
+  /** ID tautan yang saat ini terpasang aktif. */
+  connectedLinkIds: Set<string>;
+  /** ID node yang sedang mati/rusak (mis. SWITCH mati atau BACKBONE putus). */
+  offlineNodes?: Set<string>;
+  /** Khusus topologi Ring: true = Ring Ganda (dua arah redundan), false = Ring Tunggal (searah). */
+  dualRing?: boolean;
+}
+
+export interface SandboxRouteResult {
+  ok: boolean;
+  hops: DirectedHop[];
+  reason: string;
+}
+
+/**
+ * Menghitung jalur terarah pada Sandbox interaktif.
+ * Mendukung beberapa kabel tercabut sekaligus, perangkat pusat mati (SPOF),
+ * serta pembedaan Ring Tunggal (satu arah) vs Ring Ganda (jalur cadangan).
+ */
+export function traceSandboxRoute(
+  spec: TopoSpec,
+  from: string,
+  to: string,
+  options: SandboxRouteOptions,
+): SandboxRouteResult {
+  const offline = options.offlineNodes ?? new Set<string>();
+  if (from === to) {
+    return { ok: false, hops: [], reason: "Pilih komputer tujuan yang berbeda dari komputer asal." };
+  }
+  if (offline.has(from) || offline.has(to)) {
+    return { ok: false, hops: [], reason: "Komputer asal atau tujuan sedang nonaktif." };
+  }
+
+  const activeLinks = spec.links.filter((l) => options.connectedLinkIds.has(l.id));
+  const adjacency = new Map<string, Array<{ next: string; linkId: string }>>();
+
+  const addEdge = (a: string, b: string, linkId: string) => {
+    if (offline.has(a) || offline.has(b)) return;
+    adjacency.set(a, [...(adjacency.get(a) ?? []), { next: b, linkId }]);
+  };
+
+  for (const l of activeLinks) {
+    if (spec.key === "ring" && !options.dualRing) {
+      // Ring tunggal: data hanya mengalir searah jarum jam (from -> to)
+      addEdge(l.from, l.to, l.id);
+    } else {
+      addEdge(l.from, l.to, l.id);
+      addEdge(l.to, l.from, l.id);
+    }
+  }
+
+  const prev = new Map<string, { node: string; linkId: string }>();
+  const visited = new Set<string>([from]);
+  const queue: string[] = [from];
+
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const edge of adjacency.get(cur) ?? []) {
+      if (visited.has(edge.next)) continue;
+      visited.add(edge.next);
+      prev.set(edge.next, { node: cur, linkId: edge.linkId });
+      if (edge.next === to) {
+        const hops: DirectedHop[] = [];
+        let walk = to;
+        while (walk !== from) {
+          const step = prev.get(walk)!;
+          hops.unshift({ linkId: step.linkId, from: step.node, to: walk });
+          walk = step.node;
+        }
+        return {
+          ok: true,
+          hops,
+          reason:
+            spec.key === "ring" && options.dualRing && activeLinks.length < spec.links.length
+              ? "Jalur dialihkan melalui cincin cadangan (Ring Ganda)."
+              : "Jalur aktif tersedia.",
+        };
+      }
+      queue.push(edge.next);
+    }
+  }
+
+  if (spec.key === "star" && offline.has("SWITCH")) {
+    return {
+      ok: false,
+      hops: [],
+      reason: "SWITCH pusat dalam kondisi MATI (Single Point of Failure pada Star).",
+    };
+  }
+  if (spec.key === "bus" && offline.has("BACKBONE")) {
+    return {
+      ok: false,
+      hops: [],
+      reason: "Kabel utama BACKBONE putus — seluruh komunikasi antar-PC terhenti.",
+    };
+  }
+  if (spec.key === "ring" && !options.dualRing) {
+    return {
+      ok: false,
+      hops: [],
+      reason:
+        "Lingkaran Ring Tunggal terputus! Data satu arah tidak bisa lewat. Coba sambung kabel atau aktifkan Ring Ganda.",
+    };
+  }
+  return {
+    ok: false,
+    hops: [],
+    reason: `Tidak ada kabel aktif yang menghubungkan ${from} ke ${to}.`,
+  };
+}
+
 /**
  * Jalur terpendek dari satu node ke node lain sebagai daftar tautan.
  * Mengembalikan daftar kosong bila tidak ada jalur (mis. karena satu tautan putus).

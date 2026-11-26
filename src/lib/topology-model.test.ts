@@ -6,6 +6,7 @@ import {
   isTopoKey,
   linkPath,
   pathBetween,
+  traceSandboxRoute,
 } from "@/lib/topology-model";
 
 describe("model topologi", () => {
@@ -112,5 +113,41 @@ describe("perhitungan jalur (untuk sandbox)", () => {
     const tautanPC02 = TOPO_SPECS.bus.links.find((l) => l.from === "PC-02")!;
     expect(pathBetween(TOPO_SPECS.bus, "PC-01", "PC-02", tautanPC02.id)).toHaveLength(0);
     expect(pathBetween(TOPO_SPECS.bus, "PC-01", "PC-03", tautanPC02.id).length).toBeGreaterThan(0);
+  });
+
+  it("traceSandboxRoute: Ring tunggal terhenti saat 1 kabel putus, Ring ganda mengalihkan jalur", () => {
+    const allIds = new Set(TOPO_SPECS.ring.links.map((l) => l.id));
+    allIds.delete("ring-1"); // putus PC-01 -> PC-02
+
+    const tunggal = traceSandboxRoute(TOPO_SPECS.ring, "PC-01", "PC-02", {
+      connectedLinkIds: allIds,
+      dualRing: false,
+    });
+    expect(tunggal.ok).toBe(false);
+
+    const ganda = traceSandboxRoute(TOPO_SPECS.ring, "PC-01", "PC-02", {
+      connectedLinkIds: allIds,
+      dualRing: true,
+    });
+    expect(ganda.ok).toBe(true);
+    expect(ganda.hops.length).toBe(3);
+  });
+
+  it("traceSandboxRoute: Switch mati melumpuhkan Star dan Backbone putus melumpuhkan Bus", () => {
+    const starLinks = new Set(TOPO_SPECS.star.links.map((l) => l.id));
+    const starDown = traceSandboxRoute(TOPO_SPECS.star, "PC-01", "PC-02", {
+      connectedLinkIds: starLinks,
+      offlineNodes: new Set(["SWITCH"]),
+    });
+    expect(starDown.ok).toBe(false);
+    expect(starDown.reason).toContain("SWITCH");
+
+    const busLinks = new Set(TOPO_SPECS.bus.links.map((l) => l.id));
+    const busDown = traceSandboxRoute(TOPO_SPECS.bus, "PC-01", "PC-02", {
+      connectedLinkIds: busLinks,
+      offlineNodes: new Set(["BACKBONE"]),
+    });
+    expect(busDown.ok).toBe(false);
+    expect(busDown.reason).toContain("BACKBONE");
   });
 });

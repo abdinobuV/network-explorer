@@ -85,6 +85,12 @@ test.describe("siswa", () => {
     await page.getByRole("button", { name: /Kirim data/i }).click();
     await expect(page.getByText(/BALASAN diterima/)).toBeVisible({ timeout: 15_000 });
 
+    // Uji interaksi langsung: Rakit dari kosong → pasang kembali → cek Ring Ganda
+    await page.getByRole("button", { name: "Rakit dari kosong" }).click();
+    await expect(page.getByText("0/4 kabel terpasang")).toBeVisible();
+    await page.getByRole("button", { name: "Sambung semua" }).click();
+    await expect(page.getByText("4/4 kabel terpasang")).toBeVisible();
+
     await page.goto("/progres");
     await expect(page.getByText("Aktivitas terbaru")).toBeVisible();
   });

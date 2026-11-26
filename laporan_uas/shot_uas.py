@@ -184,7 +184,6 @@ def jalankan() -> None:
             ("02-misi-adaptif", "/misi"),
             ("03-materi-star", "/materi/star"),
             ("04-praktik-star", "/praktik/star"),
-            ("05-sandbox-star", "/sandbox/star"),
             ("06-kuis-modes", "/kuis"),
             ("07-kuis-hasil-adaptif", "/kuis/hasil?score=8&total=10&mode=posttest"),
             ("08-analitik-siswa", "/analitik"),
@@ -197,6 +196,14 @@ def jalankan() -> None:
             page.wait_for_timeout(1000)
             page.screenshot(path=os.path.join(OUT, f"{name}.png"), full_page=True)
             print("shot", name)
+
+        # 05: Sandbox Star interaktif (cabut 1 kabel agar Baki Kabel Lepas terlihat nyata)
+        page.goto(URL + "/sandbox/star", wait_until="networkidle", timeout=60000)
+        page.get_by_role("button", name="Cabut 1 kabel").click()
+        page.evaluate("window.scrollTo(0, 0)")
+        page.wait_for_timeout(600)
+        page.screenshot(path=os.path.join(OUT, "05-sandbox-star.png"), full_page=True)
+        print("shot 05-sandbox-star")
 
         # 09: Analitik Mode Guru
         page.goto(URL + "/analitik", wait_until="networkidle", timeout=60000)
