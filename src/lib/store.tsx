@@ -4,6 +4,9 @@ import { useEffect, useSyncExternalStore } from "react";
 import {
   DEMO_EMAIL,
   DEMO_PASSWORD,
+  DEMO_TEACHER_EMAIL,
+  DEMO_TEACHER_PASSWORD,
+  TEACHER_ACCESS_CODE,
   ensureSeed,
   getServerSession,
   getServerSessionReady,
@@ -16,6 +19,7 @@ import {
   sessionUpdate,
   subscribeSession,
   type SessionUser,
+  type UserRole,
 } from "@/lib/auth-session";
 import { isDemoMode } from "@/lib/firebase";
 import {
@@ -66,10 +70,21 @@ export interface AuthApi {
   user: SessionUser | null;
   ready: boolean;
   isDemo: boolean;
+  isGuru: boolean;
   demoEmail: string;
   demoPassword: string;
+  demoTeacherEmail: string;
+  demoTeacherPassword: string;
+  teacherAccessCode: string;
   login: (email: string, pass: string) => Promise<string | null>;
-  signup: (name: string, email: string, pass: string, kelas: string) => Promise<string | null>;
+  signup: (
+    name: string,
+    email: string,
+    pass: string,
+    kelas: string,
+    role?: UserRole,
+    teacherCode?: string,
+  ) => Promise<string | null>;
   loginGoogle: () => Promise<string | null>;
   logout: () => Promise<void>;
   update: (patch: { name?: string; kelas?: string }) => Promise<string | null>;
@@ -83,8 +98,12 @@ export function useAuth(): AuthApi {
     user,
     ready,
     isDemo: isDemoMode,
+    isGuru: user?.role === "guru",
     demoEmail: DEMO_EMAIL,
     demoPassword: DEMO_PASSWORD,
+    demoTeacherEmail: DEMO_TEACHER_EMAIL,
+    demoTeacherPassword: DEMO_TEACHER_PASSWORD,
+    teacherAccessCode: TEACHER_ACCESS_CODE,
     login: sessionSignIn,
     signup: sessionSignUp,
     loginGoogle: sessionGoogle,

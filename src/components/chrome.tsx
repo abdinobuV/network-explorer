@@ -77,6 +77,14 @@ const MAIN_NAV = [
   { step: "5", label: "Sertifikat", href: "/cetak", matches: ["/cetak"] },
 ];
 
+const TEACHER_NAV = [
+  { step: "G", label: "Dashboard Guru", href: "/guru", matches: ["/guru"] },
+  { step: "A", label: "Analitik Kelas", href: "/analitik", matches: ["/analitik"] },
+  { step: "AI", label: "Asisten AI Guru", href: "/asisten", matches: ["/asisten"] },
+  { step: "M", label: "Pratinjau Materi", href: "/misi", matches: ["/misi", "/materi", "/praktik"] },
+  { step: "S", label: "Sandbox", href: "/sandbox/star", matches: ["/sandbox"] },
+];
+
 const UTIL_NAV = [
   { label: "Sandbox", href: "/sandbox/star", match: "/sandbox" },
   { label: "Perbandingan", href: "/perbandingan" },
@@ -88,7 +96,7 @@ const UTIL_NAV = [
 
 export function Navbar({ pub = false }: { pub?: boolean }) {
   const path = usePathname();
-  const { user } = useAuth();
+  const { user, isGuru } = useAuth();
   const { xp, done, activity, quizBest, quizAttempts, cloudOn, syncState, syncError } = useProg();
   const { data: analytics, certification } = useLearningAnalytics();
   const lv = levelProgress(xp);
@@ -97,6 +105,7 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
     analytics,
     certification,
   );
+  const primaryNav = isGuru ? TEACHER_NAV : MAIN_NAV;
 
   if (pub) {
     return (
@@ -147,7 +156,7 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
           <Logo />
 
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigasi utama berurutan">
-            {MAIN_NAV.map((item) => {
+            {primaryNav.map((item) => {
               const active = item.matches.some((m) => path === m || path.startsWith(m + "/"));
               return (
                 <Link
@@ -163,7 +172,7 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
                 >
                   <span
                     className={cx(
-                      "grid h-4 w-4 place-items-center rounded-full font-mono text-[10px]",
+                      "grid h-4 min-w-4 place-items-center rounded-full px-1 font-mono text-[10px]",
                       active ? "bg-signal text-ok-ink font-bold" : "bg-surface-2 text-ink-3",
                     )}
                   >
@@ -202,9 +211,13 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
             <p className="max-w-[120px] truncate text-caption font-medium text-ink sm:max-w-[180px]">
               {user?.name ?? "Siswa"}
             </p>
-            <p className="truncate font-mono text-micro text-ok">
-              {xp.toLocaleString("id-ID")} XP · Lv.{lv.level}
-            </p>
+            {isGuru ? (
+              <p className="truncate font-mono text-micro text-caution">Mode Guru · Akses Kelas</p>
+            ) : (
+              <p className="truncate font-mono text-micro text-ok">
+                {xp.toLocaleString("id-ID")} XP · Lv.{lv.level}
+              </p>
+            )}
           </div>
 
           <Link
@@ -230,8 +243,8 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
 
       <div className="border-t border-border-3 bg-surface/80">
         <Container width="page" className="flex items-center gap-1 overflow-x-auto py-1.5">
-          {/* Tampilkan 5 tahap utama di layar < lg agar tetap 1 klik di mobile/tablet */}
-          {MAIN_NAV.map((item) => {
+          {/* Tampilkan menu utama di layar < lg agar tetap 1 klik di mobile/tablet */}
+          {primaryNav.map((item) => {
             const active = item.matches.some((m) => path === m || path.startsWith(m + "/"));
             return (
               <Link
@@ -275,14 +288,24 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
             );
           })}
 
-          {/* Penunjuk langkah berikutnya yang selalu terlihat */}
-          <Link
-            href={nextStep.href}
-            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-xs border border-ok/35 bg-ok-tint/80 px-2.5 py-1 font-mono text-[11px] font-medium text-ok transition-colors hover:border-ok"
-          >
-            <span>Lanjut: {nextStep.cta}</span>
-            <IconArrow size={11} />
-          </Link>
+          {/* Penunjuk aksi utama yang selalu terlihat sesuai peran */}
+          {isGuru ? (
+            <Link
+              href="/guru"
+              className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-xs border border-caution/45 bg-caution-tint/80 px-2.5 py-1 font-mono text-[11px] font-medium text-caution transition-colors hover:border-caution"
+            >
+              <span>Pantau Semua Murid</span>
+              <IconArrow size={11} />
+            </Link>
+          ) : (
+            <Link
+              href={nextStep.href}
+              className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-xs border border-ok/35 bg-ok-tint/80 px-2.5 py-1 font-mono text-[11px] font-medium text-ok transition-colors hover:border-ok"
+            >
+              <span>Lanjut: {nextStep.cta}</span>
+              <IconArrow size={11} />
+            </Link>
+          )}
         </Container>
       </div>
     </header>

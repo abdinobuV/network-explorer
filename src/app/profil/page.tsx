@@ -16,7 +16,7 @@ import {
 } from "@/lib/progression";
 
 export default function ProfilPage() {
-  const { user, isDemo } = useAuth();
+  const { user, isDemo, isGuru } = useAuth();
   const { xp, done, activity, quizBest, quizAttempts } = useProg();
   const lv = levelProgress(xp);
   const persen = overallPercent({ activity, done, quizBest, quizAttempts });
@@ -69,6 +69,7 @@ export default function ProfilPage() {
 
                 <dl className="divide-y divide-border-3">
                   {[
+                    ["Peran akun", isGuru ? "Pendidik (Guru)" : "Peserta Didik (Siswa)"],
                     ["Tingkat", `Tingkat ${lv.level}`],
                     ["Total XP", xp.toLocaleString("id-ID")],
                     ["Penyelesaian", `${persen}%`],

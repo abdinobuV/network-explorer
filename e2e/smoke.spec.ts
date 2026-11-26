@@ -8,6 +8,8 @@ import { expect, test } from "@playwright/test";
 
 const EMAIL = "navigator@example.com";
 const SANDI = "password123";
+const GURU_EMAIL = "guru@example.com";
+const GURU_SANDI = "guru12345";
 
 async function masuk(page: import("@playwright/test").Page) {
   await page.goto("/auth/login");
@@ -15,6 +17,14 @@ async function masuk(page: import("@playwright/test").Page) {
   await page.locator("#password").fill(SANDI);
   await page.getByRole("button", { name: "Masuk", exact: true }).click();
   await page.waitForURL("**/misi");
+}
+
+async function masukGuru(page: import("@playwright/test").Page) {
+  await page.goto("/auth/login");
+  await page.getByLabel("Email", { exact: true }).fill(GURU_EMAIL);
+  await page.locator("#password").fill(GURU_SANDI);
+  await page.getByRole("button", { name: "Masuk", exact: true }).click();
+  await page.waitForURL("**/guru");
 }
 
 test.describe("tamu", () => {
@@ -117,12 +127,15 @@ test.describe("siswa", () => {
     await expect(page.getByRole("heading", { name: "Rapor Belajar" })).toBeVisible();
   });
 
-  test("membuka dashboard Learning Analytics dan mode guru", async ({ page }) => {
+  test("siswa hanya melihat analitik pribadinya dan diblokir dari panel guru", async ({ page }) => {
     await masuk(page);
     await page.goto("/analitik");
     await expect(page.getByRole("heading", { name: "Dashboard Learning Analytics" })).toBeVisible();
-    await page.getByRole("tab", { name: /Tinjauan Kelas/i }).click();
-    await expect(page.getByText(/Fokus Intervensi Soal #5/i)).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Tinjauan Kelas/i })).toHaveCount(0);
+
+    // Siswa yang mencoba membuka /guru langsung ditolak (Access Control)
+    await page.goto("/guru");
+    await expect(page.getByRole("heading", { name: /Halaman ini khusus untuk akun Guru/i })).toBeVisible();
   });
 
   test("menggunakan Asisten Belajar AI dengan pemikiran awal dan verifikasi", async ({ page }) => {
@@ -134,5 +147,21 @@ test.describe("siswa", () => {
       .fill("Menurut saya pada Star hanya PC yang putus kabelnya yang terisolasi.");
     await page.getByRole("button", { name: /Tanya Asisten AI/i }).click();
     await expect(page.getByText(/Checklist Verifikasi: Ask AI, Then Think/i)).toBeVisible();
+  });
+});
+
+test.describe("guru", () => {
+  test("guru masuk ke dashboard pemantauan murid dan dapat melihat seluruh siswa", async ({ page }) => {
+    await masukGuru(page);
+    await expect(
+      page.getByRole("heading", { name: /Dashboard Pemantauan Murid/i }),
+    ).toBeVisible();
+    await expect(page.getByText("Alya Putri Rahma").first()).toBeVisible();
+    await expect(page.getByText("Dimas Pratama").first()).toBeVisible();
+
+    // Guru juga bisa membuka tab Tinjauan Kelas pada /analitik
+    await page.goto("/analitik");
+    await page.getByRole("tab", { name: /Tinjauan Kelas/i }).click();
+    await expect(page.getByText(/Fokus Intervensi Soal #5/i)).toBeVisible();
   });
 });

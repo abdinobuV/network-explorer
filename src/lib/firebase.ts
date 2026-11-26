@@ -16,8 +16,10 @@ import {
 } from "firebase/auth";
 import {
   getFirestore,
+  collection,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   serverTimestamp,
   type Firestore,
@@ -206,6 +208,8 @@ export async function applyNewPassword(
 
 /* ------------------------------------------------------------------ Firestore */
 
+export type UserRole = "siswa" | "guru";
+
 export interface CloudProg {
   xp?: number;
   done?: Record<string, boolean>;
@@ -216,6 +220,12 @@ export interface CloudProg {
   name?: string;
   email?: string;
   kelas?: string;
+  role?: UserRole;
+  updatedAt?: unknown;
+}
+
+export interface CloudUserDoc extends CloudProg {
+  uid: string;
 }
 
 export interface SaveResult {
@@ -230,6 +240,33 @@ export async function loadCloudProg(uid: string): Promise<CloudProg | null> {
     return s.exists() ? (s.data() as CloudProg) : null;
   } catch {
     return null;
+  }
+}
+
+/** Membaca seluruh dokumen pengguna dari Firestore (khusus akun dengan role "guru"). */
+export async function loadAllCloudUsers(): Promise<{
+  ok: boolean;
+  users: CloudUserDoc[];
+  error?: string;
+}> {
+  if (!db) return { ok: false, users: [], error: "Firestore tidak dikonfigurasi." };
+  try {
+    const snap = await getDocs(collection(db, "users"));
+    const users: CloudUserDoc[] = snap.docs.map((d) => ({
+      uid: d.id,
+      ...(d.data() as CloudProg),
+    }));
+    return { ok: true, users };
+  } catch (e) {
+    const code = (e as { code?: string })?.code;
+    if (code === "permission-denied") {
+      return {
+        ok: false,
+        users: [],
+        error: "Akses ditolak Firestore. Pastikan akunmu berperan sebagai guru dan firestore.rules sudah di-deploy.",
+      };
+    }
+    return { ok: false, users: [], error: "Gagal memuat daftar murid dari cloud." };
   }
 }
 

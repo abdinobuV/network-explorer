@@ -37,7 +37,7 @@ import {
 } from "@/lib/ai-tutor";
 import type { AiFunctionKind } from "@/lib/analytics";
 import { CONCEPT_META, HALLUCINATION_CASES, type ConceptKey } from "@/lib/data";
-import { useLearningAnalytics } from "@/lib/store";
+import { useAuth, useLearningAnalytics } from "@/lib/store";
 import { toast } from "@/lib/toast";
 
 const ASK_THEN_THINK_STEPS = [
@@ -85,13 +85,20 @@ function RichBody({ text }: { text: string }) {
 
 function AsistenInner() {
   const sp = useSearchParams();
-  const initialMode = sp.get("mode") === "teacher" ? "teacher-draft" : "explain";
+  const { isGuru } = useAuth();
+  const initialMode: AiFunctionKind =
+    isGuru && sp.get("mode") === "teacher" ? "teacher-draft" : "explain";
   const initialTopicRaw = sp.get("topic") as ConceptKey | null;
   const initialTopic: ConceptKey =
     initialTopicRaw && CONCEPT_META[initialTopicRaw] ? initialTopicRaw : "star";
 
   const { data, summary, addReflection, recordAiTransparency, markHallucinationSolved } =
     useLearningAnalytics();
+
+  const availableFunctions = useMemo(
+    () => AI_FUNCTIONS.filter((item) => item.role === "siswa" || isGuru),
+    [isGuru],
+  );
 
   const [activeTab, setActiveTab] = useState<"studio" | "hallucination" | "transparansi">("studio");
   const [fn, setFn] = useState<AiFunctionKind>(initialMode);
@@ -309,11 +316,11 @@ function AsistenInner() {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="font-display text-title">Pilih peran & fungsi AI</h2>
                     <span className="font-mono text-micro text-ink-3">
-                      7 fungsi siswa + 1 mode guru
+                      {isGuru ? "7 fungsi siswa + 1 mode khusus guru" : "7 fungsi belajar peserta didik"}
                     </span>
                   </div>
                   <div className="mt-3.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    {AI_FUNCTIONS.map((item) => {
+                    {availableFunctions.map((item) => {
                       const active = fn === item.id;
                       return (
                         <button

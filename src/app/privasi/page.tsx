@@ -43,7 +43,7 @@ const BAGIAN = [
     judul: "Learning Analytics, privasi, dan etika data",
     isi: [
       "5.1 Data pembelajaran adalah data pengguna: aplikasi mencatat jejak belajar (waktu akses modul, akurasi praktik kabel, riwayat pre-test/post-test, dan refleksi) semata-mata untuk memberikan umpan balik dan rekomendasi adaptif.",
-      "5.2 Transparansi & kendali penuh (Access Control): siswa dapat meninjau seluruh jejak datanya, mengekspor dalam format JSON, menjeda pencatatan, atau menghapus data analitik kapan saja di halaman Dashboard Analitik (/analitik) atau Pengaturan.",
+      "5.2 Transparansi & kendali penuh (Access Control berbasis peran): siswa hanya dapat mengakses data, progres, dan analitik miliknya sendiri serta tidak dapat melihat data teman sekelasnya. Hanya akun dengan peran Guru terverifikasi yang dapat mengakses Dashboard Pemantauan Murid (/guru) untuk keperluan pendampingan belajar.",
       "5.3 Prinsip non-labeling: indikator prediktif hanya bersifat indikasi awal (bukan kepastian dan bukan label kemampuan siswa). Data membantu keputusan guru, bukan menggantikan professional judgment pendidik.",
     ],
   },

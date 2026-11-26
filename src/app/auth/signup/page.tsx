@@ -5,15 +5,23 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import AuthShell from "@/components/auth-shell";
 import { IconWarning } from "@/components/icons";
-import { Btn, Callout, Field, Input, Select } from "@/components/ui";
+import { Btn, Callout, Field, Input, Select, cx } from "@/components/ui";
+import type { UserRole } from "@/lib/auth-session";
 import { useAuth } from "@/lib/store";
 
 const KELAS = ["X", "XI", "XII"];
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", kelas: "XI", pass: "" });
+  const { signup, isDemo, teacherAccessCode } = useAuth();
+  const [role, setRole] = useState<UserRole>("siswa");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    kelas: "XI",
+    pass: "",
+    teacherCode: "",
+  });
   const [agree, setAgree] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -33,20 +41,27 @@ export default function SignupPage() {
     }
 
     setBusy(true);
-    const message = await signup(form.name, form.email, form.pass, form.kelas);
+    const message = await signup(
+      form.name,
+      form.email,
+      form.pass,
+      form.kelas,
+      role,
+      form.teacherCode,
+    );
     setBusy(false);
     if (message) {
       setErr(message);
       return;
     }
-    router.push("/misi");
+    router.push(role === "guru" ? "/guru" : "/misi");
   }
 
   return (
     <AuthShell
-      chapter="Pendaftaran siswa"
+      chapter="Pendaftaran akun"
       title="Daftar akun belajar"
-      lead="Satu akun untuk mengakses tiga bab materi, papan pemasangan kabel, sandbox, dan kuis akhir."
+      lead="Pilih peran sebagai Peserta Didik (Siswa) atau Pendidik (Guru dengan kode akses khusus)."
       footer={
         <p className="text-caption text-ink-3">
           Sudah punya akun?{" "}
@@ -66,6 +81,37 @@ export default function SignupPage() {
           </Callout>
         )}
 
+        {/* Pilihan Peran */}
+        <div>
+          <p className="mb-1.5 text-caption font-medium text-ink-2">Daftar sebagai</p>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ["siswa", "Peserta Didik (Siswa)"],
+                ["guru", "Pendidik (Guru)"],
+              ] as const
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                type="button"
+                aria-pressed={role === val}
+                onClick={() => {
+                  setRole(val);
+                  setErr(null);
+                }}
+                className={cx(
+                  "cursor-pointer rounded-md border px-3 py-2.5 text-caption font-medium transition-colors",
+                  role === val
+                    ? "border-signal bg-signal-tint text-signal-bright"
+                    : "border-border bg-canvas text-ink-2 hover:border-border-2 hover:text-ink",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <Field label="Nama lengkap" htmlFor="name">
           <Input
             id="name"
@@ -74,7 +120,7 @@ export default function SignupPage() {
             required
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
-            placeholder="Nama sesuai absensi"
+            placeholder={role === "guru" ? "Nama lengkap pendidik" : "Nama sesuai absensi"}
           />
         </Field>
 
@@ -91,20 +137,41 @@ export default function SignupPage() {
           />
         </Field>
 
-        <Field label="Kelas" htmlFor="kelas">
-          <Select
-            id="kelas"
-            name="kelas"
-            value={form.kelas}
-            onChange={(e) => set("kelas", e.target.value)}
+        {role === "siswa" ? (
+          <Field label="Kelas" htmlFor="kelas">
+            <Select
+              id="kelas"
+              name="kelas"
+              value={form.kelas}
+              onChange={(e) => set("kelas", e.target.value)}
+            >
+              {KELAS.map((k) => (
+                <option key={k} value={k}>
+                  Kelas {k}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        ) : (
+          <Field
+            label="Kode Akses Guru"
+            htmlFor="teacher-code"
+            hint={
+              isDemo
+                ? `Kode akses demo: ${teacherAccessCode} (melindungi panel kelas agar tidak bisa didaftarkan sembarang siswa).`
+                : "Masukkan kode akses resmi yang diberikan pengelola mata kuliah."
+            }
           >
-            {KELAS.map((k) => (
-              <option key={k} value={k}>
-                Kelas {k}
-              </option>
-            ))}
-          </Select>
-        </Field>
+            <Input
+              id="teacher-code"
+              name="teacherCode"
+              required
+              value={form.teacherCode}
+              onChange={(e) => set("teacherCode", e.target.value)}
+              placeholder="GURU-XXXX-XXXX"
+            />
+          </Field>
+        )}
 
         <Field
           label="Kata sandi"
@@ -142,7 +209,11 @@ export default function SignupPage() {
         </div>
 
         <Btn type="submit" size="lg" className="w-full" disabled={busy}>
-          {busy ? "Mendaftarkan…" : "Daftar dan mulai"}
+          {busy
+            ? "Mendaftarkan…"
+            : role === "guru"
+              ? "Daftar sebagai Guru"
+              : "Daftar dan mulai"}
         </Btn>
       </form>
     </AuthShell>

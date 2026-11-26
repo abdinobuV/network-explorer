@@ -53,12 +53,13 @@ const SAMPLE_PROGRESS_DONE: Record<string, boolean> = {
 };
 
 export default function AnalitikPage() {
-  const { user } = useAuth();
+  const { user, isGuru } = useAuth();
   const prog = useProg();
   const { data, setTrackingConsent, resetAnalytics, certification } = useLearningAnalytics();
 
   const [viewMode, setViewMode] = useState<"siswa" | "guru">("siswa");
   const [useSamplePreview, setUseSamplePreview] = useState(false);
+  const effectiveView: "siswa" | "guru" = isGuru ? viewMode : "siswa";
 
   const sampleData = useMemo(() => buildSampleStudentAnalytics(), []);
   const activeAnalytics = useSamplePreview ? sampleData : data;
@@ -131,38 +132,49 @@ export default function AnalitikPage() {
               }
             >
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-2" role="tablist" aria-label="Mode tampilan analitik">
+                <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Mode tampilan analitik">
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={viewMode === "siswa"}
+                    aria-selected={effectiveView === "siswa"}
                     onClick={() => setViewMode("siswa")}
                     className={cx(
                       "cursor-pointer rounded-md border px-3.5 py-2 text-caption font-medium transition-colors",
-                      viewMode === "siswa"
+                      effectiveView === "siswa"
                         ? "border-signal bg-signal-tint text-signal-bright"
                         : "border-border bg-surface text-ink-2 hover:border-border-2 hover:text-ink",
                     )}
                   >
-                    Analitik Pribadi (Siswa)
+                    Analitik Pribadi ({isGuru ? "Akun Sendiri" : "Data Milikmu"})
                   </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={viewMode === "guru"}
-                    onClick={() => setViewMode("guru")}
-                    className={cx(
-                      "cursor-pointer rounded-md border px-3.5 py-2 text-caption font-medium transition-colors",
-                      viewMode === "guru"
-                        ? "border-signal bg-signal-tint text-signal-bright"
-                        : "border-border bg-surface text-ink-2 hover:border-border-2 hover:text-ink",
-                    )}
-                  >
-                    Tinjauan Kelas (Mode Guru)
-                  </button>
+                  {isGuru ? (
+                    <>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={effectiveView === "guru"}
+                        onClick={() => setViewMode("guru")}
+                        className={cx(
+                          "cursor-pointer rounded-md border px-3.5 py-2 text-caption font-medium transition-colors",
+                          effectiveView === "guru"
+                            ? "border-signal bg-signal-tint text-signal-bright"
+                            : "border-border bg-surface text-ink-2 hover:border-border-2 hover:text-ink",
+                        )}
+                      >
+                        Tinjauan Kelas (Mode Guru)
+                      </button>
+                      <BtnLink href="/guru" tone="primary" size="sm">
+                        Buka Daftar Semua Murid <IconArrow size={13} />
+                      </BtnLink>
+                    </>
+                  ) : (
+                    <Badge tone="neutral">
+                      <IconShield size={12} /> Privasi: Hanya data belajarmu sendiri
+                    </Badge>
+                  )}
                 </div>
 
-                {viewMode === "siswa" && (
+                {effectiveView === "siswa" && (
                   <div className="flex flex-wrap items-center gap-2">
                     <Btn
                       tone={useSamplePreview ? "signal" : "ghost"}
@@ -180,7 +192,7 @@ export default function AnalitikPage() {
               </div>
             </PageHeader>
 
-            {viewMode === "siswa" ? (
+            {effectiveView === "siswa" ? (
               <div className="mt-8 space-y-10">
                 {useSamplePreview && (
                   <Callout tone="warn" label="Mode pratinjau contoh aktif">

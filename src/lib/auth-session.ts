@@ -1,32 +1,36 @@
 /**
- * Sesi pengguna — satu pintu masuk untuk mode demo (lokal) dan mode Firebase.
+ * Sesi pengguna & kontrol peran (RBAC: "siswa" | "guru") — satu pintu masuk
+ * untuk mode demo (lokal) dan mode Firebase.
  *
- * Aplikasi ini sengaja punya dua mode:
- *  - DEMO  : tanpa konfigurasi Firebase. Akun disimpan di localStorage,
- *            kata sandi disimpan sebagai hash (bukan teks polos).
- *  - FIREBASE: akun sungguhan, progres disinkronkan ke Firestore.
- *
- * Mode dipilih otomatis: bila NEXT_PUBLIC_DEMO_MODE=1 atau kredensial
- * Firebase belum diisi, aplikasi memakai mode demo.
+ * Prinsip Access Control (Pert-13 Slide 26):
+ *  - Siswa hanya melihat progres & analitik miliknya sendiri.
+ *  - Guru memiliki akses khusus ke Dashboard Kelas (/guru) untuk memantau
+ *    seluruh murid yang memakai, mengerjakan, dan menyelesaikan pembelajaran.
  */
 
 import {
   auth,
   isDemoMode,
+  loadCloudProg,
   onAuthStateChanged,
+  saveCloudProg,
   signInWithGoogle,
   signOutFirebase,
   signUpWithEmail,
   signInWithEmail,
   updateFirebaseName,
+  type UserRole,
 } from "@/lib/firebase";
 import { readItem, writeItem, removeItem } from "@/lib/storage";
+
+export type { UserRole };
 
 export interface SessionUser {
   uid: string;
   name: string;
   email: string;
   kelas: string;
+  role: UserRole;
   photoURL: string | null;
   provider: "demo" | "firebase";
 }
@@ -34,14 +38,23 @@ export interface SessionUser {
 export const DEMO_EMAIL = "navigator@example.com";
 export const DEMO_PASSWORD = "password123";
 
-const USERS_KEY = "misi-users";
-const SESSION_KEY = "misi-session";
+export const DEMO_TEACHER_EMAIL = "guru@example.com";
+export const DEMO_TEACHER_PASSWORD = "guru12345";
 
-interface DemoUser {
+/** Kode verifikasi pendaftaran akun Guru (dapat diganti via env NEXT_PUBLIC_TEACHER_ACCESS_CODE). */
+export const TEACHER_ACCESS_CODE =
+  process.env.NEXT_PUBLIC_TEACHER_ACCESS_CODE || "GURU-UNIMED-2026";
+
+export const USERS_KEY = "misi-users";
+const SESSION_KEY = "misi-session";
+const DEMO_SEED_VERSION_KEY = "misi-demo-seed-v2";
+
+export interface DemoUser {
   uid: string;
   name: string;
   email: string;
   kelas: string;
+  role: UserRole;
   passHash: string;
 }
 
@@ -50,8 +63,6 @@ interface DemoUser {
 const SALT = "netexplorer::v2::";
 
 function fallbackHash(input: string): string {
-  // Non-kriptografis, hanya dipakai bila crypto.subtle tidak tersedia
-  // (mis. halaman dibuka lewat http:// pada IP LAN).
   let h1 = 0x811c9dc5;
   let h2 = 0x01000193;
   for (let i = 0; i < input.length; i++) {
@@ -105,9 +116,13 @@ function setSession(user: SessionUser | null) {
   emit();
 }
 
-function readDemoUsers(): DemoUser[] {
+export function readDemoUsers(): DemoUser[] {
   const raw = readItem<DemoUser[]>(USERS_KEY, []);
-  return Array.isArray(raw) ? raw : [];
+  if (!Array.isArray(raw)) return [];
+  return raw.map((u) => ({
+    ...u,
+    role: u.role === "guru" ? "guru" : "siswa",
+  }));
 }
 
 function writeDemoUsers(users: DemoUser[]) {
@@ -117,31 +132,258 @@ function writeDemoUsers(users: DemoUser[]) {
 let seedPromise: Promise<void> | null = null;
 
 /**
- * Menyiapkan akun demo bawaan. Dijalankan sekali saja (single-flight) supaya
- * tidak ada akun ganda ketika store dipanggil dari beberapa tempat.
+ * Menyiapkan akun demo bawaan (1 siswa default, 1 guru default, dan 3 murid contoh
+ * agar Dashboard Guru langsung memperlihatkan pemantauan kelas nyata di mode demo).
  */
 function seedDemoAccount(): Promise<void> {
   if (!seedPromise) {
     seedPromise = (async () => {
       const users = readDemoUsers();
-      const demo = users.find((u) => u.email === DEMO_EMAIL);
-      if (demo) {
-        if (!demo.passHash) {
-          demo.passHash = await hashPassword(DEMO_PASSWORD);
-          writeDemoUsers(users);
+      let changed = false;
+
+      const ensureUser = async (spec: Omit<DemoUser, "passHash">, pass: string) => {
+        const existing = users.find((u) => u.email.toLowerCase() === spec.email.toLowerCase());
+        if (existing) {
+          if (!existing.passHash) {
+            existing.passHash = await hashPassword(pass);
+            changed = true;
+          }
+          if (existing.role !== spec.role) {
+            existing.role = spec.role;
+            changed = true;
+          }
+          return;
         }
-        return;
+        users.push({ ...spec, passHash: await hashPassword(pass) });
+        changed = true;
+      };
+
+      await ensureUser(
+        {
+          uid: "demo-navigator",
+          name: "Siswa Navigator",
+          email: DEMO_EMAIL,
+          kelas: "XI",
+          role: "siswa",
+        },
+        DEMO_PASSWORD,
+      );
+
+      await ensureUser(
+        {
+          uid: "demo-guru",
+          name: "Ibu Reni (Guru)",
+          email: DEMO_TEACHER_EMAIL,
+          kelas: "Pengampu XI",
+          role: "guru",
+        },
+        DEMO_TEACHER_PASSWORD,
+      );
+
+      // Seed 3 akun murid contoh sekali saja untuk memperkaya data kelas di Dashboard Guru
+      const seededVersion = readItem<string>(DEMO_SEED_VERSION_KEY, "");
+      if (seededVersion !== "2") {
+        const now = Date.now();
+        const day = 86_400_000;
+
+        await ensureUser(
+          {
+            uid: "demo-murid-1",
+            name: "Alya Putri Rahma",
+            email: "alya.putri@sekolah.sch.id",
+            kelas: "XI",
+            role: "siswa",
+          },
+          DEMO_PASSWORD,
+        );
+        await ensureUser(
+          {
+            uid: "demo-murid-2",
+            name: "Dimas Pratama",
+            email: "dimas.pratama@sekolah.sch.id",
+            kelas: "XI",
+            role: "siswa",
+          },
+          DEMO_PASSWORD,
+        );
+        await ensureUser(
+          {
+            uid: "demo-murid-3",
+            name: "Nadia Salsabila",
+            email: "nadia.salsabila@sekolah.sch.id",
+            kelas: "XI",
+            role: "siswa",
+          },
+          DEMO_PASSWORD,
+        );
+
+        // Murid 1: Tuntas 100% + sertifikat siap (skor 9/10)
+        if (!readItem("misi-prog-demo-murid-1", null)) {
+          writeItem("misi-prog-demo-murid-1", {
+            activity: [
+              { key: "materi-bus", label: "Materi Topologi Bus", topo: "bus", xp: 50, at: now - 3 * day },
+              { key: "praktik-bus", label: "Praktik Topologi Bus", topo: "bus", xp: 100, at: now - 3 * day + 600_000 },
+              { key: "simulasi-bus", label: "Simulasi Topologi Bus", topo: "bus", xp: 50, at: now - 3 * day + 900_000 },
+              { key: "materi-ring", label: "Materi Topologi Ring", topo: "ring", xp: 50, at: now - 2 * day },
+              { key: "praktik-ring", label: "Praktik Topologi Ring", topo: "ring", xp: 100, at: now - 2 * day + 500_000 },
+              { key: "simulasi-ring", label: "Simulasi Topologi Ring", topo: "ring", xp: 50, at: now - 2 * day + 800_000 },
+              { key: "materi-star", label: "Materi Topologi Star", topo: "star", xp: 50, at: now - day },
+              { key: "praktik-star", label: "Praktik Topologi Star", topo: "star", xp: 100, at: now - day + 400_000 },
+              { key: "simulasi-star", label: "Simulasi Topologi Star", topo: "star", xp: 50, at: now - day + 700_000 },
+              { key: "kuis-akhir", label: "Kuis akhir — nilai 9/10", xp: 90, at: now - 4 * 3600_000 },
+            ],
+            done: {
+              "materi-bus": true,
+              "praktik-bus": true,
+              "simulasi-bus": true,
+              "materi-ring": true,
+              "praktik-ring": true,
+              "simulasi-ring": true,
+              "materi-star": true,
+              "praktik-star": true,
+              "simulasi-star": true,
+            },
+            quizBest: 9,
+            quizAttempts: 2,
+          });
+          writeItem("misi-analytics-demo-murid-1", {
+            loginCount: 5,
+            lastLoginAt: now - 3 * 3600_000,
+            trackingConsent: true,
+            materi: {
+              bus: { views: 2, timeSec: 360, diagramOpened: true, narasiOpened: true, videoOpened: true, cekAnswered: true, lastAt: now - 3 * day },
+              ring: { views: 2, timeSec: 310, diagramOpened: true, narasiOpened: true, videoOpened: true, cekAnswered: true, lastAt: now - 2 * day },
+              star: { views: 2, timeSec: 340, diagramOpened: true, narasiOpened: true, videoOpened: true, cekAnswered: true, lastAt: now - day },
+            },
+            praktik: {
+              bus: { attempts: 1, correctConnections: 4, rejectedConnections: 0, completions: 1, bestDurationSec: 68, lastAt: now - 3 * day },
+              ring: { attempts: 1, correctConnections: 4, rejectedConnections: 1, completions: 1, bestDurationSec: 84, lastAt: now - 2 * day },
+              star: { attempts: 1, correctConnections: 5, rejectedConnections: 0, completions: 1, bestDurationSec: 72, lastAt: now - day },
+            },
+            simulasi: {
+              bus: { pingRuns: 3, faultTests: 2, failedPings: 1, lastAt: now - 3 * day },
+              ring: { pingRuns: 4, faultTests: 2, failedPings: 1, lastAt: now - 2 * day },
+              star: { pingRuns: 4, faultTests: 2, failedPings: 1, lastAt: now - day },
+            },
+            quizHistory: [
+              { id: "a-pre", at: now - 3 * day, kind: "pretest", score: 6, total: 10, durationSec: 190, answers: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 0, 6: 1, 7: 0, 8: 0, 9: 1, 10: 0 } },
+              { id: "a-post", at: now - 4 * 3600_000, kind: "posttest", score: 9, total: 10, durationSec: 175, answers: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 1, 10: 1 } },
+            ],
+            reflections: [
+              {
+                id: "a-ref-1",
+                at: now - day,
+                context: "Cek Pemahaman Topologi Star",
+                topo: "star",
+                text: "Star mengisolasi gangguan kabel per PC, tetapi switch pusat tetap menjadi single point of failure.",
+                source: "cek-pemahaman",
+              },
+            ],
+            aiSessions: [],
+            hallucinationSolved: ["hal-1", "hal-3"],
+            traces: [],
+          });
+        }
+
+        // Murid 2: Sedang mengerjakan (Bus & Ring berjalan, skor kuis masih 5/10 — butuh penguatan)
+        if (!readItem("misi-prog-demo-murid-2", null)) {
+          writeItem("misi-prog-demo-murid-2", {
+            activity: [
+              { key: "materi-bus", label: "Materi Topologi Bus", topo: "bus", xp: 50, at: now - 2 * day },
+              { key: "praktik-bus", label: "Praktik Topologi Bus", topo: "bus", xp: 100, at: now - 2 * day + 900_000 },
+              { key: "materi-ring", label: "Materi Topologi Ring", topo: "ring", xp: 50, at: now - day },
+              { key: "kuis-akhir", label: "Kuis akhir — nilai 5/10", xp: 50, at: now - 14 * 3600_000 },
+            ],
+            done: {
+              "materi-bus": true,
+              "praktik-bus": true,
+              "materi-ring": true,
+            },
+            quizBest: 5,
+            quizAttempts: 2,
+          });
+          writeItem("misi-analytics-demo-murid-2", {
+            loginCount: 3,
+            lastLoginAt: now - 14 * 3600_000,
+            trackingConsent: true,
+            materi: {
+              bus: { views: 2, timeSec: 210, diagramOpened: true, narasiOpened: false, videoOpened: false, cekAnswered: false, lastAt: now - 2 * day },
+              ring: { views: 1, timeSec: 120, diagramOpened: true, narasiOpened: false, videoOpened: false, cekAnswered: false, lastAt: now - day },
+              star: { views: 0, timeSec: 0, diagramOpened: false, narasiOpened: false, videoOpened: false, cekAnswered: false, lastAt: null },
+            },
+            praktik: {
+              bus: { attempts: 2, correctConnections: 4, rejectedConnections: 3, completions: 1, bestDurationSec: 155, lastAt: now - 2 * day },
+              ring: { attempts: 0, correctConnections: 2, rejectedConnections: 4, completions: 0, bestDurationSec: null, lastAt: now - day },
+              star: { attempts: 0, correctConnections: 0, rejectedConnections: 0, completions: 0, bestDurationSec: null, lastAt: null },
+            },
+            simulasi: {
+              bus: { pingRuns: 1, faultTests: 0, failedPings: 0, lastAt: now - 2 * day },
+              ring: { pingRuns: 0, faultTests: 0, failedPings: 0, lastAt: null },
+              star: { pingRuns: 0, faultTests: 0, failedPings: 0, lastAt: null },
+            },
+            quizHistory: [
+              { id: "d-post-1", at: now - day, kind: "posttest", score: 5, total: 10, durationSec: 140, answers: { 1: 1, 2: 0, 3: 1, 4: 1, 5: 0, 6: 0, 7: 1, 8: 0, 9: 0, 10: 0 } },
+              { id: "d-post-2", at: now - 14 * 3600_000, kind: "posttest", score: 5, total: 10, durationSec: 132, answers: { 1: 1, 2: 0, 3: 1, 4: 1, 5: 0, 6: 0, 7: 1, 8: 0, 9: 0, 10: 0 } },
+            ],
+            reflections: [],
+            aiSessions: [],
+            hallucinationSolved: [],
+            traces: [],
+          });
+        }
+
+        // Murid 3: Baru mulai (login & baca materi Bus)
+        if (!readItem("misi-prog-demo-murid-3", null)) {
+          writeItem("misi-prog-demo-murid-3", {
+            activity: [
+              { key: "materi-bus", label: "Materi Topologi Bus", topo: "bus", xp: 50, at: now - 5 * 3600_000 },
+            ],
+            done: { "materi-bus": true },
+            quizBest: null,
+            quizAttempts: 0,
+          });
+          writeItem("misi-analytics-demo-murid-3", {
+            loginCount: 1,
+            lastLoginAt: now - 5 * 3600_000,
+            trackingConsent: true,
+            materi: {
+              bus: { views: 1, timeSec: 180, diagramOpened: true, narasiOpened: true, videoOpened: false, cekAnswered: true, lastAt: now - 5 * 3600_000 },
+              ring: { views: 0, timeSec: 0, diagramOpened: false, narasiOpened: false, videoOpened: false, cekAnswered: false, lastAt: null },
+              star: { views: 0, timeSec: 0, diagramOpened: false, narasiOpened: false, videoOpened: false, cekAnswered: false, lastAt: null },
+            },
+            praktik: {
+              bus: { attempts: 0, correctConnections: 0, rejectedConnections: 0, completions: 0, bestDurationSec: null, lastAt: null },
+              ring: { attempts: 0, correctConnections: 0, rejectedConnections: 0, completions: 0, bestDurationSec: null, lastAt: null },
+              star: { attempts: 0, correctConnections: 0, rejectedConnections: 0, completions: 0, bestDurationSec: null, lastAt: null },
+            },
+            simulasi: {
+              bus: { pingRuns: 0, faultTests: 0, failedPings: 0, lastAt: null },
+              ring: { pingRuns: 0, faultTests: 0, failedPings: 0, lastAt: null },
+              star: { pingRuns: 0, faultTests: 0, failedPings: 0, lastAt: null },
+            },
+            quizHistory: [],
+            reflections: [
+              {
+                id: "n-ref-1",
+                at: now - 5 * 3600_000,
+                context: "Cek Pemahaman Topologi Bus",
+                topo: "bus",
+                text: "Kalau backbone putus di tengah, PC di sisi kanan dan kiri tidak bisa saling kirim data.",
+                source: "cek-pemahaman",
+              },
+            ],
+            aiSessions: [],
+            hallucinationSolved: [],
+            traces: [],
+          });
+        }
+
+        writeItem(DEMO_SEED_VERSION_KEY, "2");
       }
-      users.push({
-        uid: "demo-navigator",
-        name: "Siswa Navigator",
-        email: DEMO_EMAIL,
-        kelas: "XI",
-        passHash: await hashPassword(DEMO_PASSWORD),
-      });
-      writeDemoUsers(users);
+
+      if (changed) writeDemoUsers(users);
     })().catch(() => {
-      // Bila penyimpanan browser tidak tersedia, mode demo tetap jalan tanpa akun demo.
+      // Mode demo tetap jalan meski storage tidak tersedia
     });
   }
   return seedPromise;
@@ -154,11 +396,22 @@ function start() {
   if (isDemoMode) {
     void seedDemoAccount()
       .then(() => {
-        const saved = readItem<SessionUser | null>(SESSION_KEY, null);
-        setSession(saved && saved.email ? saved : null);
+        const saved = readItem<Partial<SessionUser> | null>(SESSION_KEY, null);
+        if (saved && saved.email && saved.uid) {
+          setSession({
+            uid: saved.uid,
+            name: saved.name ?? "Siswa",
+            email: saved.email,
+            kelas: saved.kelas ?? "XI",
+            role: saved.role === "guru" ? "guru" : "siswa",
+            photoURL: saved.photoURL ?? null,
+            provider: "demo",
+          });
+        } else {
+          setSession(null);
+        }
       })
       .catch(() => {
-        // Mode demo tetap harus bisa dipakai walau penyimpanan browser bermasalah.
         setSession(null);
       });
     return;
@@ -175,13 +428,28 @@ function start() {
       return;
     }
     const uid = u.uid;
-    setSession({
+    const cachedRole = readItem<UserRole>(`misi-role-${uid}`, "siswa");
+    const baseSession: SessionUser = {
       uid,
       name: u.displayName ?? u.email?.split("@")[0] ?? "Siswa",
       email: u.email ?? "",
       kelas: readItem<string>(`misi-kelas-${uid}`, "XI"),
+      role: cachedRole === "guru" ? "guru" : "siswa",
       photoURL: u.photoURL ?? null,
       provider: "firebase",
+    };
+    setSession(baseSession);
+
+    // Sinkronkan peran & profil dari Firestore agar role selalu konsisten lintas perangkat
+    void loadCloudProg(uid).then((doc) => {
+      if (!doc || current?.uid !== uid) return;
+      const cloudRole: UserRole = doc.role === "guru" ? "guru" : baseSession.role;
+      const cloudKelas = doc.kelas || baseSession.kelas;
+      if (cloudRole !== current.role || cloudKelas !== current.kelas) {
+        writeItem(`misi-role-${uid}`, cloudRole);
+        writeItem(`misi-kelas-${uid}`, cloudKelas);
+        setSession({ ...current, role: cloudRole, kelas: cloudKelas });
+      }
     });
   });
 }
@@ -204,7 +472,6 @@ export function getSessionReady(): boolean {
   return ready;
 }
 
-/** Nilai saat server merender — selalu "belum ada sesi". */
 export function getServerSession(): SessionUser | null {
   return null;
 }
@@ -215,7 +482,6 @@ export function getServerSessionReady(): boolean {
 
 /* ------------------------------------------------------------------ Aksi */
 
-/** Masuk. Mengembalikan pesan error, atau null bila berhasil. */
 export async function sessionSignIn(email: string, pass: string): Promise<string | null> {
   const mail = email.trim().toLowerCase();
 
@@ -224,7 +490,7 @@ export async function sessionSignIn(email: string, pass: string): Promise<string
     const users = readDemoUsers();
     const found = users.find((u) => u.email.toLowerCase() === mail);
     if (!found) {
-      return `Akun tidak ditemukan. Gunakan akun demo ${DEMO_EMAIL} / ${DEMO_PASSWORD}.`;
+      return `Akun tidak ditemukan. Gunakan akun siswa (${DEMO_EMAIL}) atau guru (${DEMO_TEACHER_EMAIL}).`;
     }
     const hash = await hashPassword(pass);
     if (!sameHash(found.passHash, hash)) return "Kata sandi salah. Coba lagi.";
@@ -233,6 +499,7 @@ export async function sessionSignIn(email: string, pass: string): Promise<string
       name: found.name,
       email: found.email,
       kelas: found.kelas,
+      role: found.role,
       photoURL: null,
       provider: "demo",
     };
@@ -246,12 +513,14 @@ export async function sessionSignIn(email: string, pass: string): Promise<string
   return null;
 }
 
-/** Daftar akun baru. */
+/** Daftar akun baru (Siswa atau Guru dengan kode akses guru). */
 export async function sessionSignUp(
   name: string,
   email: string,
   pass: string,
   kelas: string,
+  role: UserRole = "siswa",
+  teacherCode?: string,
 ): Promise<string | null> {
   const mail = email.trim().toLowerCase();
 
@@ -259,16 +528,24 @@ export async function sessionSignUp(
   if (!mail) return "Email wajib diisi.";
   if (pass.length < 8) return "Kata sandi minimal 8 karakter.";
 
+  if (role === "guru") {
+    const code = (teacherCode ?? "").trim();
+    if (!code || code.toUpperCase() !== TEACHER_ACCESS_CODE.toUpperCase()) {
+      return "Kode akses guru tidak valid. Minta kode resmi kepada pengelola mata kuliah.";
+    }
+  }
+
   if (isDemoMode) {
     await seedDemoAccount();
     const users = readDemoUsers();
     if (users.some((u) => u.email.toLowerCase() === mail))
       return "Email sudah terdaftar. Silakan masuk.";
     const user: DemoUser = {
-      uid: `demo-${Date.now().toString(36)}`,
+      uid: `demo-${role}-${Date.now().toString(36)}`,
       name: name.trim(),
       email: mail,
-      kelas: kelas || "XI",
+      kelas: role === "guru" ? "Pengampu" : kelas || "XI",
+      role,
       passHash: await hashPassword(pass),
     };
     users.push(user);
@@ -279,6 +556,7 @@ export async function sessionSignUp(
       name: user.name,
       email: user.email,
       kelas: user.kelas,
+      role: user.role,
       photoURL: null,
       provider: "demo",
     };
@@ -287,17 +565,39 @@ export async function sessionSignUp(
     return null;
   }
 
-  return signUpWithEmail(name, mail, pass);
+  const err = await signUpWithEmail(name, mail, pass);
+  if (err) return err;
+
+  // Simpan profil & role langsung ke Firestore
+  const uid = auth?.currentUser?.uid;
+  if (uid) {
+    const resolvedKelas = role === "guru" ? "Pengampu" : kelas || "XI";
+    writeItem(`misi-role-${uid}`, role);
+    writeItem(`misi-kelas-${uid}`, resolvedKelas);
+    await saveCloudProg(uid, {
+      name: name.trim(),
+      email: mail,
+      kelas: resolvedKelas,
+      role,
+      xp: 0,
+      done: {},
+      quizBest: null,
+      quizAttempts: 0,
+      activity: [],
+    });
+    if (current?.uid === uid) {
+      setSession({ ...current, role, kelas: resolvedKelas, name: name.trim() });
+    }
+  }
+  return null;
 }
 
-/** Masuk dengan akun Google (hanya mode Firebase). */
 export async function sessionGoogle(): Promise<string | null> {
   if (isDemoMode)
     return "Login Google hanya tersedia pada mode Firebase. Gunakan akun demo lokal.";
   return signInWithGoogle();
 }
 
-/** Keluar dari sesi. */
 export async function sessionSignOut(): Promise<void> {
   if (isDemoMode) {
     removeItem(SESSION_KEY);
@@ -308,7 +608,6 @@ export async function sessionSignOut(): Promise<void> {
   setSession(null);
 }
 
-/** Memperbarui nama & kelas. */
 export async function sessionUpdate(patch: {
   name?: string;
   kelas?: string;
@@ -349,7 +648,6 @@ export async function sessionUpdate(patch: {
   return null;
 }
 
-/** Memastikan akun demo tersedia (dipanggil sekali saat app start). */
 export function ensureSeed(): void {
   if (!isDemoMode) return;
   void seedDemoAccount();

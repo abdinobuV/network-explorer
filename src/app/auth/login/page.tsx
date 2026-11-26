@@ -6,11 +6,20 @@ import { useState, type FormEvent } from "react";
 import AuthShell from "@/components/auth-shell";
 import { IconEye, IconWarning } from "@/components/icons";
 import { Btn, Callout, Field, Input } from "@/components/ui";
+import { getSession } from "@/lib/auth-session";
 import { useAuth } from "@/lib/store";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loginGoogle, isDemo, demoEmail, demoPassword } = useAuth();
+  const {
+    login,
+    loginGoogle,
+    isDemo,
+    demoEmail,
+    demoPassword,
+    demoTeacherEmail,
+    demoTeacherPassword,
+  } = useAuth();
   const [email, setEmail] = useState(isDemo ? demoEmail : "");
   const [pass, setPass] = useState(isDemo ? demoPassword : "");
   const [show, setShow] = useState(false);
@@ -28,7 +37,8 @@ export default function LoginPage() {
       setErr(message);
       return;
     }
-    router.push("/misi");
+    const role = getSession()?.role;
+    router.push(role === "guru" ? "/guru" : "/misi");
   }
 
   async function onGoogle() {
@@ -41,14 +51,15 @@ export default function LoginPage() {
       setErr(message);
       return;
     }
-    router.push("/misi");
+    const role = getSession()?.role;
+    router.push(role === "guru" ? "/guru" : "/misi");
   }
 
   return (
     <AuthShell
-      chapter="Akses siswa"
+      chapter="Akses siswa & guru"
       title="Masuk ke Network Explorer"
-      lead="Progres, nilai kuis, dan lencana tersimpan pada akunmu di perangkat ini atau di cloud."
+      lead="Siswa masuk ke alur belajar pribadinya; Guru masuk langsung ke Dashboard Pemantauan Kelas."
       footer={
         <p className="text-caption text-ink-3">
           Belum punya akun?{" "}
@@ -134,11 +145,34 @@ export default function LoginPage() {
         )}
 
         {isDemo && (
-          <Callout tone="warn">
-            Mode demo aktif. Gunakan akun bawaan{" "}
-            <span className="font-mono text-ink">{demoEmail}</span> /{" "}
-            <span className="font-mono text-ink">{demoPassword}</span> atau daftar akun sendiri.
-            Data tersimpan di peramban ini.
+          <Callout tone="warn" label="Akun Demo Siap Pakai (Siswa & Guru)">
+            <p>Pilih akun cepat untuk mencoba hak akses berbeda:</p>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              <Btn
+                type="button"
+                size="sm"
+                tone="ghost"
+                onClick={() => {
+                  setEmail(demoEmail);
+                  setPass(demoPassword);
+                  setErr(null);
+                }}
+              >
+                Isi Akun Siswa ({demoEmail})
+              </Btn>
+              <Btn
+                type="button"
+                size="sm"
+                tone="signal"
+                onClick={() => {
+                  setEmail(demoTeacherEmail);
+                  setPass(demoTeacherPassword);
+                  setErr(null);
+                }}
+              >
+                Isi Akun Guru ({demoTeacherEmail})
+              </Btn>
+            </div>
           </Callout>
         )}
       </form>

@@ -105,6 +105,7 @@ async function pushNow(uid: string) {
     name: session?.name,
     email: session?.email,
     kelas: session?.kelas,
+    role: session?.role ?? "siswa",
   });
   if (result.ok) {
     setSync("saved");
