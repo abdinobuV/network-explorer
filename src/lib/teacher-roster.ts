@@ -9,8 +9,14 @@
  */
 
 import { getSession, readDemoUsers } from "@/lib/auth-session";
-import { isDemoMode, loadAllCloudUsers, type CloudUserDoc } from "@/lib/firebase";
-import { readItem } from "@/lib/storage";
+import {
+  isDemoMode,
+  loadAllCloudUsers,
+  loadCloudProg,
+  saveCloudProg,
+  type CloudUserDoc,
+} from "@/lib/firebase";
+import { readItem, writeItem } from "@/lib/storage";
 import {
   EMPTY_PROGRESS,
   overallPercent,
@@ -336,4 +342,42 @@ export function rosterToCsv(records: StudentRosterRecord[]): string {
     r.certification.eligible ? `Terverifikasi (${r.certification.credentialId})` : "Belum",
   ]);
   return [header, ...rows].map((row) => row.map(esc).join(",")).join("\n");
+}
+
+/* ------------------------------------------------------------------ Catatan Pedagogis Guru */
+
+export type TeacherNotesMap = Record<string, { note: string; updatedAt: number }>;
+
+function notesKey(teacherUid: string) {
+  return `misi-teacher-notes-${teacherUid}`;
+}
+
+export async function loadTeacherNotes(): Promise<TeacherNotesMap> {
+  const session = getSession();
+  if (!session || session.role !== "guru") return {};
+  const local = readItem<TeacherNotesMap>(notesKey(session.uid), {});
+  if (isDemoMode) return local;
+
+  const cloud = await loadCloudProg(session.uid);
+  const merged: TeacherNotesMap = { ...(cloud?.teacherNotes ?? {}), ...local };
+  writeItem(notesKey(session.uid), merged);
+  return merged;
+}
+
+export async function saveTeacherNote(
+  studentUid: string,
+  note: string,
+): Promise<TeacherNotesMap> {
+  const session = getSession();
+  if (!session || session.role !== "guru") return {};
+  const current = readItem<TeacherNotesMap>(notesKey(session.uid), {});
+  const next: TeacherNotesMap = {
+    ...current,
+    [studentUid]: { note: note.trim(), updatedAt: Date.now() },
+  };
+  writeItem(notesKey(session.uid), next);
+  if (!isDemoMode) {
+    await saveCloudProg(session.uid, { teacherNotes: next });
+  }
+  return next;
 }

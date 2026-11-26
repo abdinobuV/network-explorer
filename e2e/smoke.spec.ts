@@ -151,7 +151,9 @@ test.describe("siswa", () => {
 });
 
 test.describe("guru", () => {
-  test("guru masuk ke dashboard pemantauan murid dan dapat melihat seluruh siswa", async ({ page }) => {
+  test("guru masuk ke dashboard pemantauan murid, simpan catatan, dan langsung melihat analitik kelas", async ({
+    page,
+  }) => {
     await masukGuru(page);
     await expect(
       page.getByRole("heading", { name: /Dashboard Pemantauan Murid/i }),
@@ -159,9 +161,15 @@ test.describe("guru", () => {
     await expect(page.getByText("Alya Putri Rahma").first()).toBeVisible();
     await expect(page.getByText("Dimas Pratama").first()).toBeVisible();
 
-    // Guru juga bisa membuka tab Tinjauan Kelas pada /analitik
+    // Simpan catatan pendampingan guru untuk murid terpilih
+    await page
+      .getByLabel(/Catatan Pendampingan Guru/i)
+      .fill("Sudah dikonfirmasi jadwal pendampingan tambahan.");
+    await page.getByRole("button", { name: /Simpan Catatan Guru/i }).click();
+
+    // Guru yang membuka /analitik langsung melihat Analitik Kelas (bukan tugas siswa)
     await page.goto("/analitik");
-    await page.getByRole("tab", { name: /Tinjauan Kelas/i }).click();
+    await expect(page.getByRole("heading", { name: /Analitik Kelas/i })).toBeVisible();
     await expect(page.getByText(/Fokus Intervensi Soal #5/i)).toBeVisible();
   });
 });

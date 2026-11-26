@@ -14,6 +14,7 @@ import {
   PercentBar,
   Select,
   StatusDot,
+  Textarea,
   cx,
 } from "@/components/ui";
 import { AccuracyBarChart, ScoreLineChart } from "@/components/analytics-charts";
@@ -22,6 +23,7 @@ import {
   IconChart,
   IconCheck,
   IconDownload,
+  IconPrint,
   IconRefresh,
   IconSearch,
   IconShield,
@@ -31,10 +33,13 @@ import {
 } from "@/components/icons";
 import {
   loadStudentRoster,
+  loadTeacherNotes,
   rosterToCsv,
+  saveTeacherNote,
   summarizeClassRoster,
   type StudentRosterRecord,
   type StudentWorkStatus,
+  type TeacherNotesMap,
 } from "@/lib/teacher-roster";
 import { formatDuration } from "@/lib/analytics";
 import { TOPO_KEYS, TOPO_LABEL, materiKey, praktikKey, simulasiKey } from "@/lib/progression";
@@ -64,6 +69,9 @@ export default function GuruDashboardPage() {
   const [kelasFilter, setKelasFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
+  const [teacherNotes, setTeacherNotes] = useState<TeacherNotesMap>({});
+  const [noteDraft, setNoteDraft] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
 
   const applyRosterResult = useCallback(
     (res: Awaited<ReturnType<typeof loadStudentRoster>>) => {
@@ -92,13 +100,24 @@ export default function GuruDashboardPage() {
 
   useEffect(() => {
     let active = true;
-    void loadStudentRoster().then((res) => {
-      if (active) applyRosterResult(res);
+    void Promise.all([loadStudentRoster(), loadTeacherNotes()]).then(([res, notes]) => {
+      if (!active) return;
+      setTeacherNotes(notes);
+      applyRosterResult(res);
+      const firstUid = res.records[0]?.uid;
+      if (firstUid && notes[firstUid]?.note) {
+        setNoteDraft(notes[firstUid].note);
+      }
     });
     return () => {
       active = false;
     };
   }, [applyRosterResult]);
+
+  function selectStudent(uid: string) {
+    setSelectedUid(uid);
+    setNoteDraft(teacherNotes[uid]?.note ?? "");
+  }
 
   const classSummary = useMemo(() => summarizeClassRoster(records), [records]);
 
@@ -125,10 +144,17 @@ export default function GuruDashboardPage() {
     });
   }, [records, search, kelasFilter, statusFilter]);
 
-  const selectedStudent = useMemo(
-    () => records.find((r) => r.uid === selectedUid) ?? filtered[0] ?? null,
-    [records, selectedUid, filtered],
-  );
+  const selectedStudent =
+    records.find((r) => r.uid === selectedUid) ?? filtered[0] ?? null;
+
+  async function handleSaveNote() {
+    if (!selectedStudent) return;
+    setSavingNote(true);
+    const updated = await saveTeacherNote(selectedStudent.uid, noteDraft);
+    setTeacherNotes(updated);
+    setSavingNote(false);
+    toast(`Catatan pendampingan untuk ${selectedStudent.name} tersimpan.`, "ok");
+  }
 
   function exportCsv() {
     const csv = rosterToCsv(filtered);
@@ -162,7 +188,7 @@ export default function GuruDashboardPage() {
                 </span>
               }
             >
-              <div className="mt-4 flex flex-wrap items-center gap-2.5">
+              <div className="no-print mt-4 flex flex-wrap items-center gap-2.5">
                 <Btn tone="ghost" size="sm" onClick={() => void fetchRoster()} disabled={loading}>
                   <IconRefresh size={14} /> {loading ? "Memuat…" : "Muat ulang data"}
                 </Btn>
@@ -174,11 +200,14 @@ export default function GuruDashboardPage() {
                 >
                   <IconDownload size={14} /> Unduh Rekap CSV ({filtered.length})
                 </Btn>
+                <Btn tone="ghost" size="sm" onClick={() => window.print()}>
+                  <IconPrint size={14} /> Cetak Laporan Kelas (PDF)
+                </Btn>
                 <BtnLink href="/asisten?mode=teacher" tone="ghost" size="sm">
-                  <IconSparkle size={14} /> Asisten AI Draft Guru
+                  <IconSparkle size={14} /> Asisten AI Guru
                 </BtnLink>
                 <BtnLink href="/analitik" tone="ghost" size="sm">
-                  <IconChart size={14} /> Simulasi Analitik 32 Siswa
+                  <IconChart size={14} /> Analitik Kelas
                 </BtnLink>
               </div>
             </PageHeader>
@@ -375,7 +404,7 @@ export default function GuruDashboardPage() {
                                 type="button"
                                 size="sm"
                                 tone={isSelected ? "signal" : "ghost"}
-                                onClick={() => setSelectedUid(r.uid)}
+                                onClick={() => selectStudent(r.uid)}
                               >
                                 {isSelected ? "Dibuka" : "Inspeksi"}
                               </Btn>
@@ -513,6 +542,55 @@ export default function GuruDashboardPage() {
                           ))}
                         </ul>
                       )}
+                    </div>
+
+                    {/* Catatan Pendampingan & Professional Judgment Guru */}
+                    <div className="rounded-md border border-border-2 bg-canvas/70 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <label
+                          htmlFor="teacher-note"
+                          className="text-caption font-semibold text-ink"
+                        >
+                          Catatan Pendampingan Guru ({selectedStudent.name})
+                        </label>
+                        {teacherNotes[selectedStudent.uid]?.updatedAt && (
+                          <span className="font-mono text-[11px] text-ink-4">
+                            Tersimpan{" "}
+                            {new Date(teacherNotes[selectedStudent.uid].updatedAt).toLocaleDateString(
+                              "id-ID",
+                              { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" },
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-micro text-ink-3">
+                        Catat konteks pribadi murid (mis. kendala perangkat, jadwal remedial, atau
+                        hasil diskusi kelas) sebagai wujud <em>professional judgment</em> guru.
+                      </p>
+                      <Textarea
+                        id="teacher-note"
+                        value={noteDraft}
+                        onChange={(e) => setNoteDraft(e.target.value)}
+                        placeholder="Contoh: Sudah dikonfirmasi kendala jaringan rumah, dijadwalkan ulang praktik Ring pada jam lab berikutnya..."
+                        className="mt-2.5 min-h-20"
+                      />
+                      <div className="no-print mt-3 flex flex-wrap gap-2">
+                        <Btn
+                          type="button"
+                          size="sm"
+                          onClick={() => void handleSaveNote()}
+                          disabled={savingNote}
+                        >
+                          {savingNote ? "Menyimpan…" : "Simpan Catatan Guru"}
+                        </Btn>
+                        <BtnLink
+                          href={`/asisten?mode=teacher&topic=${selectedStudent.summary.weakestConcept?.concept ?? "ring"}`}
+                          tone="ghost"
+                          size="sm"
+                        >
+                          <IconSparkle size={13} /> Buat Draft Feedback AI
+                        </BtnLink>
+                      </div>
                     </div>
 
                     {/* Indikasi Prediktif & Etika */}

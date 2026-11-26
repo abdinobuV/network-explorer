@@ -86,8 +86,7 @@ function RichBody({ text }: { text: string }) {
 function AsistenInner() {
   const sp = useSearchParams();
   const { isGuru } = useAuth();
-  const initialMode: AiFunctionKind =
-    isGuru && sp.get("mode") === "teacher" ? "teacher-draft" : "explain";
+  const initialMode: AiFunctionKind = isGuru ? "teacher-draft" : "explain";
   const initialTopicRaw = sp.get("topic") as ConceptKey | null;
   const initialTopic: ConceptKey =
     initialTopicRaw && CONCEPT_META[initialTopicRaw] ? initialTopicRaw : "star";
@@ -96,16 +95,29 @@ function AsistenInner() {
     useLearningAnalytics();
 
   const availableFunctions = useMemo(
-    () => AI_FUNCTIONS.filter((item) => item.role === "siswa" || isGuru),
+    () =>
+      isGuru
+        ? AI_FUNCTIONS.filter(
+            (item) =>
+              item.role === "guru" ||
+              item.id === "example" ||
+              item.id === "practice" ||
+              item.id === "compare",
+          )
+        : AI_FUNCTIONS.filter((item) => item.role === "siswa"),
     [isGuru],
   );
 
   const [activeTab, setActiveTab] = useState<"studio" | "hallucination" | "transparansi">("studio");
   const [fn, setFn] = useState<AiFunctionKind>(initialMode);
-  const [topic, setTopic] = useState<ConceptKey>(summary.weakestConcept?.concept ?? initialTopic);
+  const [topic, setTopic] = useState<ConceptKey>(
+    isGuru ? initialTopic : (summary.weakestConcept?.concept ?? initialTopic),
+  );
   const [priorThought, setPriorThought] = useState("");
   const [promptText, setPromptText] = useState(
-    `Anda adalah guru Informatika. Jelaskan konsep ${CONCEPT_META[initialTopic].label} untuk siswa SMA kelas XI di laboratorium komputer. Gunakan bahasa sederhana maksimal 150 kata, sertakan satu analogi dan dua pertanyaan pemahaman.`,
+    isGuru
+      ? `Buat tiga studi kasus sederhana tentang pemilihan topologi jaringan (${CONCEPT_META[initialTopic].label}) untuk siswa SMA/SMK kelas XI lengkap dengan draft rubrik penilaian proses.`
+      : `Anda adalah guru Informatika. Jelaskan konsep ${CONCEPT_META[initialTopic].label} untuk siswa SMA kelas XI di laboratorium komputer. Gunakan bahasa sederhana maksimal 150 kata, sertakan satu analogi dan dua pertanyaan pemahaman.`,
   );
 
   // Builder TCCO
@@ -155,7 +167,7 @@ function AsistenInner() {
       toast("Tulis instruksi prompt terlebih dahulu.", "error");
       return;
     }
-    if (fn !== "teacher-draft" && priorThought.trim().length < 8) {
+    if (!isGuru && fn !== "teacher-draft" && priorThought.trim().length < 8) {
       toast(
         "Tulis minimal 1 kalimat pemikiran awalmu dulu sebelum bertanya ke AI (mencegah ketergantungan).",
         "error",
@@ -252,12 +264,22 @@ function AsistenInner() {
       <main id="konten-utama">
         <Container width="page" className="py-10">
           <PageHeader
-            chapter="Pert-12 · AI & Generative AI yang Bertanggung Jawab"
-            title="Asisten Belajar AI & Studio Prompt"
-            lead="Kolaborasi Human–AI untuk berpikir kritis: pikirkan dulu sebelum bertanya, susun prompt TCCO secara iteratif, verifikasi setiap output, dan dokumentasikan prosesmu."
+            chapter={
+              isGuru
+                ? "Pert-12 · Asisten AI untuk Guru (Pedagogical Judgment)"
+                : "Pert-12 · AI & Generative AI yang Bertanggung Jawab"
+            }
+            title={isGuru ? "Asisten AI Pendidik (Draft Bahan Ajar)" : "Asisten Belajar AI & Studio Prompt"}
+            lead={
+              isGuru
+                ? "Susun draft studi kasus lokal, variasi soal remedial, dan rubrik penilaian proses dengan cepat. AI menghasilkan draft awal; keputusan pedagogis tetap berada pada guru."
+                : "Kolaborasi Human–AI untuk berpikir kritis: pikirkan dulu sebelum bertanya, susun prompt TCCO secara iteratif, verifikasi setiap output, dan dokumentasikan prosesmu."
+            }
             meta={
               <span className="inline-flex items-center gap-2.5">
-                <Badge tone="blue">Human remains accountable</Badge>
+                <Badge tone={isGuru ? "amber" : "blue"}>
+                  {isGuru ? "Mode Pendidik · Draft Awal" : "Human remains accountable"}
+                </Badge>
               </span>
             }
           >
@@ -447,8 +469,8 @@ function AsistenInner() {
                     </div>
                   )}
 
-                  {/* Gerbang Anti-Ketergantungan (Slide 31) */}
-                  {fn !== "teacher-draft" && (
+                  {/* Gerbang Anti-Ketergantungan (khusus Siswa — Slide 31) */}
+                  {!isGuru && fn !== "teacher-draft" && (
                     <div className="mt-5">
                       <Field
                         label="Langkah 0 — Apa yang sudah kamu pikirkan sendiri sebelum bertanya ke AI?"
@@ -909,16 +931,29 @@ function AsistenInner() {
             </div>
           )}
 
-          <NextStepFooter
-            prev={{ label: "Dashboard Analitik", href: "/analitik" }}
-            next={{
-              label: "Lanjut ke Tahap 5 (Akhir): Sertifikat & Rapor Proses",
-              href: "/cetak",
-              description:
-                "Cek 5 syarat kelulusan, tinjau bukti proses & transparansi AI, lalu cetak Sertifikat Kompetensi Digital.",
-            }}
-            hint="TAHAP 4 SELESAI → TAHAP 5 (KELULUSAN)"
-          />
+          {isGuru ? (
+            <NextStepFooter
+              prev={{ label: "Analitik Kelas", href: "/analitik" }}
+              next={{
+                label: "Kembali ke Dashboard Pemantauan Murid",
+                href: "/guru",
+                description:
+                  "Pantau perkembangan seluruh murid, simpan catatan pendampingan, dan unduh rekap nilai kelas.",
+              }}
+              hint="PANEL PENDIDIK · KEMBALI KE PEMANTAUAN KELAS"
+            />
+          ) : (
+            <NextStepFooter
+              prev={{ label: "Dashboard Analitik", href: "/analitik" }}
+              next={{
+                label: "Lanjut ke Tahap 5 (Akhir): Sertifikat & Rapor Proses",
+                href: "/cetak",
+                description:
+                  "Cek 5 syarat kelulusan, tinjau bukti proses & transparansi AI, lalu cetak Sertifikat Kompetensi Digital.",
+              }}
+              hint="TAHAP 4 SELESAI → TAHAP 5 (KELULUSAN)"
+            />
+          )}
 
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-micro text-ink-3">
             <span className="inline-flex items-center gap-2">

@@ -78,11 +78,9 @@ const MAIN_NAV = [
 ];
 
 const TEACHER_NAV = [
-  { step: "G", label: "Dashboard Guru", href: "/guru", matches: ["/guru"] },
-  { step: "A", label: "Analitik Kelas", href: "/analitik", matches: ["/analitik"] },
-  { step: "AI", label: "Asisten AI Guru", href: "/asisten", matches: ["/asisten"] },
-  { step: "M", label: "Pratinjau Materi", href: "/misi", matches: ["/misi", "/materi", "/praktik"] },
-  { step: "S", label: "Sandbox", href: "/sandbox/star", matches: ["/sandbox"] },
+  { step: "1", label: "Dashboard Kelas", href: "/guru", matches: ["/guru"] },
+  { step: "2", label: "Analitik Kelas", href: "/analitik", matches: ["/analitik"] },
+  { step: "3", label: "Asisten AI Guru", href: "/asisten", matches: ["/asisten"] },
 ];
 
 const UTIL_NAV = [
@@ -91,6 +89,14 @@ const UTIL_NAV = [
   { label: "Progres", href: "/progres" },
   { label: "Glosarium", href: "/glosarium" },
   { label: "Panduan", href: "/panduan" },
+  { label: "Pengaturan", href: "/pengaturan" },
+];
+
+const TEACHER_UTIL_NAV = [
+  { label: "Referensi Topologi", href: "/perbandingan" },
+  { label: "Glosarium", href: "/glosarium" },
+  { label: "Panduan Guru", href: "/panduan" },
+  { label: "Pratinjau Tampilan Siswa", href: "/misi" },
   { label: "Pengaturan", href: "/pengaturan" },
 ];
 
@@ -106,6 +112,7 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
     certification,
   );
   const primaryNav = isGuru ? TEACHER_NAV : MAIN_NAV;
+  const secondaryNav = isGuru ? TEACHER_UTIL_NAV : UTIL_NAV;
 
   if (pub) {
     return (
@@ -265,11 +272,11 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
 
           <span className="mx-1 h-3.5 w-px shrink-0 bg-border lg:hidden" aria-hidden="true" />
           <span className="mr-1 hidden shrink-0 font-mono text-[11px] text-ink-4 lg:inline">
-            Alat &amp; Referensi:
+            {isGuru ? "Panel Pendidik:" : "Alat & Referensi:"}
           </span>
 
-          {UTIL_NAV.map((item) => {
-            const prefix = item.match ?? item.href;
+          {secondaryNav.map((item) => {
+            const prefix = "match" in item && item.match ? item.match : item.href;
             const active = path === item.href || path.startsWith(prefix + "/");
             return (
               <Link
@@ -290,13 +297,9 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
 
           {/* Penunjuk aksi utama yang selalu terlihat sesuai peran */}
           {isGuru ? (
-            <Link
-              href="/guru"
-              className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-xs border border-caution/45 bg-caution-tint/80 px-2.5 py-1 font-mono text-[11px] font-medium text-caution transition-colors hover:border-caution"
-            >
-              <span>Pantau Semua Murid</span>
-              <IconArrow size={11} />
-            </Link>
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-xs border border-caution/40 bg-caution-tint/70 px-2.5 py-1 font-mono text-[11px] font-medium text-caution">
+              Mode Pemantauan Guru
+            </span>
           ) : (
             <Link
               href={nextStep.href}

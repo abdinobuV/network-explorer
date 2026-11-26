@@ -17,7 +17,7 @@ import {
 import { TopoMini } from "@/components/topo";
 import { TOPOLOGI } from "@/lib/data";
 import { TOPO_SPECS } from "@/lib/topology-model";
-import { useLearningAnalytics, useProg } from "@/lib/store";
+import { useAuth, useLearningAnalytics, useProg } from "@/lib/store";
 import {
   XP,
   levelProgress,
@@ -39,6 +39,7 @@ import {
 const URUT = ["bus", "ring", "star"] as const;
 
 export default function MisiPage() {
+  const { isGuru } = useAuth();
   const { done, xp, activity, quizBest, quizAttempts } = useProg();
   const { data: analytics, summary, certification } = useLearningAnalytics();
 
@@ -67,6 +68,24 @@ export default function MisiPage() {
                 </span>
               }
             />
+
+            {/* Banner pratinjau jika Guru membuka halaman siswa */}
+            {isGuru && (
+              <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-lg border border-caution/45 bg-caution-tint/60 p-5 md:flex-row md:items-center">
+                <div>
+                  <p className="font-mono text-micro text-caution">
+                    PRATINJAU TAMPILAN MURID · MODE GURU
+                  </p>
+                  <p className="mt-1 text-caption text-ink">
+                    Anda masuk sebagai <strong>Guru</strong>. Halaman ini hanya pratinjau alur
+                    belajar yang dikerjakan murid — guru tidak perlu mengerjakan tugas atau kuis.
+                  </p>
+                </div>
+                <BtnLink href="/guru" tone="primary" size="sm" className="shrink-0">
+                  Kembali ke Dashboard Guru <IconArrow size={13} />
+                </BtnLink>
+              </div>
+            )}
 
             {/* =============================================================== */}
             {/* HERO: LANGKAH YANG HARUS DIKERJAKAN SEKARANG                    */}

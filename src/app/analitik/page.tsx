@@ -57,9 +57,10 @@ export default function AnalitikPage() {
   const prog = useProg();
   const { data, setTrackingConsent, resetAnalytics, certification } = useLearningAnalytics();
 
-  const [viewMode, setViewMode] = useState<"siswa" | "guru">("siswa");
   const [useSamplePreview, setUseSamplePreview] = useState(false);
-  const effectiveView: "siswa" | "guru" = isGuru ? viewMode : "siswa";
+  // Guru langsung melihat Analitik Kelas (tidak mengerjakan tugas siswa);
+  // Siswa hanya melihat Analitik Pribadinya sendiri (Access Control).
+  const effectiveView: "siswa" | "guru" = isGuru ? "guru" : "siswa";
 
   const sampleData = useMemo(() => buildSampleStudentAnalytics(), []);
   const activeAnalytics = useSamplePreview ? sampleData : data;
@@ -118,53 +119,40 @@ export default function AnalitikPage() {
         <main id="konten-utama">
           <Container width="page" className="py-10">
             <PageHeader
-              chapter="Pert-13 · Learning Analytics & Adaptive Learning"
-              title="Dashboard Learning Analytics"
-              lead="Mengumpulkan, mengukur, dan menginterpretasikan jejak belajar digital untuk membantu keputusan pembelajaran — bukan sekadar menampilkan nilai akhir."
+              chapter={
+                isGuru
+                  ? "Pert-13 · Analitik Kelas Khusus Pendidik"
+                  : "Pert-13 · Learning Analytics & Adaptive Learning"
+              }
+              title={isGuru ? "Analitik Kelas & Diagnosis Soal" : "Dashboard Learning Analytics"}
+              lead={
+                isGuru
+                  ? "Tinjauan agregat perkembangan kelas, analisis butir soal tersulit, dan indikasi kontekstual tanpa pelabelan untuk mendukung keputusan pedagogis guru."
+                  : "Mengumpulkan, mengukur, dan menginterpretasikan jejak belajar digital pribadimu untuk membantu keputusan pembelajaran — bukan sekadar menampilkan nilai akhir."
+              }
               meta={
-                <span className="inline-flex items-center gap-3">
-                  <StatusDot
-                    tone={data.trackingConsent ? "green" : "amber"}
-                    label={data.trackingConsent ? "Pencatatan aktif" : "Pencatatan dijeda"}
-                  />
-                  <span className="text-signal-bright">{activeAnalytics.traces.length} jejak</span>
-                </span>
+                isGuru ? (
+                  <span className="inline-flex items-center gap-3">
+                    <StatusDot tone="amber" label="Mode Pemantauan Guru" />
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-3">
+                    <StatusDot
+                      tone={data.trackingConsent ? "green" : "amber"}
+                      label={data.trackingConsent ? "Pencatatan aktif" : "Pencatatan dijeda"}
+                    />
+                    <span className="text-signal-bright">{activeAnalytics.traces.length} jejak</span>
+                  </span>
+                )
               }
             >
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Mode tampilan analitik">
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={effectiveView === "siswa"}
-                    onClick={() => setViewMode("siswa")}
-                    className={cx(
-                      "cursor-pointer rounded-md border px-3.5 py-2 text-caption font-medium transition-colors",
-                      effectiveView === "siswa"
-                        ? "border-signal bg-signal-tint text-signal-bright"
-                        : "border-border bg-surface text-ink-2 hover:border-border-2 hover:text-ink",
-                    )}
-                  >
-                    Analitik Pribadi ({isGuru ? "Akun Sendiri" : "Data Milikmu"})
-                  </button>
+                <div className="flex flex-wrap items-center gap-2">
                   {isGuru ? (
                     <>
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={effectiveView === "guru"}
-                        onClick={() => setViewMode("guru")}
-                        className={cx(
-                          "cursor-pointer rounded-md border px-3.5 py-2 text-caption font-medium transition-colors",
-                          effectiveView === "guru"
-                            ? "border-signal bg-signal-tint text-signal-bright"
-                            : "border-border bg-surface text-ink-2 hover:border-border-2 hover:text-ink",
-                        )}
-                      >
-                        Tinjauan Kelas (Mode Guru)
-                      </button>
+                      <Badge tone="amber">Tinjauan Kelas (Mode Guru)</Badge>
                       <BtnLink href="/guru" tone="primary" size="sm">
-                        Buka Daftar Semua Murid <IconArrow size={13} />
+                        Buka Daftar &amp; Inspeksi Semua Murid <IconArrow size={13} />
                       </BtnLink>
                     </>
                   ) : (
@@ -891,25 +879,38 @@ export default function AnalitikPage() {
               </div>
             )}
 
-            <NextStepFooter
-              prev={{ label: "Kuis Akhir", href: "/kuis" }}
-              next={
-                certification.eligible
-                  ? {
-                      label: "Lanjut ke Tahap 5: Cetak Sertifikat Kompetensi",
-                      href: "/cetak",
-                      description:
-                        "Seluruh syarat kelulusan telah terpenuhi. Cetak Sertifikat Kompetensi & Rapor Prosesmu.",
-                    }
-                  : {
-                      label: "Lanjut ke Tahap 4b: Asisten Belajar AI & Bukti Proses",
-                      href: "/asisten",
-                      description:
-                        "Perkuat konsep yang masih lemah, latih deteksi halusinasi AI, dan simpan refleksi proses untuk membuka sertifikat.",
-                    }
-              }
-              hint="TAHAP 4 · ANALITIK → PENGUATAN & KELULUSAN"
-            />
+            {isGuru ? (
+              <NextStepFooter
+                prev={{ label: "Dashboard Pemantauan Murid", href: "/guru" }}
+                next={{
+                  label: "Lanjut ke Asisten AI Guru (Draft Studi Kasus & Rubrik)",
+                  href: "/asisten?mode=teacher",
+                  description:
+                    "Gunakan temuan soal tersulit kelas untuk menyusun draft penjelasan ulang, variasi latihan remedial, atau rubrik penilaian proses.",
+                }}
+                hint="ALUR KERJA PENDIDIK · DIAGNOSIS KELAS → RANCANG INTERVENSI"
+              />
+            ) : (
+              <NextStepFooter
+                prev={{ label: "Kuis Akhir", href: "/kuis" }}
+                next={
+                  certification.eligible
+                    ? {
+                        label: "Lanjut ke Tahap 5: Cetak Sertifikat Kompetensi",
+                        href: "/cetak",
+                        description:
+                          "Seluruh syarat kelulusan telah terpenuhi. Cetak Sertifikat Kompetensi & Rapor Prosesmu.",
+                      }
+                    : {
+                        label: "Lanjut ke Tahap 4b: Asisten Belajar AI & Bukti Proses",
+                        href: "/asisten",
+                        description:
+                          "Perkuat konsep yang masih lemah, latih deteksi halusinasi AI, dan simpan refleksi proses untuk membuka sertifikat.",
+                      }
+                }
+                hint="TAHAP 4 · ANALITIK → PENGUATAN & KELULUSAN"
+              />
+            )}
 
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-micro text-ink-3">
               <span className="inline-flex items-center gap-2">

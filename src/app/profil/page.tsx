@@ -4,8 +4,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
-import { Container, PageHeader, Badge, Meter, StatusDot, BtnLink } from "@/components/ui";
-import { IconArrow, IconTrophy, IconUser } from "@/components/icons";
+import { Container, PageHeader, Badge, Meter, StatusDot, BtnLink, Callout } from "@/components/ui";
+import {
+  IconArrow,
+  IconChart,
+  IconShield,
+  IconSparkle,
+  IconTrophy,
+  IconUser,
+} from "@/components/icons";
 import { useAuth, useProg } from "@/lib/store";
 import {
   TOPO_KEYS,
@@ -16,7 +23,7 @@ import {
 } from "@/lib/progression";
 
 export default function ProfilPage() {
-  const { user, isDemo, isGuru } = useAuth();
+  const { user, isDemo, isGuru, teacherAccessCode } = useAuth();
   const { xp, done, activity, quizBest, quizAttempts } = useProg();
   const lv = levelProgress(xp);
   const persen = overallPercent({ activity, done, quizBest, quizAttempts });
@@ -31,9 +38,13 @@ export default function ProfilPage() {
         <main id="konten-utama">
           <Container width="page" className="py-10">
             <PageHeader
-              chapter="Kartu peserta"
-              title="Profil siswa"
-              lead="Identitas akun dan ringkasan progres belajarmu di Misi Topologi."
+              chapter={isGuru ? "Identitas pendidik" : "Kartu peserta"}
+              title={isGuru ? "Profil Guru / Pengampu" : "Profil siswa"}
+              lead={
+                isGuru
+                  ? "Identitas akun pendidik dan akses cepat ke perangkat pemantauan kelas Network Explorer."
+                  : "Identitas akun dan ringkasan progres belajarmu di Misi Topologi."
+              }
             />
 
             <div className="mt-6 grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
@@ -56,27 +67,35 @@ export default function ProfilPage() {
                   </span>
                   <div className="min-w-0">
                     <p className="truncate font-display text-title text-ink">
-                      {user?.name ?? "Siswa"}
+                      {user?.name ?? (isGuru ? "Guru" : "Siswa")}
                     </p>
                     <p className="truncate font-mono text-micro text-ink-3">
                       {user?.email ?? "—"}
                     </p>
                     <p className="mt-1 text-micro font-medium text-signal-bright">
-                      Kelas {user?.kelas ?? "—"}
+                      {isGuru ? "Pendidik (Mode Pemantauan)" : `Kelas ${user?.kelas ?? "—"}`}
                     </p>
                   </div>
                 </div>
 
                 <dl className="divide-y divide-border-3">
-                  {[
-                    ["Peran akun", isGuru ? "Pendidik (Guru)" : "Peserta Didik (Siswa)"],
-                    ["Tingkat", `Tingkat ${lv.level}`],
-                    ["Total XP", xp.toLocaleString("id-ID")],
-                    ["Penyelesaian", `${persen}%`],
-                    ["Nilai kuis", quizBest === null ? "Belum dikerjakan" : `${quizBest}/10`],
-                    ["Percobaan kuis", String(quizAttempts)],
-                    ["Mode akun", isDemo ? "Demo lokal" : "Firebase + Google"],
-                  ].map(([k, v]) => (
+                  {(isGuru
+                    ? [
+                        ["Peran akun", "Pendidik (Guru)"],
+                        ["Hak akses", "Pemantauan seluruh murid"],
+                        ["Kode akses guru", teacherAccessCode],
+                        ["Mode akun", isDemo ? "Demo lokal" : "Firebase + Firestore"],
+                      ]
+                    : [
+                        ["Peran akun", "Peserta Didik (Siswa)"],
+                        ["Tingkat", `Tingkat ${lv.level}`],
+                        ["Total XP", xp.toLocaleString("id-ID")],
+                        ["Penyelesaian", `${persen}%`],
+                        ["Nilai kuis", quizBest === null ? "Belum dikerjakan" : `${quizBest}/10`],
+                        ["Percobaan kuis", String(quizAttempts)],
+                        ["Mode akun", isDemo ? "Demo lokal" : "Firebase + Google"],
+                      ]
+                  ).map(([k, v]) => (
                     <div key={k} className="flex items-center justify-between gap-3 px-5 py-2.5">
                       <dt className="text-micro text-ink-3">{k}</dt>
                       <dd className="font-mono text-caption text-ink">{v}</dd>
@@ -94,77 +113,122 @@ export default function ProfilPage() {
                 </div>
               </div>
 
-              {/* Ringkasan */}
-              <div className="space-y-6">
-                <section className="rounded-lg border border-border bg-surface p-5">
-                  <h2 className="font-display text-title">Progres tiap topologi</h2>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                    {TOPO_KEYS.map((key) => {
-                      const keys = [`materi-${key}`, `praktik-${key}`, `simulasi-${key}`];
-                      const n = keys.filter((k) => done[k]).length;
-                      return (
-                        <div key={key} className="rounded-md border border-border bg-canvas/70 p-4">
-                          <p className="text-micro font-medium text-ink-3">{TOPO_LABEL[key]}</p>
-                          <p className="mt-1 font-display text-title text-ink">{n}/3 tahap</p>
-                          <div className="mt-2.5">
-                            <Meter value={n} total={3} label={`Tahap ${TOPO_LABEL[key]}`} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-
-                <section className="overflow-hidden rounded-lg border border-border bg-surface">
-                  <div className="border-b border-border bg-surface-2 px-5 py-3">
-                    <h2 className="font-display text-body font-semibold text-ink">Jejak belajar</h2>
-                  </div>
-                  {kronologi.length === 0 ? (
-                    <p className="p-5 text-caption text-ink-3">Belum ada aktivitas tercatat.</p>
-                  ) : (
-                    <ul className="divide-y divide-border-3">
-                      {kronologi.map((a) => (
-                        <li key={`${a.key}-${a.at}`} className="flex items-center gap-4 px-5 py-3">
-                          <span className="font-mono text-micro text-ink-4">
-                            {a.at
-                              ? new Date(a.at).toLocaleDateString("id-ID", {
-                                  day: "2-digit",
-                                  month: "short",
-                                })
-                              : "—"}
-                          </span>
-                          <span className="flex-1 text-caption text-ink-2">
-                            {a.label ?? activityLabel(a.key)}
-                          </span>
-                          <span className="font-mono text-micro text-ok">+{a.xp} XP</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-
-                <section className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-surface p-5">
-                  <span className="grid h-10 w-10 place-items-center rounded-full border border-border-2 bg-surface-2 text-ink-2">
-                    <IconUser size={18} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-ink">Ingin mengulang dari awal?</p>
-                    <p className="text-caption text-ink-3">
-                      Progres dapat dihapus pada halaman Pengaturan. Tindakan ini tidak dapat
-                      dibatalkan.
+              {/* Konten kanan: khusus Guru vs Siswa */}
+              {isGuru ? (
+                <div className="space-y-6">
+                  <section className="rounded-lg border border-border bg-surface p-6">
+                    <p className="font-mono text-micro text-caution">PANEL PENDIDIK</p>
+                    <h2 className="mt-1 font-display text-title">
+                      Peran Guru: Memantau &amp; Mendampingi, Bukan Mengerjakan Tugas
+                    </h2>
+                    <p className="mt-2 text-caption leading-relaxed text-ink-2">
+                      Akun Guru tidak memiliki beban tugas XP atau kuis siswa. Fokus ruang kerjamu
+                      adalah memantau perkembangan seluruh murid, mendiagnosis soal tersulit,
+                      mencatat tindak lanjut pedagogis, dan menyusun draft bahan ajar.
                     </p>
-                  </div>
-                  <BtnLink href="/pengaturan" tone="ghost" size="sm">
-                    Buka pengaturan
-                  </BtnLink>
-                </section>
-              </div>
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                      <BtnLink href="/guru" tone="primary" className="w-full">
+                        <IconUser size={15} /> Dashboard Murid
+                      </BtnLink>
+                      <BtnLink href="/analitik" tone="signal" className="w-full">
+                        <IconChart size={15} /> Analitik Kelas
+                      </BtnLink>
+                      <BtnLink href="/asisten" tone="ghost" className="w-full">
+                        <IconSparkle size={15} /> Asisten AI Guru
+                      </BtnLink>
+                    </div>
+                  </section>
+
+                  <Callout tone="note" label="Keamanan & Kode Pendaftaran Guru">
+                    <span className="flex items-start gap-2">
+                      <IconShield size={16} className="mt-0.5 shrink-0 text-signal-bright" />
+                      <span>
+                        Bagikan kode akses{" "}
+                        <span className="font-mono font-semibold text-ink">
+                          {teacherAccessCode}
+                        </span>{" "}
+                        hanya kepada guru/pengampu mata pelajaran. Siswa tidak dapat melihat data
+                        murid lain maupun membuka rute <span className="font-mono">/guru</span>.
+                      </span>
+                    </span>
+                  </Callout>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <section className="rounded-lg border border-border bg-surface p-5">
+                    <h2 className="font-display text-title">Progres tiap topologi</h2>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                      {TOPO_KEYS.map((key) => {
+                        const keys = [`materi-${key}`, `praktik-${key}`, `simulasi-${key}`];
+                        const n = keys.filter((k) => done[k]).length;
+                        return (
+                          <div key={key} className="rounded-md border border-border bg-canvas/70 p-4">
+                            <p className="text-micro font-medium text-ink-3">{TOPO_LABEL[key]}</p>
+                            <p className="mt-1 font-display text-title text-ink">{n}/3 tahap</p>
+                            <div className="mt-2.5">
+                              <Meter value={n} total={3} label={`Tahap ${TOPO_LABEL[key]}`} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  <section className="overflow-hidden rounded-lg border border-border bg-surface">
+                    <div className="border-b border-border bg-surface-2 px-5 py-3">
+                      <h2 className="font-display text-body font-semibold text-ink">Jejak belajar</h2>
+                    </div>
+                    {kronologi.length === 0 ? (
+                      <p className="p-5 text-caption text-ink-3">Belum ada aktivitas tercatat.</p>
+                    ) : (
+                      <ul className="divide-y divide-border-3">
+                        {kronologi.map((a) => (
+                          <li key={`${a.key}-${a.at}`} className="flex items-center gap-4 px-5 py-3">
+                            <span className="font-mono text-micro text-ink-4">
+                              {a.at
+                                ? new Date(a.at).toLocaleDateString("id-ID", {
+                                    day: "2-digit",
+                                    month: "short",
+                                  })
+                                : "—"}
+                            </span>
+                            <span className="flex-1 text-caption text-ink-2">
+                              {a.label ?? activityLabel(a.key)}
+                            </span>
+                            <span className="font-mono text-micro text-ok">+{a.xp} XP</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+
+                  <section className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-surface p-5">
+                    <span className="grid h-10 w-10 place-items-center rounded-full border border-border-2 bg-surface-2 text-ink-2">
+                      <IconUser size={18} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-ink">Ingin mengulang dari awal?</p>
+                      <p className="text-caption text-ink-3">
+                        Progres dapat dihapus pada halaman Pengaturan. Tindakan ini tidak dapat
+                        dibatalkan.
+                      </p>
+                    </div>
+                    <BtnLink href="/pengaturan" tone="ghost" size="sm">
+                      Buka pengaturan
+                    </BtnLink>
+                  </section>
+                </div>
+              )}
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <StatusDot tone="blue" label="Data tersimpan di akunmu" />
+              <StatusDot
+                tone={isGuru ? "amber" : "blue"}
+                label={isGuru ? "Mode Pemantauan Guru aktif" : "Data tersimpan di akunmu"}
+              />
               {isDemo && <Badge tone="amber">Mode demo (lokal)</Badge>}
-              <IconTrophy size={14} className="text-ink-4" />
+              {!isGuru && <IconTrophy size={14} className="text-ink-4" />}
             </div>
           </Container>
         </main>

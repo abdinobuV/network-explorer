@@ -217,6 +217,7 @@ export interface CloudProg {
   quizAttempts?: number;
   activity?: ActivityEntry[];
   analytics?: unknown;
+  teacherNotes?: Record<string, { note: string; updatedAt: number }>;
   name?: string;
   email?: string;
   kelas?: string;
