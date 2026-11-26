@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
+import { NextStepFooter } from "@/components/journey-stepper";
 import {
   Badge,
   Btn,
@@ -878,7 +879,27 @@ export default function AnalitikPage() {
               </div>
             )}
 
-            <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-micro text-ink-3">
+            <NextStepFooter
+              prev={{ label: "Kuis Akhir", href: "/kuis" }}
+              next={
+                certification.eligible
+                  ? {
+                      label: "Lanjut ke Tahap 5: Cetak Sertifikat Kompetensi",
+                      href: "/cetak",
+                      description:
+                        "Seluruh syarat kelulusan telah terpenuhi. Cetak Sertifikat Kompetensi & Rapor Prosesmu.",
+                    }
+                  : {
+                      label: "Lanjut ke Tahap 4b: Asisten Belajar AI & Bukti Proses",
+                      href: "/asisten",
+                      description:
+                        "Perkuat konsep yang masih lemah, latih deteksi halusinasi AI, dan simpan refleksi proses untuk membuka sertifikat.",
+                    }
+              }
+              hint="TAHAP 4 · ANALITIK → PENGUATAN & KELULUSAN"
+            />
+
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-micro text-ink-3">
               <span className="inline-flex items-center gap-2">
                 <IconChart size={14} className="text-signal-bright" />
                 Learning Data → Learning Analytics → AI → Personalized Learning

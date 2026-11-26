@@ -2,6 +2,7 @@
 
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
+import { NextStepFooter } from "@/components/journey-stepper";
 import { Container, PageHeader, Callout, BtnLink } from "@/components/ui";
 import { TopoMini } from "@/components/topo";
 import { TOPOLOGI } from "@/lib/data";
@@ -170,6 +171,17 @@ export default function PerbandinganPage() {
                 </Callout>
               </div>
             </section>
+
+            <NextStepFooter
+              prev={{ label: "Sandbox Star", href: "/sandbox/star" }}
+              next={{
+                label: "Lanjut ke Tahap 3: Kuis Akhir",
+                href: "/kuis",
+                description:
+                  "Setelah membandingkan Bus, Ring, dan Star, uji pemahamanmu di 10 soal studi kasus.",
+              }}
+              hint="TAHAP 2 SELESAI → LANJUT KE TAHAP 3 (EVALUASI AKHIR)"
+            />
           </Container>
         </main>
         <Footer help />

@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
+import { ModuleStepBar, NextStepFooter } from "@/components/journey-stepper";
+import { getModuleContinuation } from "@/lib/learning-path";
 import { Container, PageHeader, Callout, BtnLink, Badge } from "@/components/ui";
 import CableBoard from "@/components/cable-board";
 import { TOPOLOGI } from "@/lib/data";
@@ -24,6 +25,7 @@ export default function PraktikPage() {
   const { trackPracticeEvent } = useLearningAnalytics();
   const [selesai, setSelesai] = useState(done[praktikKey(key)] ?? false);
   const idx = Object.keys(TOPOLOGI).indexOf(key) + 1;
+  const cont = getModuleContinuation(key, "praktik");
 
   function handleComplete() {
     if (selesai) return;
@@ -42,6 +44,7 @@ export default function PraktikPage() {
         <Navbar />
         <main id="konten-utama">
           <Container width="wide" className="py-8">
+            <ModuleStepBar topo={key} stage="praktik" />
             <PageHeader
               chapter={`Praktik ${idx} · ${spec.subtitle}`}
               title={`Lembar praktik ${info.title}`}
@@ -92,11 +95,11 @@ export default function PraktikPage() {
               </div>
             </div>
 
-            <p className="mt-6">
-              <Link href="/misi" className="text-caption font-medium text-signal-bright hover:underline">
-                Kembali ke peta misi
-              </Link>
-            </p>
+            <NextStepFooter
+              prev={cont.prev}
+              next={cont.next}
+              hint={`MODUL ${cont.moduleNumber} · LANGKAH 2 → LANJUT KE LANGKAH 3 (SANDBOX)`}
+            />
           </Container>
         </main>
         <Footer help />

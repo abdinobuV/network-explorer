@@ -4,8 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
-import { useAuth, useProg } from "@/lib/store";
+import { useAuth, useLearningAnalytics, useProg } from "@/lib/store";
 import { levelProgress } from "@/lib/progression";
+import { getGuidedNextAction } from "@/lib/learning-path";
 import {
   getServerSoundEnabled,
   isSoundEnabled,
@@ -13,7 +14,7 @@ import {
   sfx,
   subscribeSound,
 } from "@/lib/sound";
-import { IconCloud, IconVolume, IconVolumeOff } from "@/components/icons";
+import { IconArrow, IconCloud, IconVolume, IconVolumeOff } from "@/components/icons";
 import { Container, cx } from "@/components/ui";
 
 /* ------------------------------------------------------------------ Logo */
@@ -69,27 +70,33 @@ function SoundToggle() {
 /* ------------------------------------------------------------------ Navigasi */
 
 const MAIN_NAV = [
-  { label: "Peta misi", href: "/misi" },
-  { label: "Sandbox", href: "/sandbox/star", match: "/sandbox" },
-  { label: "Perbandingan", href: "/perbandingan" },
-  { label: "Kuis akhir", href: "/kuis" },
-  { label: "Analitik", href: "/analitik" },
-  { label: "Asisten AI", href: "/asisten" },
-  { label: "Progres", href: "/progres" },
+  { step: "1", label: "Alur belajar", href: "/misi", matches: ["/misi", "/materi", "/praktik"] },
+  { step: "2", label: "Kuis", href: "/kuis", matches: ["/kuis"] },
+  { step: "3", label: "Analitik", href: "/analitik", matches: ["/analitik"] },
+  { step: "4", label: "Asisten AI", href: "/asisten", matches: ["/asisten"] },
+  { step: "5", label: "Sertifikat", href: "/cetak", matches: ["/cetak"] },
 ];
 
 const UTIL_NAV = [
-  { label: "Panduan", href: "/panduan" },
+  { label: "Sandbox", href: "/sandbox/star", match: "/sandbox" },
+  { label: "Perbandingan", href: "/perbandingan" },
+  { label: "Progres", href: "/progres" },
   { label: "Glosarium", href: "/glosarium" },
-  { label: "Sertifikat & rapor", href: "/cetak" },
+  { label: "Panduan", href: "/panduan" },
   { label: "Pengaturan", href: "/pengaturan" },
 ];
 
 export function Navbar({ pub = false }: { pub?: boolean }) {
   const path = usePathname();
   const { user } = useAuth();
-  const { xp, cloudOn, syncState, syncError } = useProg();
+  const { xp, done, activity, quizBest, quizAttempts, cloudOn, syncState, syncError } = useProg();
+  const { data: analytics, certification } = useLearningAnalytics();
   const lv = levelProgress(xp);
+  const nextStep = getGuidedNextAction(
+    { activity, done, quizBest, quizAttempts },
+    analytics,
+    certification,
+  );
 
   if (pub) {
     return (
@@ -139,22 +146,29 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
         <div className="flex items-center gap-6">
           <Logo />
 
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigasi utama">
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigasi utama berurutan">
             {MAIN_NAV.map((item) => {
-              const prefix = item.match ?? item.href;
-              const active = path === item.href || path.startsWith(prefix + "/");
+              const active = item.matches.some((m) => path === m || path.startsWith(m + "/"));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cx(
-                    "rounded-md px-3 py-1.5 text-caption font-medium transition-colors",
+                    "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-caption font-medium transition-colors",
                     active
                       ? "bg-signal-tint text-signal-bright"
                       : "text-ink-2 hover:bg-surface hover:text-ink",
                   )}
                 >
+                  <span
+                    className={cx(
+                      "grid h-4 w-4 place-items-center rounded-full font-mono text-[10px]",
+                      active ? "bg-signal text-ok-ink font-bold" : "bg-surface-2 text-ink-3",
+                    )}
+                  >
+                    {item.step}
+                  </span>
                   {item.label}
                 </Link>
               );
@@ -216,10 +230,9 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
 
       <div className="border-t border-border-3 bg-surface/80">
         <Container width="page" className="flex items-center gap-1 overflow-x-auto py-1.5">
-          {/* Tampilkan rute utama di layar < lg agar tetap 1 klik di mobile/tablet */}
+          {/* Tampilkan 5 tahap utama di layar < lg agar tetap 1 klik di mobile/tablet */}
           {MAIN_NAV.map((item) => {
-            const prefix = item.match ?? item.href;
-            const active = path === item.href || path.startsWith(prefix + "/");
+            const active = item.matches.some((m) => path === m || path.startsWith(m + "/"));
             return (
               <Link
                 key={`mob-${item.href}`}
@@ -232,15 +245,19 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
                     : "text-ink-2 hover:text-ink",
                 )}
               >
-                {item.label}
+                {item.step}. {item.label}
               </Link>
             );
           })}
 
           <span className="mx-1 h-3.5 w-px shrink-0 bg-border lg:hidden" aria-hidden="true" />
+          <span className="mr-1 hidden shrink-0 font-mono text-[11px] text-ink-4 lg:inline">
+            Alat &amp; Referensi:
+          </span>
 
           {UTIL_NAV.map((item) => {
-            const active = path === item.href;
+            const prefix = item.match ?? item.href;
+            const active = path === item.href || path.startsWith(prefix + "/");
             return (
               <Link
                 key={item.href}
@@ -248,7 +265,6 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
                 aria-current={active ? "page" : undefined}
                 className={cx(
                   "shrink-0 rounded-xs px-2.5 py-1 text-micro font-medium transition-colors",
-                  item.href === "/pengaturan" && "lg:ml-auto",
                   active
                     ? "bg-surface-3 text-ink"
                     : "text-ink-3 hover:bg-surface-2 hover:text-ink",
@@ -258,6 +274,15 @@ export function Navbar({ pub = false }: { pub?: boolean }) {
               </Link>
             );
           })}
+
+          {/* Penunjuk langkah berikutnya yang selalu terlihat */}
+          <Link
+            href={nextStep.href}
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-xs border border-ok/35 bg-ok-tint/80 px-2.5 py-1 font-mono text-[11px] font-medium text-ok transition-colors hover:border-ok"
+          >
+            <span>Lanjut: {nextStep.cta}</span>
+            <IconArrow size={11} />
+          </Link>
         </Container>
       </div>
     </header>

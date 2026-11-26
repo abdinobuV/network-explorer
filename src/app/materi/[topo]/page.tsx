@@ -4,6 +4,8 @@ import { notFound, useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
+import { ModuleStepBar, NextStepFooter } from "@/components/journey-stepper";
+import { getModuleContinuation } from "@/lib/learning-path";
 import { Container, PageHeader, Callout, BtnLink, Badge, Figure, Textarea, Btn, cx } from "@/components/ui";
 import { TopoDiagram } from "@/components/topo";
 import VideoBlock from "@/components/video-block";
@@ -70,6 +72,7 @@ export default function MateriPage() {
   }
 
   const sudahDibaca = done[materiKey(info.key)];
+  const cont = getModuleContinuation(info.key, "materi");
 
   return (
     <RequireAuth>
@@ -77,6 +80,7 @@ export default function MateriPage() {
         <Navbar />
         <main id="konten-utama">
           <Container width="page" className="py-10">
+            <ModuleStepBar topo={info.key} stage="materi" />
             <PageHeader
               chapter={`Level ${idxBab} · Studi topologi dasar`}
               title={info.title}
@@ -337,6 +341,12 @@ export default function MateriPage() {
                 </div>
               </aside>
             </div>
+
+            <NextStepFooter
+              prev={cont.prev}
+              next={cont.next}
+              hint={`MODUL ${cont.moduleNumber} · LANGKAH 1 SELESAI → LANJUT KE LANGKAH 2`}
+            />
           </Container>
         </main>
         <Footer />

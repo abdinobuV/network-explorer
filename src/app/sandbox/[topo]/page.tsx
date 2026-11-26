@@ -6,6 +6,8 @@ import { useState } from "react";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
 import SandboxBench from "@/components/sandbox-bench";
+import { ModuleStepBar, NextStepFooter } from "@/components/journey-stepper";
+import { getModuleContinuation } from "@/lib/learning-path";
 import { Container, PageHeader, Badge, cx } from "@/components/ui";
 import { TOPOLOGI, type TopoKey } from "@/lib/data";
 import { TOPO_SPECS, isTopoKey } from "@/lib/topology-model";
@@ -25,6 +27,7 @@ export default function SandboxPage() {
   const { markDone, done } = useProg();
   const { trackSimulationEvent } = useLearningAnalytics();
   const [sudahSimulasi, setSudahSimulasi] = useState(done[simulasiKey(key)] ?? false);
+  const cont = getModuleContinuation(key, "simulasi");
 
   function handleSimComplete() {
     if (sudahSimulasi) return;
@@ -43,6 +46,7 @@ export default function SandboxPage() {
         <Navbar />
         <main id="konten-utama">
           <Container width="wide" className="py-8">
+            <ModuleStepBar topo={key} stage="simulasi" />
             <PageHeader
               chapter={`Sandbox simulasi interaktif · ${spec.subtitle}`}
               title={`Uji jaringan ${info.title}`}
@@ -84,14 +88,15 @@ export default function SandboxPage() {
               onTelemetry={(ev) => trackSimulationEvent(key, ev)}
             />
 
-            <p className="mt-8">
-              <Link
-                href={`/praktik/${key}`}
-                className="text-caption font-medium text-signal-bright hover:underline"
-              >
-                Kembali ke lembar praktik
-              </Link>
-            </p>
+            <NextStepFooter
+              prev={cont.prev}
+              next={cont.next}
+              hint={
+                cont.moduleNumber < 3
+                  ? `MODUL ${cont.moduleNumber} SELESAI → LANJUT KE MODUL ${cont.moduleNumber + 1}`
+                  : "KETIGA MODUL SELESAI → LANJUT KE TAHAP 3 (PERBANDINGAN & KUIS AKHIR)"
+              }
+            />
           </Container>
         </main>
         <Footer help />

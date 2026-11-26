@@ -5,6 +5,7 @@ import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Navbar, Footer } from "@/components/chrome";
 import RequireAuth from "@/components/require-auth";
+import { NextStepFooter } from "@/components/journey-stepper";
 import {
   Badge,
   Btn,
@@ -901,7 +902,18 @@ function AsistenInner() {
             </div>
           )}
 
-          <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-micro text-ink-3">
+          <NextStepFooter
+            prev={{ label: "Dashboard Analitik", href: "/analitik" }}
+            next={{
+              label: "Lanjut ke Tahap 5 (Akhir): Sertifikat & Rapor Proses",
+              href: "/cetak",
+              description:
+                "Cek 5 syarat kelulusan, tinjau bukti proses & transparansi AI, lalu cetak Sertifikat Kompetensi Digital.",
+            }}
+            hint="TAHAP 4 SELESAI → TAHAP 5 (KELULUSAN)"
+          />
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6 text-micro text-ink-3">
             <span className="inline-flex items-center gap-2">
               <IconInfo size={14} className="text-signal-bright" />
               Prinsip TPACK: Content (Topologi) + Pedagogy (Guided Inquiry) + Technology (AI &
